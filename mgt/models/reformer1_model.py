@@ -6,8 +6,8 @@ import numpy as np
 import torch
 import time
 
-from reformer_pytorch import ReformerLM
-from reformer_pytorch.generative_tools import TrainingWrapper
+from flash_pytorch import FLASHTransformer
+
 
 from mgt.datamanagers.data_manager import Dictionary
 from mgt.models import utils
@@ -107,23 +107,19 @@ class ReformerModel(object):
         return sample.cpu().detach().numpy()[0]
 
     def create_model(self):
-        model = ReformerLM(
-            num_tokens=self.dictionary.size(),
-            dim=self.dim,
-            depth=self.depth,
-            max_seq_len=self.max_sequence_length,
-            lsh_dropout=self.dropout,
-            ff_dropout=self.dropout,
-            causal=True,
-            full_attn_thres=self.full_attention_threshold,
-            heads=self.heads,
-            reverse_thres=self.max_sequence_length
-        )
-
-        # 0 is used for padding and no loss to be calculated on it
-        training_wrapper = TrainingWrapper(model, ignore_index=0, pad_value=0).to(utils.get_device())
-
-        return training_wrapper
+        model = FLASHTransformer(
+            num_tokens = self.dictionary.size(),          
+            dim = self.dim,                 
+            depth = self.depth,                
+            causal = True,             
+            group_size = 256,            
+            query_key_dim = 128,        
+            expansion_factor = 2.,       
+            norm_type = 'scalenorm',  
+            shift_tokens = True  
+        ).to(utils.get_device())
+        
+        return model
 
     def create_optimizer(self):
         return torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
