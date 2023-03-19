@@ -6,8 +6,7 @@ import time
 import torch
 import numpy as np
 
-from perceiver_ar_pytorch import PerceiverAR
-from perceiver_ar_pytorch.autoregressive_wrapper import AutoregressiveWrapper
+from block_recurrent_transformer_pytorch import BlockRecurrentTransformer
 
 from mgt.datamanagers.data_manager import Dictionary
 from mgt.models import utils
@@ -123,15 +122,13 @@ class PerceiverArModel(object):
         return sample.cpu().detach().numpy()[0]
 
     def create_model(self):
-        model = AutoregressiveWrapper(PerceiverAR(
+        model = AutoregressiveWrapper(BlockRecurrentTransformer(
             num_tokens=self.dictionary.size(),
             dim=self.dim,
             depth=self.depth,
             dim_head=self.dim_head,
             heads=self.heads,
             max_seq_len=self.max_sequence_length,
-            cross_attn_seq_len=self.cross_attn_seq_len,
-            cross_attn_dropout=self.cross_attn_dropout,
         ),
             pad_value=0
         ).to(utils.get_device())
