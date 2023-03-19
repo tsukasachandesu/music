@@ -122,15 +122,13 @@ class PerceiverArModel(object):
         return sample.cpu().detach().numpy()[0]
 
     def create_model(self):
-        model = AutoregressiveWrapper(BlockRecurrentTransformer(
+        model = BlockRecurrentTransformer(
             num_tokens=self.dictionary.size(),
             dim=self.dim,
             depth=self.depth,
             dim_head=self.dim_head,
             heads=self.heads,
             max_seq_len=self.max_sequence_length,
-        ),
-            pad_value=0
         ).to(utils.get_device())
 
         return model
