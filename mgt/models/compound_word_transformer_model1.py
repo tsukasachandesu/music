@@ -7,6 +7,10 @@ import numpy as np
 import torch
 from x_transformers import Decoder
 
+from perceiver_ar_pytorch import PerceiverAR
+from perceiver_ar_pytorch.autoregressive_wrapper import 
+
+
 from mgt.models import utils
 from mgt.models.compound_word_transformer.compound_word_autoregressive_wrapper import CompoundWordAutoregressiveWrapper
 from mgt.models.compound_word_transformer.compound_word_transformer_utils import COMPOUND_WORD_BAR, pad, \
@@ -158,17 +162,18 @@ class CompoundWordTransformerModel(object):
 
     def create_model(self):
         model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
-            num_tokens=self.num_tokens,
-            emb_sizes=self.emb_sizes,
-            max_seq_len=self.max_sequence_length,
-            attn_layers=Decoder(
+            emb_sizes=self.emb_sizes
+            PerceiverAR(
+                num_tokens=self.num_tokens,
                 dim=self.dim,
                 depth=self.depth,
+                dim_head=self.dim_head,
                 heads=self.heads,
-                attn_dropout=self.dropout,  # dropout post-attention
-                ff_dropout=self.dropout,  # feedforward dropout
-                rotary_pos_emb=True
-            )
+                max_seq_len=self.max_sequence_length,
+                cross_attn_seq_len=3072,
+                cross_attn_dropout=0.5,
+            ),
+            pad_value=0      
         )).to(get_device())
 
         return model
