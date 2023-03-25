@@ -76,10 +76,10 @@ class RemiDataManager(DataManager):
                         
                         events = self.data_extractor.extract_events(path, transposition_step)
                         words = self.efficient_remi_converter.convert_to_efficient_remi(events)
-                        total1 = [0,0.2,0.4,0.6,0.8,1,1.2,1.4]
-                        diamet1 = [0,0.2,0.4,0.6,0.8,1,1.2,1.4]
-                        centroid1 = [0,1,2,2.5,3,3.5,4,5]
-                        
+                        total1 = [0,0.2,0.4,0.6,0.8,1,1.2,9]
+                        diamet1 = [0,0.2,0.4,0.6,0.8,1,1.2,9]
+                        centroid1 = [0,1,2,2.5,3,3.5,4,9]
+                        print(resultas[2])
                         for (i,j) in enumerate(words):
                           if "Bar" in j:
                             words[i+1] = "total_" +  str(idx_of_the_nearest(total1,resultas[2][i]))
