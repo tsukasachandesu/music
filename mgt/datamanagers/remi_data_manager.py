@@ -6,7 +6,7 @@ from mgt.datamanagers.remi.efficient_remi_config import EfficientRemiConfig
 from mgt.datamanagers.remi.efficient_remi_converter import EfficientRemiConverter
 from mgt.datamanagers.remi.to_midi_mapper import ToMidiMapper
 from mgt.datamanagers.a import tonality_cal_lead_job
-
+import numpy as np
 
 defaults = {
     'use_chords': True,
@@ -72,13 +72,16 @@ class RemiDataManager(DataManager):
                         key = tonality.split()[0].upper()
                         mode = tonality.split()[1]
                         print(f"tonality = {tonality}, note_shift = {note_shift}")
+                        print(resultas)
                         
                         events = self.data_extractor.extract_events(path, transposition_step)
                         words = self.efficient_remi_converter.convert_to_efficient_remi(events)
                         
                         for (i,j) in enumerate(words):
                           if "Bar" in j:
-                            words[i+1] = "1"
+                            words[i+1] = "total_" +  idx_of_the_nearest(resultas[2][i])
+                            words[i+1] = "daiamet_" +  idx_of_the_nearest(resultas[3][i])
+                            words[i+1] = "centroid_" +  idx_of_the_nearest(resultas[4][i])
                         print(words)
                         
                         data = self.data_extractor.words_to_data(words)
@@ -99,3 +102,8 @@ class RemiDataManager(DataManager):
             data = self.data_extractor.words_to_data(words)
 
         return MidiToolkitWrapper(self.to_midi_mapper.to_midi(data))
+    
+
+    def idx_of_the_nearest(data, value):
+        idx = np.argmin(np.abs(np.array(data) - value))
+        return idx
