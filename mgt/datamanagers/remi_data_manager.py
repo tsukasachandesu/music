@@ -77,7 +77,7 @@ class RemiDataManager(DataManager):
                         words = self.efficient_remi_converter.convert_to_efficient_remi(events)
                         
                         total1 = [0,0.2,0.4,0.6,0.8,1,1.2,19]
-                        print(len(resultas[1][i]))
+                        print(len(resultas[2]))
 
                         for (i,j) in enumerate(words):
                           if "Bar" in j:     
