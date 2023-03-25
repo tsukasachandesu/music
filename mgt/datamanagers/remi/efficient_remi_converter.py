@@ -41,7 +41,7 @@ class EfficientRemiConverter(object):
             if event.name == 'Bar':
                 items.append(RemiItem(type=RemiEventType.BAR, original_events=[event]))
             elif event.name == 'Chord':
-                original_events = [event]]
+                original_events = [event]
                 items.append(RemiItem(type=RemiEventType.TEMPO, original_events=original_events))
             elif event.name == 'Position' and len(events) > index + 5 and events[index + 1].name == 'Instrument' and events[index + 3].name == 'Note Name':
                 position_event = event
