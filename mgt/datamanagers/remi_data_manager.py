@@ -89,15 +89,15 @@ class RemiDataManager(DataManager):
                         data = self.data_extractor.words_to_data(words)
                         print(f"Parsed {len(data)} words from midi as efficient REMI.")
                         training_data.append(data)
-                        
-                        midi = to_midi1(data)
-                        midi.save("result.midi")
                         def to_midi1(self, data) -> MidiWrapper:
                             if self.efficient_remi_config.enabled:
                                 efficient_words = list(map(lambda x: self.dictionary.data_to_word(x), data))
                                 words = self.efficient_remi_converter.convert_to_normal_remi(efficient_words)
                                 data = self.data_extractor.words_to_data(words)
-                            return MidiToolkitWrapper(self.to_midi_mapper.to_midi(data))
+                            return MidiToolkitWrapper(self.to_midi_mapper.to_midi(data))   
+                        midi = to_midi1(data)
+                        midi.save("result.midi")
+
                                 
                     else:
                         data = self.data_extractor.extract_data(path, transposition_step)
