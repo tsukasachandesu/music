@@ -6,6 +6,7 @@ from mgt.datamanagers.remi.efficient_remi_config import EfficientRemiConfig
 from mgt.datamanagers.remi.efficient_remi_converter import EfficientRemiConverter
 from mgt.datamanagers.remi.to_midi_mapper import ToMidiMapper
 from mgt.datamanagers.a import tonality_cal_lead_job
+from mgt.datamanagers.remi_data_manager import RemiDataManager
 import numpy as np
 
 defaults = {
@@ -108,8 +109,4 @@ class RemiDataManager(DataManager):
             data = self.data_extractor.words_to_data(words)
 
         return MidiToolkitWrapper(self.to_midi_mapper.to_midi(data))
-    
-
-    def idx_of_the_nearest(data, value):
-        idx = np.argmin(np.abs(np.array(data) - value))
-        return idx
+   
