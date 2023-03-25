@@ -90,7 +90,7 @@ class RemiDataManager(DataManager):
                         print(f"Parsed {len(data)} words from midi as efficient REMI.")
                         training_data.append(data)
                         
-                        midi = datamanager.to_midi(data)
+                        midi = to_midi(data)
                         midi.save("result.midi")
 
                     else:
