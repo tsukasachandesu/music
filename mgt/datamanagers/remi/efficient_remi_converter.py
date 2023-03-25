@@ -44,7 +44,7 @@ class EfficientRemiConverter(object):
                 original_events = [event, events[index + 1], events[index + 2]]
                 print(RemiItem(type=RemiEventType.TEMPO, original_events=original_events))
 
-                items.append(RemiItem(type=RemiEventType.TEMPO, position=position, original_events=original_events))
+                items.append(RemiItem(type=RemiEventType.TEMPO, original_events=original_events))
             elif event.name == 'Position' and len(events) > index + 5 and events[index + 1].name == 'Instrument' and events[index + 3].name == 'Note Name':
                 position_event = event
                 instrument_event = events[index + 1]
