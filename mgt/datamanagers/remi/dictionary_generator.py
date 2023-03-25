@@ -69,9 +69,9 @@ class DictionaryGenerator(object):
 
         for i in range(8):
             append_to_dictionary(f"total_{i}")
-        for i in range(8):
+        for i in range(15):
             append_to_dictionary(f"diamet_{i}")
-        for i in range(8):
+        for i in range(17):
             append_to_dictionary(f"centroid_{i}")
         
         
