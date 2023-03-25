@@ -39,10 +39,8 @@ class EfficientRemiConverter(object):
         for index, event in enumerate(events):
          
             if event.name == 'Bar':
-                items.append(RemiItem(type=RemiEventType.BAR, original_events=[event]))
-            elif event.name == 'Chord':
-                original_events = [events[index + 2]]
-                items.append(RemiItem(type=RemiEventType.TEMPO, original_events=original_events))
+                items.append(RemiItem(type=RemiEventType.BAR, original_events=[event],events[index + 1], events[index + 2]))
+
             elif event.name == 'Position' and len(events) > index + 2 and events[index + 1].name == 'Tempo Class':
                 original_events = [event, events[index + 1], events[index + 2]]
                 position = int(event.value.partition("/")[0])
