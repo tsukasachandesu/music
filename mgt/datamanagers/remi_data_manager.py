@@ -82,22 +82,15 @@ class RemiDataManager(DataManager):
                         resultas = tonality_cal_lead_job("/content/music-generation-toolbox/a.midi")
                         if len(resultas) == 0:
                             return None
-                        tonality, note_shift = resultas[0], resultas[1]
-                        key = tonality.split()[0].upper()
-                        mode = tonality.split()[1]
-                        print(f"tonality = {tonality}, note_shift = {note_shift}")
                         
                         total1 = [0,0.2,0.4,0.6,0.8,1,1.2,2]
                         diamet1 = [0,0.2,0.4,0.6,0.8,1,1.2,2]
                         centroid1 = [0,1,2,2.5,3,3.5,4,5]
                         
-                        print(len(resultas[2]))
                         numi = 0
-                        print("aa")
                         for (i,j) in enumerate(words):
                           if "Bar" in j:
                             numi=numi+1
-                        print(numi)
                         numin = 0
                         for (i,j) in enumerate(words):
                           if "Bar" in j: 
@@ -105,7 +98,6 @@ class RemiDataManager(DataManager):
                             words[i+2] = "diamet_" +  str(np.argmin(np.abs(np.array(total1) - resultas[3][numin]))) 
                             words[i+3] = "centroid_" +  str(np.argmin(np.abs(np.array(total1) - resultas[4][numin])))                            
                             numin = numin + 1
-                        print(words)
                         data = self.data_extractor.words_to_data(words)
                         
                         training_data.append(data)
