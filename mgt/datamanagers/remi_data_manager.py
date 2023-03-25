@@ -88,6 +88,9 @@ class RemiDataManager(DataManager):
                         print(f"tonality = {tonality}, note_shift = {note_shift}")
                         
                         total1 = [0,0.2,0.4,0.6,0.8,1,1.2,2]
+                        diamet1 = [0,0.2,0.4,0.6,0.8,1,1.2,2]
+                        centroid1 = [0,1,2,2.5,3,3.5,4,5]
+                        
                         print(len(resultas[2]))
                         numi = 0
                         print("aa")
@@ -99,6 +102,8 @@ class RemiDataManager(DataManager):
                         for (i,j) in enumerate(words):
                           if "Bar" in j: 
                             words[i+1] = "total_" +  str(np.argmin(np.abs(np.array(total1) - resultas[2][numin])))
+                            words[i+2] = "diamet_" +  str(np.argmin(np.abs(np.array(total1) - resultas[3][numin]))) 
+                            words[i+3] = "centroid_" +  str(np.argmin(np.abs(np.array(total1) - resultas[4][numin])))                            
                             numin = numin + 1
                         print(words)                          
                         training_data.append(data)
