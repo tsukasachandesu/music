@@ -95,12 +95,11 @@ class RemiDataManager(DataManager):
                           if "Bar" in j:
                             numi=numi+1
                         print(numi)
+                        numin = 0
                         for (i,j) in enumerate(words):
                           if "Bar" in j: 
-                            print(i)
-                            print(j)
-                            print(resultas[2][i])
-                            words[i+1] = "total_" +  str(np.argmin(np.abs(np.array(total1) - resultas[2][i])))
+                            words[i+1] = "total_" +  str(np.argmin(np.abs(np.array(total1) - resultas[2][numin])))
+                            numin = numin + 1
                         print(words)                          
                         training_data.append(data)
                     else:
