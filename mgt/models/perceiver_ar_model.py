@@ -6,7 +6,7 @@ import time
 import torch
 import numpy as np
 
-from block_recurrent_transformer_pytorch import BlockRecurrentTransformer
+from block_recurrent_transformer_pytorch import BlockRecurrentTransformer ,RecurrentTrainerWrapper
 
 from mgt.datamanagers.data_manager import Dictionary
 from mgt.models import utils
