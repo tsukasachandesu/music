@@ -916,16 +916,13 @@ def tonality_cal_lead_job(midi_path):
         '', window_size=-1, key_name=[result_key])
 
     total_tension, diameters, centroid_diff, key_name, key_change_time, key_change_bar, key_change_name, new_output_foler = result
-    print(total_tension)
-    print(diameters)
-    print(centroid_diff)
 
     if key_name == None:
         return []
     else:
         # cal key
         _, _, note_shift = cal_key(piano_roll, [key_name], end_ratio=0.5)
-        return [key_name, note_shift]
+        return [key_name, note_shift, total_tension, diameters, centroid_diff]
 
 
 
