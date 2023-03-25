@@ -36,7 +36,7 @@ class EfficientRemiConverter(object):
 
     def convert_to_remi_items(self, events):
         items = []
-        print(events)
+
         for index, event in enumerate(events):
             
          
