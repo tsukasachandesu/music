@@ -844,8 +844,6 @@ def tonality_cal_lead_job(midi_path):
         file_name, piano_roll, sixteenth_time, beat_time, beat_indices, down_beat_time, down_beat_indices,
         output_folder='', window_size=-1, key_name=all_key_names)
     
-    print(result)
-
     total_tension, diameters, centroid_diff, key_name, key_change_time, key_change_bar, key_change_name, new_output_foler = result
 
     # ----------------------------------------------------------------------------------------------------------
@@ -918,7 +916,9 @@ def tonality_cal_lead_job(midi_path):
         '', window_size=-1, key_name=[result_key])
 
     total_tension, diameters, centroid_diff, key_name, key_change_time, key_change_bar, key_change_name, new_output_foler = result
-    print(result)
+    print(total_tension)
+    print(diameters)
+    print(centroid_diff)
 
     if key_name == None:
         return []
