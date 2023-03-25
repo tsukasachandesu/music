@@ -21,7 +21,7 @@ class DataExtractor(object):
     ):
         self.dictionary = dictionary
         self.map_tracks_to_instruments = map_tracks_to_instruments
-        self.use_chords = 1
+        self.use_chords = True
         self.use_note_name = use_note_name
         self.instrument_mapping = instrument_mapping
 
@@ -52,6 +52,7 @@ class DataExtractor(object):
         note_items = self.quantize_items(note_items)
         max_time = note_items[-1].end
         if self.use_chords:
+            print("ugoitemasu")
             chord_items = self.extract_chords(note_items)
             items = chord_items + tempo_items + note_items
         else:
