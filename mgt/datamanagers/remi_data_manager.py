@@ -78,11 +78,12 @@ class RemiDataManager(DataManager):
                         
                         total1 = [0,0.2,0.4,0.6,0.8,1,1.2,19]
                         print(len(resultas[2]))
-
+                        numi = 0
+                        
                         for (i,j) in enumerate(words):
-                          if "Bar" in j:     
-                            words[i+1] = "total_" +  str(np.argmin(np.abs(np.array(total1) - resultas[2][i])))
-                        print(words)  
+                          if "Bar" in j:
+                            numi=numi+1
+                          print(numi)
 
                         data = self.data_extractor.words_to_data(words)
                         print(f"Parsed {len(data)} words from midi as efficient REMI.")
