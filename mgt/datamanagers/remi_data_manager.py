@@ -87,14 +87,18 @@ class RemiDataManager(DataManager):
                         mode = tonality.split()[1]
                         print(f"tonality = {tonality}, note_shift = {note_shift}")
                         
-                        total1 = [0,0.2,0.4,0.6,0.8,1,1.2,19]
+                        total1 = [0,0.2,0.4,0.6,0.8,1,1.2,2]
                         print(len(resultas[2]))
                         numi = 0
                         print("aa")
                         for (i,j) in enumerate(words):
                           if "Bar" in j:
                             numi=numi+1
-                        print(numi)                        
+                        print(numi)
+                        for (i,j) in enumerate(words):
+                          if "Bar" in j: 
+                            words[i+1] = "total_" +  str(np.argmin(np.abs(np.array(total1) - resultas[2][i])))
+                        print(words)                          
                         training_data.append(data)
                     else:
                         data = self.data_extractor.extract_data(path, transposition_step)
