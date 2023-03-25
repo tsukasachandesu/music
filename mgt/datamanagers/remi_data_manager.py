@@ -84,10 +84,15 @@ class RemiDataManager(DataManager):
                           if "Bar" in j:
                             numi=numi+1
                         print(numi)
+                       
 
                         data = self.data_extractor.words_to_data(words)
                         print(f"Parsed {len(data)} words from midi as efficient REMI.")
                         training_data.append(data)
+                        
+                        midi = datamanager.to_midi(data)
+                        midi.save("result.midi")
+
                     else:
                         data = self.data_extractor.extract_data(path, transposition_step)
                         training_data.append(data)
