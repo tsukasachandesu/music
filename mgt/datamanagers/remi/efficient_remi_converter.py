@@ -41,6 +41,7 @@ class EfficientRemiConverter(object):
             if event.name == 'Bar':
                 items.append(RemiItem(type=RemiEventType.BAR, original_events=[event]))
             elif event.name == 'Position' and len(events) > index + 2 and events[index + 1].name == 'Chord':
+                print(event)
                 original_events = [event, events[index + 1], events[index + 2]]
                 position = int(event.value.partition("/")[0])
                 items.append(RemiItem(type=RemiEventType.TEMPO, position=position, original_events=original_events))
@@ -92,6 +93,7 @@ class EfficientRemiConverter(object):
         for bar_items in items_split_on_bars:
             result.append(RemiItem(type=RemiEventType.BAR, original_events=[Event(name='Bar', value='None', text='1', time=0)]))
             result.extend(self.sort_bar_items(bar_items))
+        print(result)
         return result
 
     def convert_to_efficient_remi(self, events):
