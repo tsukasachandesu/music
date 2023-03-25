@@ -35,6 +35,7 @@ class EfficientRemiConverter(object):
         self.config = config
 
     def convert_to_remi_items(self, events):
+        print(events)
         items = []
         for index, event in enumerate(events):
          
