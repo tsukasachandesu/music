@@ -52,9 +52,7 @@ class DataExtractor(object):
         note_items = self.quantize_items(note_items)
         max_time = note_items[-1].end
         if self.use_chords:
-            print("ugoitemasu")
             chord_items = self.extract_chords(note_items)
-            print(chord_items)
             items = chord_items + note_items
         else:
             items = tempo_items + note_items
