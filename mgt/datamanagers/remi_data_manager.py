@@ -66,7 +66,7 @@ class RemiDataManager(DataManager):
                     if self.efficient_remi_config.enabled:
                         
                         resultas = tonality_cal_lead_job(path)
-                        if len(results) == 0:
+                        if len(resultas) == 0:
                             return None
                         tonality, note_shift = resultas[0], results[1]
                         key = tonality.split()[0].upper()
