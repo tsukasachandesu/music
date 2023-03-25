@@ -65,7 +65,12 @@ class RemiDataManager(DataManager):
                     if self.efficient_remi_config.enabled:
                         events = self.data_extractor.extract_events(path, transposition_step)
                         words = self.efficient_remi_converter.convert_to_efficient_remi(events)
+                        
+                        for (i,j) in enumerate(words):
+                          if "Bar" in j:
+                            words[i+1] = "1"
                         print(words)
+                        
                         data = self.data_extractor.words_to_data(words)
                         print(f"Parsed {len(data)} words from midi as efficient REMI.")
                         training_data.append(data)
