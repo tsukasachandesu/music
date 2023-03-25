@@ -36,8 +36,9 @@ class EfficientRemiConverter(object):
 
     def convert_to_remi_items(self, events):
         items = []
+        print(events)
         for index, event in enumerate(events):
-            print(events)
+            
          
             if event.name == 'Bar':
                 items.append(RemiItem(type=RemiEventType.BAR, original_events= event))
