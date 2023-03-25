@@ -82,10 +82,10 @@ class RemiDataManager(DataManager):
                         centroid1 = [0,1,2,2.5,3,3.5,4,9]
 
                         for (i,j) in enumerate(words):
-                          if "Bar" in j:
-                            words[i+1] = "total_" +  str(idx_of_the_nearest(total1,resultas[2][i]))
-                            words[i+2] = "daiamet_" +  str(idx_of_the_nearest(diamet1,resultas[3][i]))
-                            words[i+3] = "centroid_" +  str(idx_of_the_nearest(centroid1,resultas[4][i]))
+                          if "Bar" in j: 
+                            words[i+1] = "total_" +  str(np.argmin(np.abs(np.array(total1) - resultas[2][i])))
+                            words[i+2] = "daiamet_" +  str(np.argmin(np.abs(np.array(diamet1) - resultas[2][i])))
+                            words[i+3] = "centroid_" +  str(np.argmin(np.abs(np.array(centroid1) - resultas[2][i])))
                         print(words)  
 
                         data = self.data_extractor.words_to_data(words)
