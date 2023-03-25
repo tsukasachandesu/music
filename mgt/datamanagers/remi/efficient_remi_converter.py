@@ -43,7 +43,7 @@ class EfficientRemiConverter(object):
             elif event.name == 'Chord':
                 original_events = [event, events[index + 1], events[index + 2]]
                 items.append(RemiItem(type=RemiEventType.TEMPO, original_events=original_events))
-            event.name == 'Position' and len(events) > index + 2 and events[index + 1].name == 'Tempo Class':
+            elif event.name == 'Position' and len(events) > index + 2 and events[index + 1].name == 'Tempo Class':
                 original_events = [event, events[index + 1], events[index + 2]]
                 position = int(event.value.partition("/")[0])
                 items.append(RemiItem(type=RemiEventType.TEMPO, position=position, original_events=original_events))
