@@ -271,6 +271,7 @@ class DataExtractor(object):
                         tempo_value = Event('Tempo Value', item.start, 59, None)
                     events.append(tempo_style)
                     events.append(tempo_value)
+        print(events)            
         return events
 
     def pitch_to_note_name(self, pitch):
