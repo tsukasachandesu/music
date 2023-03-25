@@ -54,7 +54,8 @@ class DataExtractor(object):
         if self.use_chords:
             print("ugoitemasu")
             chord_items = self.extract_chords(note_items)
-            items = chord_items + tempo_items + note_items
+            print(chord_items)
+            items =  note_items
         else:
             items = tempo_items + note_items
         groups = self.group_items(items, max_time)
