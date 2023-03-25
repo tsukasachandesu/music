@@ -105,8 +105,9 @@ class RemiDataManager(DataManager):
                             words[i+2] = "diamet_" +  str(np.argmin(np.abs(np.array(total1) - resultas[3][numin]))) 
                             words[i+3] = "centroid_" +  str(np.argmin(np.abs(np.array(total1) - resultas[4][numin])))                            
                             numin = numin + 1
+                        print(words)
                         data = self.data_extractor.words_to_data(words)
-                        print(data)
+                        
                         training_data.append(data)
                     else:
                         data = self.data_extractor.extract_data(path, transposition_step)
