@@ -68,7 +68,7 @@ class RemiDataManager(DataManager):
                         resultas = tonality_cal_lead_job(path)
                         if len(resultas) == 0:
                             return None
-                        tonality, note_shift = resultas[0], resultas[1], resultas[2], resultas[3], resultas[4]
+                        tonality, note_shift = resultas[0], resultas[1]
                         key = tonality.split()[0].upper()
                         mode = tonality.split()[1]
                         print(f"tonality = {tonality}, note_shift = {note_shift}")
