@@ -5,7 +5,7 @@ from mgt.datamanagers.remi.dictionary_generator import DictionaryGenerator
 from mgt.datamanagers.remi.efficient_remi_config import EfficientRemiConfig
 from mgt.datamanagers.remi.efficient_remi_converter import EfficientRemiConverter
 from mgt.datamanagers.remi.to_midi_mapper import ToMidiMapper
-from mgt.datamanagers.data_manager.a import tonality_cal_lead_job
+from mgt.datamanagers.a import tonality_cal_lead_job
 
 
 defaults = {
