@@ -35,7 +35,6 @@ class EfficientRemiConverter(object):
         self.config = config
 
     def convert_to_remi_items(self, events):
-        print(events)
         items = []
         for index, event in enumerate(events):
          
@@ -154,7 +153,7 @@ class EfficientRemiConverter(object):
                 current_instrument = None
                 current_position = None
             elif item.type == RemiEventType.TEMPO:
-                print(item)
+
                 events.extend(item.original_events)
             else:
                 write_instrument = False
