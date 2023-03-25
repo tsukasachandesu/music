@@ -5,10 +5,11 @@ from mgt.datamanagers.remi.dictionary_generator import DictionaryGenerator
 from mgt.datamanagers.remi.efficient_remi_config import EfficientRemiConfig
 from mgt.datamanagers.remi.efficient_remi_converter import EfficientRemiConverter
 from mgt.datamanagers.remi.to_midi_mapper import ToMidiMapper
+from mgt.datamanagers.data_manager.a import tonality_cal_lead_job
 
 
 defaults = {
-    'use_chords': False,
+    'use_chords': True,
     'use_note_name': True,
     'transposition_steps': [0],
     'map_tracks_to_instruments': {},
@@ -63,6 +64,15 @@ class RemiDataManager(DataManager):
             for transposition_step in self.transposition_steps:
                 try:
                     if self.efficient_remi_config.enabled:
+                        
+                        resultas = tonality_cal_lead_job(path)
+                        if len(results) == 0:
+                            return None
+                        tonality, note_shift = resultas[0], results[1]
+                        key = tonality.split()[0].upper()
+                        mode = tonality.split()[1]
+                        print(f"tonality = {tonality}, note_shift = {note_shift}")
+                        
                         events = self.data_extractor.extract_events(path, transposition_step)
                         words = self.efficient_remi_converter.convert_to_efficient_remi(events)
                         
