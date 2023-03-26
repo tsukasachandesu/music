@@ -80,8 +80,6 @@ class RemiDataManager(DataManager):
                         midi.save("a.midi")
                                                
                         resultas = tonality_cal_lead_job("/content/music-generation-toolbox/a.midi")
-                        if len(resultas) == 0:
-                            return None
                         
                         total1 = [0,0.2,0.4,0.6,0.8,1,1.2,1.4]
                         diamet1 = [0,0.3,0.6,0.9,1.2,1.5,1.8,2.1,2.4,2.7,3.0,3.3,3.6,3.9,4.2]
