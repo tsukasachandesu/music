@@ -922,8 +922,7 @@ def tonality_cal_lead_job(midi_path):
     else:
         # cal key
         _, _, note_shift = cal_key(piano_roll, [key_name], end_ratio=0.5)
-        return [key_name, note_shift]
-
+        return result
 
 
 
