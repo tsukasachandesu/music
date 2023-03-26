@@ -6,7 +6,8 @@ import time
 import torch
 import numpy as np
 
-from x_transformers import TransformerWrapper, Decoder, AutoregressiveWrapper
+from block_recurrent_transformer_pytorch import BlockRecurrentTransformer, RecurrentTrainerWrapper
+
 
 from mgt.datamanagers.data_manager import Dictionary
 from mgt.models import utils
@@ -106,22 +107,20 @@ class TransformerModel(object):
         return sample.cpu().detach().numpy()[0]
 
     def create_model(self):
-        model = AutoregressiveWrapper(TransformerWrapper(
-            num_tokens=self.dictionary.size(),
-            max_seq_len=self.max_sequence_length,
-            attn_layers=Decoder(
-                dim=self.dim,
-                depth=self.depth,
-                heads=self.heads,
-                attn_dropout=self.dropout,  # dropout post-attention
-                ff_dropout=self.dropout,  # feedforward dropout
-                rotary_pos_emb=True
-            )
-        ),
-            ignore_index=0,
-            pad_value=0
-        ).to(utils.get_device())
-
+        model = BlockRecurrentTransformer(
+          num_tokens = self.dictionary.size(),             # vocab size
+          dim = 512,                      # model dimensions
+          depth = 6,                      # depth
+          dim_head = 64,                  # attention head dimensions
+          heads = 8,                      # number of attention heads
+          max_seq_len = self.max_sequence_length,             # the total receptive field of the transformer, in the paper this was 2 * block size
+          block_width = 512,              # block size - total receptive field is max_seq_len, 2 * block size in paper. the block furthest forwards becomes the new cached xl memories, which is a block size of 1 (please open an issue if i am wrong)
+          xl_memories_layers = (5, 6),    # which layers to use xl memories. very old deepmind papers have shown you only need the last penultimate layers to have cached key values to see majority of benefit
+          num_state_vectors = 512,        # number of state vectors, i believe this was a single block size in the paper, but can be any amount
+          recurrent_layers = (4,),        # where to place the recurrent layer(s) for states with fixed simple gating
+          enhanced_recurrence = True      # enhanced recurrence from ernie-doc paper, i have seen it to work well on my local machine
+          ).to(utils.get_device())
+        model = RecurrentTrainerWrapper(model,xl_memories_dropout = 0.1,state_dropout = 0.1,).to(utils.get_device())
         return model
 
     def create_optimizer(self):
