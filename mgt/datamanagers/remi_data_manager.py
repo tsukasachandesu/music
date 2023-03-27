@@ -81,7 +81,7 @@ class RemiDataManager(DataManager):
                         midi.save("a.midi")
                         pm = pretty_midi.PrettyMIDI("a.midi")
                         pm = remove_drum_track(pm)
-                        sixteenth_time, beat_time, down_beat_time, beat_indices, down_beat_indices = get_beat_time(pm, beat_division=4)
+                        sixteenth_time, beat_time, down_beat_time, beat_indices, down_beat_indices = get_beat_time(pm, beat_division=16)
                         piano_roll = get_piano_roll(pm, sixteenth_time)
 
                         key_name = all_key_names
@@ -183,9 +183,9 @@ class RemiDataManager(DataManager):
                         centroid_diff = np.insert(centroid_diff, 0, 0)
 
                         total_tension = key_diff
-                        print(total_tension)
-                        print(diameters)
-                        print(centroid_diff)
+                        print(total_tension.size)
+                        print(diameters.size)
+                        print(centroid_diff.size)
                         
                         total1 = [0,0.2,0.4,0.6,0.8,1,1.2,1.4]
                         diamet1 = [0,0.3,0.6,0.9,1.2,1.5,1.8,2.1,2.4,2.7,3.0,3.3,3.6,3.9,4.2]
