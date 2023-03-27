@@ -88,8 +88,9 @@ class RemiDataManager(DataManager):
                         key_name, key_pos, note_shift = cal_key(piano_roll, key_name, end_ratio=0.5)
                         centroids = cal_centroid(piano_roll, note_shift, -1, -1)
 
-                        window_size = -1
-                        if window_size == -1:
+                        window_size = 1
+                        aho = 1
+                        if aho == 1:
                             # use a bar window to detect key change
                             merged_centroids = merge_tension(
                                 centroids, beat_indices, down_beat_indices, window_size=-1)
@@ -205,6 +206,7 @@ class RemiDataManager(DataManager):
                             numin = numin + 1
 
                         data = self.data_extractor.words_to_data(words)
+                        print(data)
 
                         training_data.append(data)
                     else:
