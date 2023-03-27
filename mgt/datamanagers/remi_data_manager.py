@@ -7,6 +7,7 @@ from mgt.datamanagers.remi.efficient_remi_converter import EfficientRemiConverte
 from mgt.datamanagers.remi.to_midi_mapper import ToMidiMapper
 from mgt.datamanagers.a import *
 import numpy as np
+from pretty_midi import PrettyMIDI
 
 defaults = {
     'use_chords': True,
@@ -78,16 +79,92 @@ class RemiDataManager(DataManager):
                             return MidiToolkitWrapper(self.to_midi_mapper.to_midi(data))   
                         midi = to_midi1(data)
                         midi.save("a.midi")
-                        def to_midi2(data) -> MidiWrapper:
-                            if self.efficient_remi_config.enabled:
-                                efficient_words = list(map(lambda x: self.dictionary.data_to_word(x), data))
-                                words = self.efficient_remi_converter.convert_to_normal_remi(efficient_words)
-                                data = self.data_extractor.words_to_data(words)
-                            return PrettyMidiWrapper(self.to_midi_mapper.to_midi(data))   
-                        midi2 = to_midi2(data)
+                        pm = pretty_midi.PrettyMIDI("a.midi")
+                        pm = remove_drum_track(pm)
+                        sixteenth_time, beat_time, down_beat_time, beat_indices, down_beat_indices = get_beat_time(pm, beat_division=4)
+                        piano_roll = get_piano_roll(pm, sixteenth_time)
+                        print(piano_roll)
                         key_name = all_key_names
-                        key_name, key_pos, note_shift = cal_key(midi2 key_name, end_ratio=0.5)
-                        print(key_name)
+                        key_name, key_pos, note_shift = cal_key(piano_roll, key_name, end_ratio=0.5)
+                        centroids = cal_centroid(piano_roll, note_shift, -1, -1)
+                        print(centroids)
+                        window_size = 1
+                        if window_size == 1:
+                            # use a bar window to detect key change
+                            merged_centroids = merge_tension(
+                                centroids, beat_indices, down_beat_indices, window_size=-1)
+
+                            silent = np.where(np.linalg.norm(merged_centroids, axis=-1) == 0)
+                            merged_centroids = np.array(merged_centroids)
+
+                            key_diff = merged_centroids - key_pos
+                            key_diff = np.linalg.norm(key_diff, axis=-1)
+
+                            key_diff[silent] = 0
+
+                            diameters = cal_diameter(piano_roll, note_shift, -1, -1)
+                            diameters = merge_tension(
+                                diameters, beat_indices, down_beat_indices, window_size=-1)
+                            #
+
+                            key_change_bar = detect_key_change(
+                                key_diff, diameters, start_ratio=0.5)
+                            if key_change_bar != -1:
+                                key_change_beat = np.argwhere(
+                                    beat_time == down_beat_time[key_change_bar])[0][0]
+                                change_time = down_beat_time[key_change_bar]
+                                changed_key_name, changed_key_pos, changed_note_shift = get_key_index_change(
+                                    pm, change_time, sixteenth_time)
+                                if changed_key_name != key_name:
+                                    m = int(change_time // 60)
+                                    s = int(change_time % 60)
+
+                                else:
+                                    changed_note_shift = -1
+                                    changed_key_name = ''
+                                    key_change_beat = -1
+                                    change_time = -1
+                                    key_change_bar = -1
+
+                            else:
+                                changed_note_shift = -1
+                                changed_key_name = ''
+                                key_change_beat = -1
+                                change_time = -1
+
+                        else:
+                            changed_note_shift = -1
+                            changed_key_name = ''
+                            key_change_beat = -1
+                            change_time = -1
+                            key_change_bar = -1
+
+                        centroids = cal_centroid(
+                            piano_roll, note_shift, key_change_beat, changed_note_shift)
+
+                        merged_centroids = merge_tension(
+                            centroids, beat_indices, down_beat_indices, window_size=window_size)
+                        merged_centroids = np.array(merged_centroids)
+
+                        silent = np.where(np.linalg.norm(merged_centroids, axis=-1) < 0.1)
+
+                        if window_size == -1:
+                            window_time = down_beat_time
+                        else:
+                            window_time = beat_time[::window_size]
+
+                        if key_change_beat != -1:
+                            key_diff = np.zeros(merged_centroids.shape[0])
+                            changed_step = int(key_change_beat / abs(window_size))
+                            for step in range(merged_centroids.shape[0]):
+                                if step < changed_step:
+                                    key_diff[step] = np.linalg.norm(
+                                        merged_centroids[step] - key_pos)
+                                else:
+                                    key_diff[step] = np.linalg.norm(
+                                        merged_centroids[step] - changed_key_pos)
+                        else:
+                            key_diff = np.linalg.norm(merged_centroids - key_pos, axis=-1)
                                                
                         resultas = tonality_cal_lead_job("/content/music-generation-toolbox/a.midi")
                         
@@ -125,4 +202,3 @@ class RemiDataManager(DataManager):
             data = self.data_extractor.words_to_data(words)
 
         return MidiToolkitWrapper(self.to_midi_mapper.to_midi(data))
-   
