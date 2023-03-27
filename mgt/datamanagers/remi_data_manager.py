@@ -214,7 +214,7 @@ class RemiDataManager(DataManager):
                         
                        
                     
-                        sixteenth_time, beat_time, down_beat_time, beat_indices, down_beat_indices = get_beat_time(pm, beat_division=16)
+                        sixteenth_time, beat_time, down_beat_time, beat_indices, down_beat_indices = get_beat_time(pm, beat_division=2)
                         piano_roll = get_piano_roll(pm, sixteenth_time)
 
                         key_name = all_key_names
