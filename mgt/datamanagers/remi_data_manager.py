@@ -203,9 +203,9 @@ class RemiDataManager(DataManager):
                         numin = 0
                         for (i,j) in enumerate(words):
                           if "Bar" in j: 
-                            words[i+1] = "total_" +  str(np.argmin(np.abs(np.array(total1) - total_tension[i])))
-                            words[i+2] = "diamet_" +  str(np.argmin(np.abs(np.array(diamet1) - diameters[i]))) 
-                            words[i+3] = "centroid_" +  str(np.argmin(np.abs(np.array(centroid1) - centroid_diff[i])))                            
+                            words[i+1] = "total_" +  str(np.argmin(np.abs(np.array(total1) - total_tension[numin])))
+                            words[i+2] = "diamet_" +  str(np.argmin(np.abs(np.array(diamet1) - diameters[numin]))) 
+                            words[i+3] = "centroid_" +  str(np.argmin(np.abs(np.array(centroid1) - centroid_diff[numin])))                            
                             numin = numin + 1
                         print(words)
                         data = self.data_extractor.words_to_data(words)
