@@ -87,6 +87,7 @@ class RemiDataManager(DataManager):
                         key_name = all_key_names
                         key_name, key_pos, note_shift = cal_key(piano_roll, key_name, end_ratio=0.5)
                         centroids = cal_centroid(piano_roll, note_shift, -1, -1)
+                        print(centroids)
 
                         window_size = 1
                         aho = 1
@@ -104,7 +105,7 @@ class RemiDataManager(DataManager):
                             key_diff[silent] = 0
 
                             diameters = cal_diameter(piano_roll, note_shift, -1, -1)
-                            print(diameters.size)
+                            print(diameters)
                             diameters = merge_tension(
                                 diameters, beat_indices, down_beat_indices, window_size=-1)
                             #
