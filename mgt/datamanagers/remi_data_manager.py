@@ -1,5 +1,5 @@
 from mgt.datamanagers.data_manager import DataManager, DataSet
-from mgt.datamanagers.midi_wrapper import MidiWrapper, MidiToolkitWrapper
+from mgt.datamanagers.midi_wrapper import MidiWrapper, MidiToolkitWrapper, PrettyMidiWrapper
 from mgt.datamanagers.remi.data_extractor import DataExtractor
 from mgt.datamanagers.remi.dictionary_generator import DictionaryGenerator
 from mgt.datamanagers.remi.efficient_remi_config import EfficientRemiConfig
