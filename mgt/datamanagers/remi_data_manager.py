@@ -214,17 +214,17 @@ class RemiDataManager(DataManager):
                         
                        
                     
-                        sixteenth_time, beat_time, down_beat_time, beat_indices, down_beat_indices = get_beat_time(pm, beat_division=2)
-                        piano_roll = get_piano_roll(pm, sixteenth_time)
+                        sixteenth_time1, beat_time1, down_beat_time1, beat_indices1, down_beat_indices1 = get_beat_time(pm, beat_division=16)
+                        piano_roll1 = get_piano_roll(pm, sixteenth_time1)
 
                         key_name = all_key_names
-                        key_name, key_pos, note_shift = cal_key(piano_roll, key_name, end_ratio=0.5)
-                        centroids = cal_centroid(piano_roll, note_shift, -1, -1)
+                        key_name, key_pos, note_shift = cal_key(piano_roll1, key_name, end_ratio=0.5)
+                        centroids = cal_centroid(piano_roll1, note_shift, -1, -1)
                         window_size = 1
                         if window_size == 1:
                             # use a bar window to detect key change
                             merged_centroids = merge_tension(
-                                centroids, beat_indices, down_beat_indices, window_size=-1)
+                                centroids, beat_indices1, down_beat_indices1, window_size=-1)
 
                             silent = np.where(np.linalg.norm(merged_centroids, axis=-1) == 0)
                             merged_centroids = np.array(merged_centroids)
@@ -234,17 +234,17 @@ class RemiDataManager(DataManager):
 
                             key_diff[silent] = 0
 
-                            diameters = cal_diameter(piano_roll, note_shift, -1, -1)
+                            diameters = cal_diameter(piano_roll1, note_shift, -1, -1)
                             diameters = merge_tension(
-                                diameters, beat_indices, down_beat_indices, window_size=-1)
+                                diameters, beat_indices1, down_beat_indices1, window_size=-1)
                             #
 
                             key_change_bar = detect_key_change(
                                 key_diff, diameters, start_ratio=0.5)
                             if key_change_bar != -1:
                                 key_change_beat = np.argwhere(
-                                    beat_time == down_beat_time[key_change_bar])[0][0]
-                                change_time = down_beat_time[key_change_bar]
+                                    beat_time == down_beat_time1[key_change_bar])[0][0]
+                                change_time = down_beat_time1[key_change_bar]
                                 changed_key_name, changed_key_pos, changed_note_shift = get_key_index_change(
                                     pm, change_time, sixteenth_time)
                                 if changed_key_name != key_name:
@@ -272,22 +272,19 @@ class RemiDataManager(DataManager):
                             key_change_bar = -1
 
                         centroids = cal_centroid(
-                            piano_roll, note_shift, key_change_beat, changed_note_shift)
+                            piano_roll1, note_shift, key_change_beat, changed_note_shift)
 
                         merged_centroids = merge_tension(
-                            centroids, beat_indices, down_beat_indices, window_size=window_size)
+                            centroids, beat_indices1, down_beat_indices1, window_size=1)
                         merged_centroids = np.array(merged_centroids)
 
                         silent = np.where(np.linalg.norm(merged_centroids, axis=-1) < 0.1)
-
-                        if window_size == -1:
-                            window_time = down_beat_time
-                        else:
-                            window_time = beat_time[::window_size]
+                        print(beat_time1)
+                        window_time = beat_time1[::window_size]
 
                         if key_change_beat != -1:
                             key_diff = np.zeros(merged_centroids.shape[0])
-                            changed_step = int(key_change_beat / abs(window_size))
+                            changed_step = int(key_change_beat / abs(1))
                             for step in range(merged_centroids.shape[0]):
                                 if step < changed_step:
                                     key_diff[step] = np.linalg.norm(
@@ -300,9 +297,9 @@ class RemiDataManager(DataManager):
                         key_diff[silent] = 0
 
                         diameters = cal_diameter(
-                            piano_roll, note_shift, key_change_beat, changed_note_shift)
+                            piano_roll1, note_shift, key_change_beat, changed_note_shift)
                         diameters = merge_tension(
-                            diameters, beat_indices, down_beat_indices, window_size)
+                            diameters, beat_indices, down_beat_indices, 1)
                         #
                         diameters[silent] = 0
 
