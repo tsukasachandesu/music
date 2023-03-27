@@ -104,6 +104,7 @@ class RemiDataManager(DataManager):
                             key_diff[silent] = 0
 
                             diameters = cal_diameter(piano_roll, note_shift, -1, -1)
+                            print(diameters.size)
                             diameters = merge_tension(
                                 diameters, beat_indices, down_beat_indices, window_size=-1)
                             #
