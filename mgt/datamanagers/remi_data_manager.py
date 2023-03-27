@@ -205,7 +205,7 @@ class RemiDataManager(DataManager):
                             words[i+3] = "centroid_" +  str(np.argmin(np.abs(np.array(centroid1) - centroid_diff)))                            
                             numin = numin + 1
                         data = self.data_extractor.words_to_data(words)
-                        
+                        print(data)
                         training_data.append(data)
                     else:
                         data = self.data_extractor.extract_data(path, transposition_step)
