@@ -78,6 +78,16 @@ class RemiDataManager(DataManager):
                             return MidiToolkitWrapper(self.to_midi_mapper.to_midi(data))   
                         midi = to_midi1(data)
                         midi.save("a.midi")
+                        def to_midi2(data) -> MidiWrapper:
+                            if self.efficient_remi_config.enabled:
+                                efficient_words = list(map(lambda x: self.dictionary.data_to_word(x), data))
+                                words = self.efficient_remi_converter.convert_to_normal_remi(efficient_words)
+                                data = self.data_extractor.words_to_data(words)
+                            return PrettyMidiWrapper(self.to_midi_mapper.to_midi(data))   
+                        midi = to_midi2(data)
+                        key_name = all_key_names
+                        key_name, key_pos, note_shift = cal_key(piano_roll, key_name, end_ratio=0.5)
+                        print(key_name)
                                                
                         resultas = tonality_cal_lead_job("/content/music-generation-toolbox/a.midi")
                         key_name = all_key_names
