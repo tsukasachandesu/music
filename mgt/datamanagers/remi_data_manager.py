@@ -83,13 +83,13 @@ class RemiDataManager(DataManager):
                         pm = remove_drum_track(pm)
                         sixteenth_time, beat_time, down_beat_time, beat_indices, down_beat_indices = get_beat_time(pm, beat_division=4)
                         piano_roll = get_piano_roll(pm, sixteenth_time)
-                        print(piano_roll)
+
                         key_name = all_key_names
                         key_name, key_pos, note_shift = cal_key(piano_roll, key_name, end_ratio=0.5)
                         centroids = cal_centroid(piano_roll, note_shift, -1, -1)
-                        print(centroids)
-                        window_size = 1
-                        if window_size == 1:
+
+                        window_size = -1
+                        if window_size == -1:
                             # use a bar window to detect key change
                             merged_centroids = merge_tension(
                                 centroids, beat_indices, down_beat_indices, window_size=-1)
