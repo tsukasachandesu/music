@@ -84,15 +84,12 @@ class RemiDataManager(DataManager):
                                 words = self.efficient_remi_converter.convert_to_normal_remi(efficient_words)
                                 data = self.data_extractor.words_to_data(words)
                             return PrettyMidiWrapper(self.to_midi_mapper.to_midi(data))   
-                        midi = to_midi2(data)
+                        midi2 = to_midi2(data)
                         key_name = all_key_names
-                        key_name, key_pos, note_shift = cal_key(piano_roll, key_name, end_ratio=0.5)
+                        key_name, key_pos, note_shift = cal_key(midi2 key_name, end_ratio=0.5)
                         print(key_name)
                                                
                         resultas = tonality_cal_lead_job("/content/music-generation-toolbox/a.midi")
-                        key_name = all_key_names
-                        key_name, key_pos, note_shift = cal_key(midi, key_name, end_ratio=0.5)
-                        print(key_name, key_pos, note_shif)
                         
                         total1 = [0,0.2,0.4,0.6,0.8,1,1.2,1.4]
                         diamet1 = [0,0.3,0.6,0.9,1.2,1.5,1.8,2.1,2.4,2.7,3.0,3.3,3.6,3.9,4.2]
