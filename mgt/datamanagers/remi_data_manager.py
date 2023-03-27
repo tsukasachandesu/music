@@ -165,6 +165,24 @@ class RemiDataManager(DataManager):
                                         merged_centroids[step] - changed_key_pos)
                         else:
                             key_diff = np.linalg.norm(merged_centroids - key_pos, axis=-1)
+                        key_diff[silent] = 0
+
+                        diameters = cal_diameter(
+                            piano_roll, note_shift, key_change_beat, changed_note_shift)
+                        diameters = merge_tension(
+                            diameters, beat_indices, down_beat_indices, window_size)
+                        #
+                        diameters[silent] = 0
+
+                        centroid_diff = np.diff(merged_centroids, axis=0)
+                        #
+                        np.nan_to_num(centroid_diff, copy=False)
+
+                        centroid_diff = np.linalg.norm(centroid_diff, axis=-1)
+                        centroid_diff = np.insert(centroid_diff, 0, 0)
+
+                        total_tension = key_diff
+                        print(total_tension)
                                                
                         resultas = tonality_cal_lead_job("/content/music-generation-toolbox/a.midi")
                         
