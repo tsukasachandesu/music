@@ -276,7 +276,7 @@ class RemiDataManager(DataManager):
                         merged_centroids = np.array(merged_centroids)
 
                         silent = np.where(np.linalg.norm(merged_centroids, axis=-1) < 0.1)
-                        window_time = beat_time1[::window_size]
+                        window_time = beat_time1[::1]
 
                         if key_change_beat != -1:
                             key_diff = np.zeros(merged_centroids.shape[0])
@@ -376,7 +376,7 @@ class RemiDataManager(DataManager):
                         merged_centroids = np.array(merged_centroids)
 
                         silent = np.where(np.linalg.norm(merged_centroids, axis=-1) < 0.1)
-                        window_time = beat_time1[::window_size]
+                        window_time = beat_time1[::1]
 
                         if key_change_beat != -1:
                             key_diff = np.zeros(merged_centroids.shape[0])
