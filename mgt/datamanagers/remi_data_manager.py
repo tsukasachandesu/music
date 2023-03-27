@@ -207,6 +207,7 @@ class RemiDataManager(DataManager):
                             words[i+2] = "diamet_" +  str(np.argmin(np.abs(np.array(diamet1) - diameters))) 
                             words[i+3] = "centroid_" +  str(np.argmin(np.abs(np.array(centroid1) - centroid_diff)))                            
                             numin = numin + 1
+                        print(words)
                         data = self.data_extractor.words_to_data(words)
                         print(data)
                         
