@@ -316,7 +316,10 @@ class RemiDataManager(DataManager):
                         total_tension = key_diff
                         print(total_tension)
                         print(diameters)
-                        print(centroid_diff)  
+                        print(centroid_diff)
+                        print(total_tension.size)
+                        print(diameters.size)
+                        print(centroid_diff.size)  
                         training_data.append(data)
                     else:
                         data = self.data_extractor.extract_data(path, transposition_step)
