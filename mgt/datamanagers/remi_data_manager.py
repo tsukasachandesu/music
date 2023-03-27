@@ -213,8 +213,11 @@ class RemiDataManager(DataManager):
                         
                         
                        
-                    
+                        sixteenth_time1, beat_time1, down_beat_time1, beat_indices1, down_beat_indices1 = get_beat_time(pm, beat_division=4)
+                        print(sixteenth_time1, beat_time1, down_beat_time1, beat_indices1, down_beat_indices1)
                         sixteenth_time1, beat_time1, down_beat_time1, beat_indices1, down_beat_indices1 = get_beat_time(pm, beat_division=16)
+                        print(sixteenth_time1, beat_time1, down_beat_time1, beat_indices1, down_beat_indices1)
+                        
                         piano_roll1 = get_piano_roll(pm, sixteenth_time1)
 
                         key_name = all_key_names
@@ -279,7 +282,6 @@ class RemiDataManager(DataManager):
                         merged_centroids = np.array(merged_centroids)
 
                         silent = np.where(np.linalg.norm(merged_centroids, axis=-1) < 0.1)
-                        print(beat_time1)
                         window_time = beat_time1[::window_size]
 
                         if key_change_beat != -1:
