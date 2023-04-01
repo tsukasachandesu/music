@@ -21,7 +21,7 @@ class DataExtractor(object):
     ):
         self.dictionary = dictionary
         self.map_tracks_to_instruments = map_tracks_to_instruments
-        self.use_chords = True
+        self.use_chords = use_chords
         self.use_note_name = use_note_name
         self.instrument_mapping = instrument_mapping
 
