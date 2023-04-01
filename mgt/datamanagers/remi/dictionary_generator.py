@@ -51,7 +51,6 @@ class DictionaryGenerator(object):
         for i in range(128):
             append_to_dictionary(f"Note On_{i}")
 
-
         for i in range(16):
             append_to_dictionary(f"Position_{i + 1}/16")
 
