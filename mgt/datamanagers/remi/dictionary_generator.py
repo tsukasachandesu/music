@@ -60,6 +60,12 @@ class DictionaryGenerator(object):
         for i in range(16):
             append_to_dictionary(f"Position_{i + 1}/16")
 
+        for tempo_class in tempo_classes:
+            append_to_dictionary(tempo_class)
+
+        for i in range(64):
+            append_to_dictionary(f"Tempo Value_{i}")
+
         note_names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
         for note_name in note_names:
             append_to_dictionary(f"Note Name_{note_name}")
