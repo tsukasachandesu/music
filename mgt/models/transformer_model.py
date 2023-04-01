@@ -49,7 +49,7 @@ class TransformerModel(object):
         self.optimizer = self.create_optimizer()
 
     def train(self, x_train, epochs, batch_size=8, stop_loss=None, batches_per_epoch=120, report_per_x_batches=40,
-              gradient_accumulation_steps=2):
+              gradient_accumulation_steps=1):
         self.model.train()
         start_time = time.time()
         for epoch in range(epochs):
@@ -110,7 +110,7 @@ class TransformerModel(object):
         model = BlockRecurrentTransformer(
           num_tokens = self.dictionary.size(),             # vocab size
           dim = 512,                      # model dimensions
-          depth = 8,                      # depth
+          depth = 6,                      # depth
           dim_head = 64,                  # attention head dimensions
           heads = 8,                      # number of attention heads
           max_seq_len = self.max_sequence_length,             # the total receptive field of the transformer, in the paper this was 2 * block size
