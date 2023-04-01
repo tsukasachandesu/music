@@ -60,13 +60,13 @@ class RemiDataManager(DataManager):
     def prepare_data(self, midi_paths) -> DataSet:
         training_data = []
         for path in midi_paths:
+            print(path)
             for transposition_step in self.transposition_steps:
                 try:
                     if self.efficient_remi_config.enabled:
                         events = self.data_extractor.extract_events(path, transposition_step)
                         words = self.efficient_remi_converter.convert_to_efficient_remi(events)
                         data = self.data_extractor.words_to_data(words)
-                        print(f"Parsed {len(data)} words from midi as efficient REMI.")
                         training_data.append(data)
                     else:
                         data = self.data_extractor.extract_data(path, transposition_step)
