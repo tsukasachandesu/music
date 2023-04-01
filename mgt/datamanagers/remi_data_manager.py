@@ -10,7 +10,7 @@ from mgt.datamanagers.remi.to_midi_mapper import ToMidiMapper
 defaults = {
     'use_chords': False,
     'use_note_name': True,
-    'transposition_steps': [0],
+    'transposition_steps': [0,1,2,3,4,5,-1,-2,-3,-4,-5,6],
     'map_tracks_to_instruments': {},
     'instrument_mapping': {},
     'efficient_remi_config': EfficientRemiConfig()
