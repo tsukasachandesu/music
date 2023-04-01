@@ -120,6 +120,7 @@ class TransformerModel(object):
           recurrent_layers = (4,),        # where to place the recurrent layer(s) for states with fixed simple gating
           enhanced_recurrence = True      # enhanced recurrence from ernie-doc paper, i have seen it to work well on my local machine
           ).to(utils.get_device())
+
         model = RecurrentTrainerWrapper(model,xl_memories_dropout = 0.1,state_dropout = 0.1,).to(utils.get_device())
         return model
 
