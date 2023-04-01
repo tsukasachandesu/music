@@ -63,7 +63,7 @@ class DictionaryGenerator(object):
             append_to_dictionary(f"Note Octave_{i}")
             
 
-        for i in range(16):
+        for i in range(8):
             append_to_dictionary(f"Note Velocity_{i}")
      
         return Dictionary(dictionary[0], dictionary[1])
