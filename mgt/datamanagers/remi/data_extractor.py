@@ -21,7 +21,7 @@ class DataExtractor(object):
     ):
         self.dictionary = dictionary
         self.map_tracks_to_instruments = map_tracks_to_instruments
-        self.use_chords = True
+        self.use_chords = use_chords
         self.use_note_name = use_note_name
         self.instrument_mapping = instrument_mapping
 
@@ -53,7 +53,7 @@ class DataExtractor(object):
         max_time = note_items[-1].end
         if self.use_chords:
             chord_items = self.extract_chords(note_items)
-            items = chord_items + note_items
+            items = chord_items + tempo_items + note_items
         else:
             items = tempo_items + note_items
         groups = self.group_items(items, max_time)
@@ -268,7 +268,7 @@ class DataExtractor(object):
                         tempo_style = Event('Tempo Class', item.start, 'fast', None)
                         tempo_value = Event('Tempo Value', item.start, 59, None)
                     events.append(tempo_style)
-                    events.append(tempo_value)          
+                    events.append(tempo_value)
         return events
 
     def pitch_to_note_name(self, pitch):
