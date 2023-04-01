@@ -123,13 +123,13 @@ class EfficientRemiConverter(object):
                         result.append(f'Instrument_{last_instrument}')
                     if index < 2 or not result[-2].startswith('Position'):
                         result.insert(-1, f'Position_{last_position}')
-                    result.append("Note Velocity_16")  # Default velocity of 30
+                    result.append("Note Velocity_8")  # Default velocity of 30
                 if word.startswith('Note Name'):
                     if index < 1 or not result[-1].startswith('Instrument'):
                         result.append(f'Instrument_{last_instrument}')
                     if index < 2 or not result[-2].startswith('Position'):
                         result.insert(-1, f'Position_{last_position}')
-                    result.append("Note Velocity_16")  # Default velocity of 30
+                    result.append("Note Velocity_8")  # Default velocity of 30
             else:
                 if word.startswith('Note Velocity'):
                     if index < 1 or not result[-1].startswith('Instrument'):
