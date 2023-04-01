@@ -51,8 +51,6 @@ class DictionaryGenerator(object):
         for i in range(128):
             append_to_dictionary(f"Note On_{i}")
 
-        for i in range(32):
-            append_to_dictionary(f"Note Velocity_{i}")
 
         for i in range(16):
             append_to_dictionary(f"Position_{i + 1}/16")
@@ -60,6 +58,8 @@ class DictionaryGenerator(object):
         note_names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
         for note_name in note_names:
             append_to_dictionary(f"Note Name_{note_name}"
-        
+                                 
+        for i in range(10):
+            append_to_dictionary(f"Note Octave_{i}")
      
         return Dictionary(dictionary[0], dictionary[1])
