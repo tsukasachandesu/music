@@ -1,16 +1,14 @@
 from mgt.datamanagers.data_manager import DataManager, DataSet
-from mgt.datamanagers.midi_wrapper import MidiWrapper, MidiToolkitWrapper, PrettyMidiWrapper
+from mgt.datamanagers.midi_wrapper import MidiWrapper, MidiToolkitWrapper
 from mgt.datamanagers.remi.data_extractor import DataExtractor
 from mgt.datamanagers.remi.dictionary_generator import DictionaryGenerator
 from mgt.datamanagers.remi.efficient_remi_config import EfficientRemiConfig
 from mgt.datamanagers.remi.efficient_remi_converter import EfficientRemiConverter
 from mgt.datamanagers.remi.to_midi_mapper import ToMidiMapper
-from mgt.datamanagers.a import *
-import numpy as np
-from pretty_midi import PrettyMIDI
+
 
 defaults = {
-    'use_chords': True,
+    'use_chords': False,
     'use_note_name': True,
     'transposition_steps': [0],
     'map_tracks_to_instruments': {},
@@ -68,6 +66,7 @@ class RemiDataManager(DataManager):
                         events = self.data_extractor.extract_events(path, transposition_step)
                         words = self.efficient_remi_converter.convert_to_efficient_remi(events)
                         data = self.data_extractor.words_to_data(words)
+                        print(f"Parsed {len(data)} words from midi as efficient REMI.")
                         training_data.append(data)
                     else:
                         data = self.data_extractor.extract_data(path, transposition_step)
@@ -84,3 +83,4 @@ class RemiDataManager(DataManager):
             data = self.data_extractor.words_to_data(words)
 
         return MidiToolkitWrapper(self.to_midi_mapper.to_midi(data))
+
