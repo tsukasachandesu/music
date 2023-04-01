@@ -41,7 +41,6 @@ class DataExtractor(object):
         return self.events_to_words(events)
 
     def extract_events(self, input_path: str, transposition_steps: int):
-        if transposition_steps != 0:
 
         note_items, tempo_items = self.read_items(
             input_path,
