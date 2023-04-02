@@ -78,6 +78,7 @@ class CompoundWordMapper(object):
         instrument_keys = {k: v for k, v in dictionary.dtw.items() if 'Instrument' in v}.keys()
         self.instrument_size = len(instrument_keys)
         self.instrument_offset = min(instrument_keys)
+        
 
         note_duration_keys = {k: v for k, v in dictionary.dtw.items() if 'Note Duration' in v}.keys()
         self.note_duration_size = len(note_duration_keys)
@@ -98,6 +99,8 @@ class CompoundWordMapper(object):
         octave_keys = {k: v for k, v in dictionary.dtw.items() if 'Note Octave' in v}.keys()
         self.octave_size = len(octave_keys)
         self.octave_offset = min(octave_keys)
+        
+        print(self.octave_offset, self.note_name_offset,self.position_offset,self.note_velocity_offset,self.note_duration_offset,self.instrument_offset )
 
     def map_to_compound(self, remi_words: [string], dictionary: Dictionary) -> [CompoundWord]:
         compound_words = []
@@ -135,8 +138,6 @@ class CompoundWordMapper(object):
                     'Tempo Class' in remi_words[i + 1] and \
                     'Tempo Value' in remi_words[i + 2]:
                 
-                print(remi_words[i])
-                print(i)
                 current_position = map_word(dictionary.wtd[remi_words[i]], self.position_offset)
                 if prev_position is None or prev_position != current_position:
                     compound_words.append(create_beat_event(current_position))
