@@ -45,7 +45,7 @@ class DictionaryGenerator(object):
         for chord in chords:
             append_to_dictionary(chord)
 
-        for i in range(129):
+        for i in range(65):
             append_to_dictionary(f"Instrument_{i}")
 
         for i in range(64):
