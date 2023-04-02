@@ -61,4 +61,5 @@ class CompoundWordDataManager(DataManager):
 
     def to_midi(self, data) -> MidiWrapper:
         remi = self.compound_word_mapper.map_to_remi(data)
+        print(remi)
         return MidiToolkitWrapper(self.to_midi_mapper.to_midi(remi))
