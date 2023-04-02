@@ -92,6 +92,9 @@ class CompoundWordMapper(object):
         octave_keys = {k: v for k, v in dictionary.dtw.items() if 'Note Octave' in v}.keys()
         self.octave_size = len(octave_keys)
         self.octave_offset = min(octave_keys)
+        note_velocity_keys = {k: v for k, v in dictionary.dtw.items() if 'Note Velocity' in v}.keys()
+        self.note_velocity_size = len(note_velocity_keys)
+        self.note_velocity_offset = min(note_velocity_keys)
         
     def map_to_compound(self, remi_words: [string], dictionary: Dictionary) -> [CompoundWord]:
         compound_words = []
@@ -170,6 +173,7 @@ class CompoundWordMapper(object):
         note_name = compound_word[3] + self.note_name_offset
         octave = compound_word[4] + self.octave_offset
         duration = compound_word[5] + self.note_duration_offset
+        velocity = 3 + self.note_velocity_offset
         return [position, instrument, note_name, octave, duration]
 
     def map_compound_timing_to_remi(self, compound_word):
