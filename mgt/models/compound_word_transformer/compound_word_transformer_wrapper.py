@@ -72,7 +72,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             emb_sizes = [
                 32,  # Type
                 96,  # Bar / Beat
-                512,  # Instrument
+                256,  # Instrument
                 512,  # Note Name
                 128,  # Octave
                 128,  # Duration
