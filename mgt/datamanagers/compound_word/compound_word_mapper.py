@@ -19,9 +19,8 @@ class CompoundWord(object):
     note_name: int
     octave: int
     duration: int
-    velocity: int
 
-    def __init__(self, word_type, bar_beat=0, instrument=0, note_name=0, octave=0, duration=0, velocity=0):
+    def __init__(self, word_type, bar_beat=0, instrument=0, note_name=0, octave=0, duration=0):
         self.word_type = word_type
         self.bar_beat = bar_beat
         self.instrument = instrument
@@ -51,7 +50,7 @@ def create_beat_event(beat):
     return CompoundWord(word_type=WordType.TIMING, bar_beat=beat + 1)
 
 
-def create_note_event(instrument, note_name, octave, duration, velocity):
+def create_note_event(instrument, note_name, octave, duration):
     return CompoundWord(
         word_type=WordType.NOTE,
         instrument=instrument,
