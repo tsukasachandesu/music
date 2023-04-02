@@ -15,7 +15,6 @@ class WordType(object):
 class CompoundWord(object):
     word_type: int
     bar_beat: int
-    tempo: int
     instrument: int
     note_name: int
     octave: int
@@ -103,7 +102,6 @@ class CompoundWordMapper(object):
     def map_to_compound(self, remi_words: [string], dictionary: Dictionary) -> [CompoundWord]:
         compound_words = []
         prev_position = None
-        current_tempo = 2 * 32
         for i in range(len(remi_words)):
             if remi_words[i] == 'Bar_None':
                 compound_words.append(create_bar_event())
@@ -147,7 +145,6 @@ class CompoundWordMapper(object):
         return list(map(lambda x: [
             x.word_type,
             x.bar_beat,
-            x.tempo,
             x.instrument,
             x.note_name,
             x.octave,
