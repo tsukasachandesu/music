@@ -7,10 +7,6 @@ import numpy as np
 import torch
 from x_transformers import Decoder
 
-from perceiver_ar_pytorch import PerceiverAR
-from perceiver_ar_pytorch.autoregressive_wrapper import 
-
-
 from mgt.models import utils
 from mgt.models.compound_word_transformer.compound_word_autoregressive_wrapper import CompoundWordAutoregressiveWrapper
 from mgt.models.compound_word_transformer.compound_word_transformer_utils import COMPOUND_WORD_BAR, pad, \
@@ -42,7 +38,6 @@ defaults = {
     'num_tokens': [
         4,    # Type
         17,   # Bar / Beat
-        192,  # Tempo
         129,  # Instrument
         12,   # Note name
         9,    # Octave
@@ -52,7 +47,6 @@ defaults = {
     'emb_sizes': [
         32,   # Type
         96,   # Bar / Beat
-        128,  # Tempo
         512,  # Instrument
         512,  # Note Name
         128,  # Octave
@@ -123,7 +117,7 @@ class CompoundWordTransformerModel(object):
                     torch_batch = torch.tensor(batch).long().to(get_device())
 
                     losses = self.model.train_step(torch_batch)
-                    loss = (losses[0] + losses[1] + losses[2] + losses[3] + losses[4] + losses[5] + losses[6]) / 7
+                    loss = (losses[0] + losses[1] + losses[2] + losses[3] + losses[4] + losses[5]) / 
                     loss.backward()
 
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), 0.5)
@@ -162,18 +156,17 @@ class CompoundWordTransformerModel(object):
 
     def create_model(self):
         model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
-            emb_sizes=self.emb_sizes
-            PerceiverAR(
-                num_tokens=self.num_tokens,
+            num_tokens=self.num_tokens,
+            emb_sizes=self.emb_sizes,
+            max_seq_len=self.max_sequence_length,
+            attn_layers=Decoder(
                 dim=self.dim,
                 depth=self.depth,
-                dim_head=self.dim_head,
                 heads=self.heads,
-                max_seq_len=self.max_sequence_length,
-                cross_attn_seq_len=3072,
-                cross_attn_dropout=0.5,
-            ),
-            pad_value=0      
+                attn_dropout=self.dropout,  # dropout post-attention
+                ff_dropout=self.dropout,  # feedforward dropout
+                rotary_pos_emb=True
+            )
         )).to(get_device())
 
         return model
