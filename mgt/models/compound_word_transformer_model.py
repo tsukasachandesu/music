@@ -38,22 +38,18 @@ defaults = {
     'num_tokens': [
         4,    # Type
         17,   # Bar / Beat
-        192,  # Tempo
         129,  # Instrument
         12,   # Note name
         9,    # Octave
         64,   # Duration
-        32    # Velocity
     ],
     'emb_sizes': [
         32,   # Type
         96,   # Bar / Beat
-        128,  # Tempo
         512,  # Instrument
         512,  # Note Name
         128,  # Octave
         128,  # Duration
-        128   # Velocity
     ],
     'max_sequence_length': 512,
     'learning_rate': 1e-4,
@@ -119,7 +115,7 @@ class CompoundWordTransformerModel(object):
                     torch_batch = torch.tensor(batch).long().to(get_device())
 
                     losses = self.model.train_step(torch_batch)
-                    loss = (losses[0] + losses[1] + losses[2] + losses[3] + losses[4] + losses[5] + losses[6]) / 7
+                    loss = (losses[0] + losses[1] + losses[2] + losses[3] + losses[4]) / 5
                     loss.backward()
 
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), 0.5)
