@@ -130,7 +130,11 @@ class CompoundWordMapper(object):
                     note_name=note_name_position,
                     octave=octave_position,
                     duration=duration_position))
-            elif i + 2 < len(remi_words):
+            elif i + 2 < len(remi_words) and \
+                    'Position' in remi_words[i] and \
+                    'Tempo Class' in remi_words[i + 1] and \
+                    'Tempo Value' in remi_words[i + 2]:
+                
                 print(remi_words[i])
                 print(i)
                 current_position = map_word(dictionary.wtd[remi_words[i]], self.position_offset)
