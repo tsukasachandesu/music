@@ -124,7 +124,6 @@ class CompoundWordMapper(object):
                 duration_position = map_word(dictionary.wtd[remi_words[i + 5]], self.note_duration_offset)
                 compound_words.append(create_note_event(
                     instrument=instrument_position,
-                    velocity=velocity_position,
                     note_name=note_name_position,
                     octave=octave_position,
                     duration=duration_position))
