@@ -22,10 +22,9 @@ class CompoundWord(object):
     duration: int
     velocity: int
 
-    def __init__(self, word_type, bar_beat=0, tempo=0, instrument=0, note_name=0, octave=0, duration=0, velocity=0):
+    def __init__(self, word_type, bar_beat=0, instrument=0, note_name=0, octave=0, duration=0, velocity=0):
         self.word_type = word_type
         self.bar_beat = bar_beat
-        self.tempo = tempo
         self.instrument = instrument
         self.note_name = note_name
         self.octave = octave
@@ -43,7 +42,7 @@ class CompoundWord(object):
         elif self.word_type == 3:
             type_string = 'NOTE'
 
-        return f'CompoundWord(type={type_string}, bar_beat={self.bar_beat}, tempo={self.tempo}, instrument={self.instrument}, note_name={self.note_name}, octave={self.octave}, duration={self.duration}, velocity={self.velocity})'
+        return f'CompoundWord(type={type_string}, bar_beat={self.bar_beat}, instrument={self.instrument}, note_name={self.note_name}, octave={self.octave}, duration={self.duration}, velocity={self.velocity})'
 
 
 def create_bar_event():
@@ -80,10 +79,6 @@ class CompoundWordMapper(object):
         instrument_keys = {k: v for k, v in dictionary.dtw.items() if 'Instrument' in v}.keys()
         self.instrument_size = len(instrument_keys)
         self.instrument_offset = min(instrument_keys)
-
-        tempo_keys = {k: v for k, v in dictionary.dtw.items() if 'Tempo' in v}.keys()
-        self.tempo_size = len(tempo_keys)
-        self.tempo_offset = min(tempo_keys)
 
         note_duration_keys = {k: v for k, v in dictionary.dtw.items() if 'Note Duration' in v}.keys()
         self.note_duration_size = len(note_duration_keys)
@@ -137,14 +132,7 @@ class CompoundWordMapper(object):
                     note_name=note_name_position,
                     octave=octave_position,
                     duration=duration_position))
-            elif i + 2 < len(remi_words) and \
-                    'Position' in remi_words[i] and \
-                    'Tempo Class' in remi_words[i + 1] and \
-                    'Tempo Value' in remi_words[i + 2]:
-
-                tempo_class = map_word(dictionary.wtd[remi_words[i + 1]], self.tempo_offset)
-                tempo_value = map_word(dictionary.wtd[remi_words[i + 2]], self.tempo_offset)
-                current_tempo = tempo_class * NUMBER_OF_TEMPO_VALUES + tempo_value
+            elif i + 2 < len(remi_words) and \'Position' in remi_words[i] and \'Tempo Class' in remi_words[i + 1] and \'Tempo Value' in remi_words[i + 2]:
                 current_position = map_word(dictionary.wtd[remi_words[i]], self.position_offset)
                 if prev_position is None or prev_position != current_position:
                     compound_words.append(create_beat_event(current_position, current_tempo))
@@ -198,8 +186,5 @@ class CompoundWordMapper(object):
         if bar_beat == 0:
             return [self.dictionary.word_to_data('Bar_None')], 0
         else:
-            tempo = compound_word[2]
-            tempo_class = int(tempo / NUMBER_OF_TEMPO_VALUES) + self.tempo_offset
-            tempo_value = tempo % NUMBER_OF_TEMPO_VALUES + 3 + self.tempo_offset
             position = bar_beat - 1 + self.position_offset
-            return [position, tempo_class, tempo_value], bar_beat - 1
+            return [position], bar_beat - 1
