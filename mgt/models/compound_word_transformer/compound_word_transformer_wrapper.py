@@ -72,7 +72,6 @@ class CompoundWordTransformerWrapper(nn.Module):
             emb_sizes = [
                 32,  # Type
                 96,  # Bar / Beat
-                128,  # Tempo
                 512,  # Instrument
                 512,  # Note Name
                 128,  # Octave
@@ -90,22 +89,20 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         self.word_emb_type = CompoundTransformerEmbeddings(self.num_tokens[0], self.emb_sizes[0])
         self.word_emb_barbeat = CompoundTransformerEmbeddings(self.num_tokens[1], self.emb_sizes[1])
-        self.word_emb_tempo = CompoundTransformerEmbeddings(self.num_tokens[2], self.emb_sizes[2])
-        self.word_emb_instrument = CompoundTransformerEmbeddings(self.num_tokens[3], self.emb_sizes[3])
-        self.word_emb_note_name = CompoundTransformerEmbeddings(self.num_tokens[4], self.emb_sizes[4])
-        self.word_emb_octave = CompoundTransformerEmbeddings(self.num_tokens[5], self.emb_sizes[5])
-        self.word_emb_duration = CompoundTransformerEmbeddings(self.num_tokens[6], self.emb_sizes[6])
-        self.word_emb_velocity = CompoundTransformerEmbeddings(self.num_tokens[7], self.emb_sizes[7])
+        self.word_emb_instrument = CompoundTransformerEmbeddings(self.num_tokens[2], self.emb_sizes[2])
+        self.word_emb_note_name = CompoundTransformerEmbeddings(self.num_tokens[3], self.emb_sizes[3])
+        self.word_emb_octave = CompoundTransformerEmbeddings(self.num_tokens[4], self.emb_sizes[4])
+        self.word_emb_duration = CompoundTransformerEmbeddings(self.num_tokens[5], self.emb_sizes[5])
+        self.word_emb_velocity = CompoundTransformerEmbeddings(self.num_tokens[6], self.emb_sizes[6])
 
         # individual output
         self.proj_type = nn.Linear(dim, self.num_tokens[0])
         self.proj_barbeat = nn.Linear(dim, self.num_tokens[1])
-        self.proj_tempo = nn.Linear(dim, self.num_tokens[2])
-        self.proj_instrument = nn.Linear(dim, self.num_tokens[3])
-        self.proj_note_name = nn.Linear(dim, self.num_tokens[4])
-        self.proj_octave = nn.Linear(dim, self.num_tokens[5])
-        self.proj_duration = nn.Linear(dim, self.num_tokens[6])
-        self.proj_velocity = nn.Linear(dim, self.num_tokens[7])
+        self.proj_instrument = nn.Linear(dim, self.num_tokens[2])
+        self.proj_note_name = nn.Linear(dim, self.num_tokens[3])
+        self.proj_octave = nn.Linear(dim, self.num_tokens[4])
+        self.proj_duration = nn.Linear(dim, self.num_tokens[5])
+        self.proj_velocity = nn.Linear(dim, self.num_tokens[6])
 
         # in_features is equal to dimension plus dimensions of the type embedding
         self.project_concat_type = nn.Linear(dim + self.emb_sizes[0], dim)
@@ -127,7 +124,6 @@ class CompoundWordTransformerWrapper(nn.Module):
     def init_(self):
         nn.init.normal_(self.word_emb_type.weight(), std=0.02)
         nn.init.normal_(self.word_emb_barbeat.weight(), std=0.02)
-        nn.init.normal_(self.word_emb_tempo.weight(), std=0.02)
         nn.init.normal_(self.word_emb_instrument.weight(), std=0.02)
         nn.init.normal_(self.word_emb_note_name.weight(), std=0.02)
         nn.init.normal_(self.word_emb_octave.weight(), std=0.02)
@@ -159,7 +155,6 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         # project other
         proj_barbeat = self.proj_barbeat(y_)
-        proj_tempo = self.proj_tempo(y_)
         proj_instrument = self.proj_instrument(y_)
         proj_note_name = self.proj_note_name(y_)
         proj_octave = self.proj_octave(y_)
@@ -171,11 +166,6 @@ class CompoundWordTransformerWrapper(nn.Module):
             proj_barbeat,
             probability_treshold=selection_probability_tresholds.get(1, None),
             temperature=selection_temperatures.get(1, 1.0))
-
-        cur_word_tempo = sampling(
-            proj_tempo,
-            probability_treshold=selection_probability_tresholds.get(2, None),
-            temperature=selection_temperatures.get(2, 1.0))
 
         cur_word_instrument = sampling(
             proj_instrument,
@@ -225,14 +215,13 @@ class CompoundWordTransformerWrapper(nn.Module):
         y_ = self.project_concat_type(y_concat_type)
 
         proj_barbeat = self.proj_barbeat(y_)
-        proj_tempo = self.proj_tempo(y_)
         proj_instrument = self.proj_instrument(y_)
         proj_note_name = self.proj_note_name(y_)
         proj_octave = self.proj_octave(y_)
         proj_duration = self.proj_duration(y_)
         proj_velocity = self.proj_velocity(y_)
 
-        return proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, proj_velocity
+        return proj_barbeat, proj_instrument, proj_note_name, proj_octave, proj_duration, proj_velocity
 
     def forward_hidden(
             self,
@@ -243,18 +232,16 @@ class CompoundWordTransformerWrapper(nn.Module):
         # embeddings
         emb_type = self.word_emb_type(x[..., 0])
         emb_barbeat = self.word_emb_barbeat(x[..., 1])
-        emb_tempo = self.word_emb_tempo(x[..., 2])
-        emb_instrument = self.word_emb_instrument(x[..., 3])
-        emb_note_name = self.word_emb_note_name(x[..., 4])
-        emb_octave = self.word_emb_octave(x[..., 5])
-        emb_duration = self.word_emb_duration(x[..., 6])
-        emb_velocity = self.word_emb_velocity(x[..., 7])
+        emb_instrument = self.word_emb_instrument(x[..., 2])
+        emb_note_name = self.word_emb_note_name(x[..., 3])
+        emb_octave = self.word_emb_octave(x[..., 4])
+        emb_duration = self.word_emb_duration(x[..., 5])
+        emb_velocity = self.word_emb_velocity(x[..., 6])
 
         embs = torch.cat(
             [
                 emb_type,
                 emb_barbeat,
-                emb_tempo,
                 emb_instrument,
                 emb_note_name,
                 emb_octave,
