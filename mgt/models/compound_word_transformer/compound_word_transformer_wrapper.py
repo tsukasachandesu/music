@@ -196,7 +196,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         next_arr = np.array([
             cur_word_type,
             cur_word_barbeat,
-            cur_word_tempo,
             cur_word_instrument,
             cur_word_note_name,
             cur_word_octave,
