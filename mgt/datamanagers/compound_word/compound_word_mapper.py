@@ -100,8 +100,6 @@ class CompoundWordMapper(object):
         self.octave_size = len(octave_keys)
         self.octave_offset = min(octave_keys)
         
-        print(self.octave_offset, self.note_name_offset,self.position_offset,self.note_velocity_offset,self.note_duration_offset,self.instrument_offset )
-
     def map_to_compound(self, remi_words: [string], dictionary: Dictionary) -> [CompoundWord]:
         compound_words = []
         prev_position = None
