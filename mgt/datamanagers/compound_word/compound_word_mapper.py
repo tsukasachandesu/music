@@ -48,8 +48,8 @@ def create_bar_event():
     return CompoundWord(word_type=WordType.TIMING, bar_beat=0)
 
 
-def create_beat_event(beat, tempo):
-    return CompoundWord(word_type=WordType.TIMING, bar_beat=beat + 1, tempo=tempo)
+def create_beat_event(beat):
+    return CompoundWord(word_type=WordType.TIMING, bar_beat=beat + 1)
 
 
 def create_note_event(instrument, note_name, octave, duration, velocity):
