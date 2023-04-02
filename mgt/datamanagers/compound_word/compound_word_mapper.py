@@ -48,7 +48,7 @@ def create_bar_event():
     return CompoundWord(word_type=WordType.TIMING, bar_beat=0)
 
 
-def create_beat_event(beat, tempo):
+def create_beat_event(beat):
     return CompoundWord(word_type=WordType.TIMING, bar_beat=beat + 1)
 
 
@@ -141,7 +141,7 @@ class CompoundWordMapper(object):
 
                 current_position = map_word(dictionary.wtd[remi_words[i]], self.position_offset)
                 if prev_position is None or prev_position != current_position:
-                    compound_words.append(create_beat_event(current_position, current_tempo))
+                    compound_words.append(create_beat_event(current_position))
                     prev_position = current_position
 
         compound_words.append(create_eos_event())
