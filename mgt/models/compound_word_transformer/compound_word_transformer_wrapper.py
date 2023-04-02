@@ -169,13 +169,13 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         cur_word_instrument = sampling(
             proj_instrument,
-            probability_treshold=selection_probability_tresholds.get(3, None),
-            temperature=selection_temperatures.get(3, 1.0))
+            probability_treshold=selection_probability_tresholds.get(2, None),
+            temperature=selection_temperatures.get(2, 1.0))
 
         cur_word_note_name = sampling(
             proj_note_name,
-            probability_treshold=selection_probability_tresholds.get(4, None),
-            temperature=selection_temperatures.get(4, 1.0))
+            probability_treshold=selection_probability_tresholds.get(3, None),
+            temperature=selection_temperatures.get(3, 1.0))
 
         cur_word_octave = sampling(
             proj_octave,
