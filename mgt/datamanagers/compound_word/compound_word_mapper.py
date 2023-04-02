@@ -79,9 +79,6 @@ class CompoundWordMapper(object):
         self.instrument_size = len(instrument_keys)
         self.instrument_offset = min(instrument_keys)
 
-        tempo_keys = {k: v for k, v in dictionary.dtw.items() if 'Tempo' in v}.keys()
-        self.tempo_size = len(tempo_keys)
-        self.tempo_offset = min(tempo_keys)
 
         note_duration_keys = {k: v for k, v in dictionary.dtw.items() if 'Note Duration' in v}.keys()
         self.note_duration_size = len(note_duration_keys)
