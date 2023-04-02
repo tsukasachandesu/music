@@ -49,7 +49,7 @@ class CompoundWordDataManager(DataManager):
             for transposition_step in self.transposition_steps:
                 data = self.data_extractor.extract_words(path, transposition_step)
                 compound_words = self.compound_word_mapper.map_to_compound(data, self.dictionary)
-                print(conpound_words)
+                print(compound_words)
                 compound_data = self.compound_word_mapper.map_compound_words_to_data(compound_words)
                 print(compound_data)
                 print(f'Extracted {len(compound_data)} compound words.')
