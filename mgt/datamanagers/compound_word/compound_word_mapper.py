@@ -175,7 +175,7 @@ class CompoundWordMapper(object):
         note_name = compound_word[3] + self.note_name_offset
         octave = compound_word[4] + self.octave_offset
         duration = compound_word[5] + self.note_duration_offset
-        velocity = 1 + self.note_velocity_offset
+        velocity = 10 + self.note_velocity_offset
         return [position, instrument, velocity, note_name, octave, duration]
 
     def map_compound_timing_to_remi(self, compound_word):
