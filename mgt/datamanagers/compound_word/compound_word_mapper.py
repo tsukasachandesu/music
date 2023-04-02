@@ -120,7 +120,7 @@ class CompoundWordMapper(object):
 
                 current_position = map_word(dictionary.wtd[remi_words[i]], self.position_offset)
                 if prev_position is None or prev_position != current_position:
-                    compound_words.append(create_beat_event(current_position, current_tempo))
+                    compound_words.append(create_beat_event(current_position))
                     prev_position = current_position
 
                 instrument_position = map_word(dictionary.wtd[remi_words[i + 1]], self.instrument_offset)
