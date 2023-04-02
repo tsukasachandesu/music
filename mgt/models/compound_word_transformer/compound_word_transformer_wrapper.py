@@ -88,18 +88,18 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         self.word_emb_type = CompoundTransformerEmbeddings(self.num_tokens[0], self.emb_sizes[0])
         self.word_emb_barbeat = CompoundTransformerEmbeddings(self.num_tokens[1], self.emb_sizes[1])
-        self.word_emb_instrument = CompoundTransformerEmbeddings(self.num_tokens[3], self.emb_sizes[3])
-        self.word_emb_note_name = CompoundTransformerEmbeddings(self.num_tokens[4], self.emb_sizes[4])
-        self.word_emb_octave = CompoundTransformerEmbeddings(self.num_tokens[5], self.emb_sizes[5])
-        self.word_emb_duration = CompoundTransformerEmbeddings(self.num_tokens[6], self.emb_sizes[6])
+        self.word_emb_instrument = CompoundTransformerEmbeddings(self.num_tokens[2], self.emb_sizes[2])
+        self.word_emb_note_name = CompoundTransformerEmbeddings(self.num_tokens[3], self.emb_sizes[3])
+        self.word_emb_octave = CompoundTransformerEmbeddings(self.num_tokens[4], self.emb_sizes[4])
+        self.word_emb_duration = CompoundTransformerEmbeddings(self.num_tokens[5], self.emb_sizes[5])
 
         # individual output
         self.proj_type = nn.Linear(dim, self.num_tokens[0])
         self.proj_barbeat = nn.Linear(dim, self.num_tokens[1])
-        self.proj_instrument = nn.Linear(dim, self.num_tokens[3])
-        self.proj_note_name = nn.Linear(dim, self.num_tokens[4])
-        self.proj_octave = nn.Linear(dim, self.num_tokens[5])
-        self.proj_duration = nn.Linear(dim, self.num_tokens[6])
+        self.proj_instrument = nn.Linear(dim, self.num_tokens[2])
+        self.proj_note_name = nn.Linear(dim, self.num_tokens[3])
+        self.proj_octave = nn.Linear(dim, self.num_tokens[4])
+        self.proj_duration = nn.Linear(dim, self.num_tokens[5])
 
         # in_features is equal to dimension plus dimensions of the type embedding
         self.project_concat_type = nn.Linear(dim + self.emb_sizes[0], dim)
