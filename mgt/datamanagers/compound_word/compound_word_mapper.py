@@ -19,16 +19,14 @@ class CompoundWord(object):
     note_name: int
     octave: int
     duration: int
-    velocity: int
 
-    def __init__(self, word_type, bar_beat=0, instrument=0, note_name=0, octave=0, duration=0, velocity=0):
+    def __init__(self, word_type, bar_beat=0, instrument=0, note_name=0, octave=0, duration=0):
         self.word_type = word_type
         self.bar_beat = bar_beat
         self.instrument = instrument
         self.note_name = note_name
         self.octave = octave
         self.duration = duration
-        self.velocity = velocity
 
     def __repr__(self):
         type_string = 'UNKNOWN'
@@ -41,7 +39,7 @@ class CompoundWord(object):
         elif self.word_type == 3:
             type_string = 'NOTE'
 
-        return f'CompoundWord(type={type_string}, bar_beat={self.bar_beat}, instrument={self.instrument}, note_name={self.note_name}, octave={self.octave}, duration={self.duration}, velocity={self.velocity})'
+        return f'CompoundWord(type={type_string}, bar_beat={self.bar_beat}, instrument={self.instrument}, note_name={self.note_name}, octave={self.octave}, duration={self.duration})'
 
 
 def create_bar_event():
@@ -52,14 +50,13 @@ def create_beat_event(beat):
     return CompoundWord(word_type=WordType.TIMING, bar_beat=beat + 1)
 
 
-def create_note_event(instrument, note_name, octave, duration, velocity):
+def create_note_event(instrument, note_name, octave, duration):
     return CompoundWord(
         word_type=WordType.NOTE,
         instrument=instrument,
         note_name=note_name,
         octave=octave,
-        duration=duration,
-        velocity=velocity)
+        duration=duration)
 
 
 def create_eos_event():
@@ -121,7 +118,7 @@ class CompoundWordMapper(object):
                     prev_position = current_position
 
                 instrument_position = map_word(dictionary.wtd[remi_words[i + 1]], self.instrument_offset)
-                velocity_position = map_word(dictionary.wtd[remi_words[i + 2]], self.note_velocity_offset)
+
                 note_name_position = map_word(dictionary.wtd[remi_words[i + 3]], self.note_name_offset)
                 octave_position = map_word(dictionary.wtd[remi_words[i + 4]], self.octave_offset)
                 duration_position = map_word(dictionary.wtd[remi_words[i + 5]], self.note_duration_offset)
@@ -153,8 +150,7 @@ class CompoundWordMapper(object):
             x.instrument,
             x.note_name,
             x.octave,
-            x.duration,
-            x.velocity
+            x.duration
         ], compound_words))
 
     def map_to_remi(self, compound_data: [[int]]):
@@ -180,7 +176,7 @@ class CompoundWordMapper(object):
         note_name = compound_word[3] + self.note_name_offset
         octave = compound_word[4] + self.octave_offset
         duration = compound_word[5] + self.note_duration_offset
-        velocity = compound_word[6] + self.note_velocity_offset
+        velocity = 1 + self.note_velocity_offset
         return [position, instrument, velocity, note_name, octave, duration]
 
     def map_compound_timing_to_remi(self, compound_word):
