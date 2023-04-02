@@ -131,7 +131,8 @@ class CompoundWordMapper(object):
                     octave=octave_position,
                     duration=duration_position))
             elif i + 2 < len(remi_words):
-                print(remi_words)
+                print(remi_words[i])
+                print(i)
                 current_position = map_word(dictionary.wtd[remi_words[i]], self.position_offset)
                 if prev_position is None or prev_position != current_position:
                     compound_words.append(create_beat_event(current_position))
