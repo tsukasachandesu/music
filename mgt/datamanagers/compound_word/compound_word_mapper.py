@@ -126,7 +126,7 @@ class CompoundWordMapper(object):
                     'Position' in remi_words[i] and \
                     'Tempo Class' in remi_words[i + 1] and \
                     'Tempo Value' in remi_words[i + 2]:
-                print(remi_words[i])
+
                 current_position = map_word(dictionary.wtd[remi_words[i]], self.position_offset)
                 if prev_position is None or prev_position != current_position:
                     compound_words.append(create_beat_event(current_position))
