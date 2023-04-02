@@ -119,7 +119,7 @@ class CompoundWordMapper(object):
                 if prev_position is None or prev_position != current_position:
                     compound_words.append(create_beat_event(current_position))
                     prev_position = current_position
-                print(remi_words[i + 1],remi_words[i + 2],remi_words[i + 3],remi_words[i + 4]remi_words[i + 5])
+                print(remi_words[i + 1],remi_words[i + 2],remi_words[i + 3],remi_words[i + 4],remi_words[i + 5])
 
                 instrument_position = map_word(dictionary.wtd[remi_words[i + 1]], self.instrument_offset)
                 velocity_position = map_word(dictionary.wtd[remi_words[i + 2]], self.note_velocity_offset)
