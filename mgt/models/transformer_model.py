@@ -48,7 +48,7 @@ class TransformerModel(object):
         self.learning_rate = learning_rate
         self.optimizer = self.create_optimizer()
 
-    def train(self, x_train, epochs, batch_size=10, stop_loss=None, batches_per_epoch=200, report_per_x_batches=20,
+    def train(self, x_train, epochs, batch_size=5, stop_loss=None, batches_per_epoch=100, report_per_x_batches=10,
               gradient_accumulation_steps=1):
         self.model.train()
         start_time = time.time()
