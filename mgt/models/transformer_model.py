@@ -47,7 +47,7 @@ class TransformerModel(object):
         self.learning_rate = learning_rate
         self.optimizer = self.create_optimizer()
 
-    def train(self, x_train, epochs, batch_size=10, stop_loss=None, batches_per_epoch=120, report_per_x_batches=40,
+    def train(self, x_train, epochs, batch_size=10, stop_loss=None, batches_per_epoch=100, report_per_x_batches=20,
               gradient_accumulation_steps=1):
         self.model.train()
         start_time = time.time()
@@ -109,7 +109,7 @@ class TransformerModel(object):
         model = BlockRecurrentTransformer(
           num_tokens = self.dictionary.size(),             # vocab size
           dim = 512,                      # model dimensions
-          depth = 9,                      # depth
+          depth = 10,                     # depth
           dim_head = 64,                  # attention head dimensions
           heads = 10,                     # number of attention heads
           max_seq_len = self.max_sequence_length,             # the total receptive field of the transformer, in the paper this was 2 * block size
@@ -117,8 +117,7 @@ class TransformerModel(object):
           xl_memories_layers = (5, 6),    # which layers to use xl memories. very old deepmind papers have shown you only need the last penultimate layers to have cached key values to see majority of benefit
           num_state_vectors = 512,        # number of state vectors, i believe this was a single block size in the paper, but can be any amount
           recurrent_layers = (4,),        # where to place the recurrent layer(s) for states with fixed simple gating
-          enhanced_recurrence = True,     # enhanced recurrence from ernie-doc paper, i have seen it to work well on my local machine
-          use_flash_attn = True
+          enhanced_recurrence = True      # enhanced recurrence from ernie-doc paper, i have seen it to work well on my local machine
           ).to(utils.get_device())
 
         model = RecurrentTrainerWrapper(model,xl_memories_dropout = 0.1,state_dropout = 0.1,).to(utils.get_device())
