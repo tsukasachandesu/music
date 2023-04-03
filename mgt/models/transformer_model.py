@@ -47,7 +47,7 @@ class TransformerModel(object):
         self.learning_rate = learning_rate
         self.optimizer = self.create_optimizer()
 
-    def train(self, x_train, epochs, batch_size=8, stop_loss=None, batches_per_epoch=120, report_per_x_batches=40,
+    def train(self, x_train, epochs, batch_size=10, stop_loss=None, batches_per_epoch=120, report_per_x_batches=40,
               gradient_accumulation_steps=1):
         self.model.train()
         start_time = time.time()
@@ -109,9 +109,9 @@ class TransformerModel(object):
         model = BlockRecurrentTransformer(
           num_tokens = self.dictionary.size(),             # vocab size
           dim = 512,                      # model dimensions
-          depth = 8,                      # depth
+          depth = 9,                      # depth
           dim_head = 64,                  # attention head dimensions
-          heads = 8,                      # number of attention heads
+          heads = 10,                     # number of attention heads
           max_seq_len = self.max_sequence_length,             # the total receptive field of the transformer, in the paper this was 2 * block size
           block_width = 512,              # block size - total receptive field is max_seq_len, 2 * block size in paper. the block furthest forwards becomes the new cached xl memories, which is a block size of 1 (please open an issue if i am wrong)
           xl_memories_layers = (5, 6),    # which layers to use xl memories. very old deepmind papers have shown you only need the last penultimate layers to have cached key values to see majority of benefit
