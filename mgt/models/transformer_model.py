@@ -13,7 +13,7 @@ from mgt.models import utils
 
 
 defaults = {
-    'max_sequence_length': 512,
+    'max_sequence_length': 2048,
     'learning_rate': 1e-4,
     'dropout': 0.1,
     'dim': 512,
@@ -109,11 +109,11 @@ class TransformerModel(object):
         model = BlockRecurrentTransformer(
           num_tokens = self.dictionary.size(),             # vocab size
           dim = 512,                      # model dimensions
-          depth = 10,                     # depth
+          depth = 6,                     # depth
           dim_head = 64,                  # attention head dimensions
-          heads = 10,                     # number of attention heads
+          heads = 8,                     # number of attention heads
           max_seq_len = self.max_sequence_length,             # the total receptive field of the transformer, in the paper this was 2 * block size
-          block_width = 512,              # block size - total receptive field is max_seq_len, 2 * block size in paper. the block furthest forwards becomes the new cached xl memories, which is a block size of 1 (please open an issue if i am wrong)
+          block_width = 1024,              # block size - total receptive field is max_seq_len, 2 * block size in paper. the block furthest forwards becomes the new cached xl memories, which is a block size of 1 (please open an issue if i am wrong)
           xl_memories_layers = (5, 6),    # which layers to use xl memories. very old deepmind papers have shown you only need the last penultimate layers to have cached key values to see majority of benefit
           num_state_vectors = 512,        # number of state vectors, i believe this was a single block size in the paper, but can be any amount
           recurrent_layers = (4,),        # where to place the recurrent layer(s) for states with fixed simple gating
