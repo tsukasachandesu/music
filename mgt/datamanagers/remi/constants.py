@@ -1,6 +1,6 @@
 import numpy as np
 
-DRUM_INSTRUMENT = 12
+DRUM_INSTRUMENT = 11
 
 DEFAULT_VELOCITY_BINS = np.linspace(0, 128, 8 + 1, dtype=np.int)
 DEFAULT_FRACTION = 16
