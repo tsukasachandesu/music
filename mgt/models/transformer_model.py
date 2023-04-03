@@ -109,7 +109,7 @@ class TransformerModel(object):
         model = BlockRecurrentTransformer(
           num_tokens = self.dictionary.size(),             # vocab size
           dim = 512,                      # model dimensions
-          depth = 6,                     # depth
+          depth = 8,                     # depth
           dim_head = 64,                  # attention head dimensions
           heads = 8,                     # number of attention heads
           max_seq_len = self.max_sequence_length,             # the total receptive field of the transformer, in the paper this was 2 * block size
