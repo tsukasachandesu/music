@@ -109,7 +109,7 @@ class TransformerModel(object):
 
     def create_model(self):
         model = PaLM(num_tokens=self.dictionary.size(), dim=512, depth=8)
-        model = AutoregressiveWrapper(model, max_seq_len=SEQ_LEN).to(utils.get_device())
+        model = AutoregressiveWrapper(model, max_seq_len=1024).to(utils.get_device())
         
         return model
 
