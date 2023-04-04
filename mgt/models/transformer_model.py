@@ -111,6 +111,7 @@ class TransformerModel(object):
     def create_model(self):
         model = Mega(num_tokens = self.dictionary.size(),dim = 512,depth = 12,ema_heads = 16,attn_dim_qk = 128, attn_dim_value = 1024)
         model = AutoregressiveWrapper(model, pad_value=0).to(utils.get_device())
+        model = torch.compile(model)
         return model
 
     def create_optimizer(self):
