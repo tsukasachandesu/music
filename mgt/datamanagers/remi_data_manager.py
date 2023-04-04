@@ -10,7 +10,7 @@ from mgt.datamanagers.remi.to_midi_mapper import ToMidiMapper
 defaults = {
     'use_chords': False,
     'use_note_name': True,
-    'transposition_steps':[0,1,2,3,4,5,-1,-2,-3,-4,-5,6],
+    'transposition_steps':[0],
     'map_tracks_to_instruments': {},
     'instrument_mapping': {
         1: 0,
@@ -154,7 +154,9 @@ class RemiDataManager(DataManager):
                     if self.efficient_remi_config.enabled:
                         events = self.data_extractor.extract_events(path, transposition_step)
                         words = self.efficient_remi_converter.convert_to_efficient_remi(events)
+                        print(words)
                         data = self.data_extractor.words_to_data(words)
+                        print(data)
                         training_data.append(data)
                     else:
                         data = self.data_extractor.extract_data(path, transposition_step)
