@@ -15,7 +15,7 @@ from mgt.models import utils
 
 
 defaults = {
-    'max_sequence_length': 2500,
+    'max_sequence_length': 2048,
     'learning_rate': 1e-4,
     'dropout': 0.1,
     'dim': 512,
