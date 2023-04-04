@@ -6,8 +6,9 @@ import torch
 import numpy as np
 
 
-from palm_pytorch.triton import PaLM
-from palm_pytorch.autoregressive_wrapper import AutoregressiveWrapper
+from mega_pytorch.mega_pytorch import Mega
+from mega_pytorch.autoregressive_wrapper import AutoregressiveWrapper
+
 
 
 from mgt.datamanagers.data_manager import Dictionary
@@ -108,9 +109,8 @@ class TransformerModel(object):
         return sample.cpu().detach().numpy()[0]
 
     def create_model(self):
-        model = PaLM(num_tokens=self.dictionary.size(), dim=512, depth=8)
-        model = AutoregressiveWrapper(model, max_seq_len=1024).to(utils.get_device())
-        
+        model = Mega(num_tokens = 256,dim = 512,depth = 8)
+        model = AutoregressiveWrapper(model)
         return model
 
     def create_optimizer(self):
