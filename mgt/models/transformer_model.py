@@ -109,8 +109,8 @@ class TransformerModel(object):
         return sample.cpu().detach().numpy()[0]
 
     def create_model(self):
-        model = Mega(num_tokens = 256,dim = 512,depth = 8)
-        model = AutoregressiveWrapper(model)
+        model = Mega(num_tokens = self.dictionary.size(),dim = 512,depth = 8)
+        model = AutoregressiveWrapper(model).to(utils.get_device())
         return model
 
     def create_optimizer(self):
