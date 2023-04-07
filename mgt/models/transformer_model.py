@@ -4,9 +4,8 @@ import time
 
 import torch
 import numpy as np
-
-from mega_pytorch.mega_pytorch import Mega
-from mega_pytorch.autoregressive_wrapper import AutoregressiveWrapper
+from gated_state_spaces_pytorch import GatedStateSpacesLM
+from gated_state_spaces_pytorch.autoregressive_wrapper import AutoregressiveWrapper
 
 from mgt.datamanagers.data_manager import Dictionary
 from mgt.models import utils
@@ -107,16 +106,13 @@ class TransformerModel(object):
 
     def create_model(self):
         
-        model = Mega(
-            num_tokens = self.dictionary.size(),            # number of tokens
-            dim = 512,                   # model dimensions
-            depth = 16,                   # depth
-            ema_heads = 16,              # number of EMA heads
-            attn_dim_qk = 64,            # dimension of queries / keys in attention
-            attn_dim_value = 256,        # dimensino of values in attention
-            laplacian_attn_fn = True,    # whether to use softmax (false) or laplacian attention activation fn (true)
+        model = GatedStateSpacesLM(
+            num_tokens = self.dictionary.size(),
+            dim = 512,
+            depth = 16
         )
         model = AutoregressiveWrapper(model).to(utils.get_device())
+        
 
         return model
 
