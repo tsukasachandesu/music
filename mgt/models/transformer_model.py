@@ -5,10 +5,8 @@ import time
 import torch
 import numpy as np
 
-
-from block_recurrent_transformer_pytorch import BlockRecurrentTransformer, RecurrentTrainerWrapper
-
-
+from mega_pytorch.mega_pytorch import Mega
+from mega_pytorch.autoregressive_wrapper import AutoregressiveWrapper
 
 from mgt.datamanagers.data_manager import Dictionary
 from mgt.models import utils
@@ -108,22 +106,17 @@ class TransformerModel(object):
         return sample.cpu().detach().numpy()[0]
 
     def create_model(self):
-        model = BlockRecurrentTransformer(
-          num_tokens = self.dictionary.size(),             # vocab size
-          dim = 512,                      # model dimensions
-          depth = 16,                     # depth
-          dim_head = 64,                  # attention head dimensions
-          heads = 8,                     # number of attention heads
-          max_seq_len = 1024,             # the total receptive field of the transformer, in the paper this was 2 * block size
-          block_width = 512,              # block size - total receptive field is max_seq_len, 2 * block size in paper. the block furthest forwards becomes the new cached xl memories, which is a block size of 1 (please open an issue if i am wrong)
-          xl_memories_layers = (5, 6),    # which layers to use xl memories. very old deepmind papers have shown you only need the last penultimate layers to have cached key values to see majority of benefit
-          num_state_vectors = 512,        # number of state vectors, i believe this was a single block size in the paper, but can be any amount
-          recurrent_layers = (4,),        # where to place the recurrent layer(s) for states with fixed simple gating
-          enhanced_recurrence = True,      # enhanced recurrence from ernie-doc paper, i have seen it to work well on my local machine
-          use_flash_attn = True
-          ).to(utils.get_device())
-
-        model = RecurrentTrainerWrapper(model,xl_memories_dropout = 0.1,state_dropout = 0.1,).to(utils.get_device())
+        
+        mega = Mega(
+            num_tokens = self.dictionary.size(),            # number of tokens
+            dim = 128,                   # model dimensions
+            depth = 12,                   # depth
+            ema_heads = 16,              # number of EMA heads
+            attn_dim_qk = 128,            # dimension of queries / keys in attention
+            attn_dim_value = 1024,        # dimensino of values in attention
+            laplacian_attn_fn = True,    # whether to use softmax (false) or laplacian attention activation fn (true)
+        )
+        model = AutoregressiveWrapper(model).to(utils.get_device())
 
         return model
 
