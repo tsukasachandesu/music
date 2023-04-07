@@ -11,6 +11,17 @@ from mega_pytorch.autoregressive_wrapper import AutoregressiveWrapper
 from mgt.datamanagers.data_manager import Dictionary
 from mgt.models import utils
 
+defaults = {
+    'max_sequence_length': 1024,
+    'learning_rate': 1e-4,
+    'dropout': 0.1,
+    'dim': 512,
+    'depth': 16,
+    'heads': 8
+}
+
+
+
 class TransformerModel(object):
 
     def __init__(self,
@@ -98,7 +109,7 @@ class TransformerModel(object):
         
         model = Mega(
             num_tokens = self.dictionary.size(),            # number of tokens
-            dim = 1024,                   # model dimensions
+            dim = 512,                   # model dimensions
             depth = 16,                   # depth
             ema_heads = 16,              # number of EMA heads
             attn_dim_qk = 256,            # dimension of queries / keys in attention
