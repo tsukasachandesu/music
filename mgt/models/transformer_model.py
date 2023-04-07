@@ -107,7 +107,7 @@ class TransformerModel(object):
 
     def create_model(self):
         
-        mega = Mega(
+        model = Mega(
             num_tokens = self.dictionary.size(),            # number of tokens
             dim = 128,                   # model dimensions
             depth = 12,                   # depth
