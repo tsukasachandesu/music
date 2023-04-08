@@ -5,8 +5,7 @@ import time
 import torch
 import numpy as np
 
-from palm_pytorch.triton import PaLM
-from palm_pytorch.autoregressive_wrapper import AutoregressiveWrapper
+from palm_rlhf_pytorch import PaLM
 
 from mgt.datamanagers.data_manager import Dictionary
 from mgt.models import utils
@@ -106,12 +105,17 @@ class TransformerModel(object):
         return sample.cpu().detach().numpy()[0]
 
     def create_model(self):
-        model = PaLM(num_tokens=self.dictionary.size(), dim=512, depth=8)
-        model = AutoregressiveWrapper(model, max_seq_len=1024).to(utils.get_device())   
+        model = PaLM(
+            num_tokens=self.dictionary.size(),
+            dim=512,
+            depth=8,
+            flash_attn=True
+        ).to(utils.get_device())   
 
         return model
 
     def create_optimizer(self):
+
         return torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
 
     def save_checkpoint(self, path):
