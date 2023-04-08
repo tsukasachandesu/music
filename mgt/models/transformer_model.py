@@ -109,7 +109,7 @@ class TransformerModel(object):
             num_tokens=self.dictionary.size(),
             dim=512,
             depth=8,
-            flash_attn=True
+            flash_attn=false
         ).to(utils.get_device())   
 
         return model
