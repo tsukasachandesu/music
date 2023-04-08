@@ -4,8 +4,9 @@ import time
 
 import torch
 import numpy as np
-from gated_state_spaces_pytorch import GatedStateSpacesLM
-from gated_state_spaces_pytorch.autoregressive_wrapper import AutoregressiveWrapper
+
+from mega_pytorch.mega_pytorch import Mega
+from mega_pytorch.autoregressive_wrapper import AutoregressiveWrapper
 
 from mgt.datamanagers.data_manager import Dictionary
 from mgt.models import utils
@@ -15,7 +16,7 @@ defaults = {
     'learning_rate': 1e-4,
     'dropout': 0.1,
     'dim': 512,
-    'depth': 16,
+    'depth': 8,
     'heads': 8
 }
 
@@ -106,13 +107,12 @@ class TransformerModel(object):
 
     def create_model(self):
         
-        model = GatedStateSpacesLM(
+        model = Mega(
             num_tokens = self.dictionary.size(),
             dim = 512,
-            depth = 16
+            depth = 8
         )
-        model = AutoregressiveWrapper(model).to(utils.get_device())
-        
+        model = AutoregressiveWrapper(model).to(utils.get_device())   
 
         return model
 
