@@ -261,10 +261,6 @@ class RemiDataManager(DataManager):
                             if j==[]:
                                 zz[i] = [5]
 
-                        print(key_dife)
-                        print(key_diff)
-                        print(zz)
-
                         b = []
                         numin = 0
 
@@ -283,7 +279,7 @@ class RemiDataManager(DataManager):
                         
                         print(b)
                         data = self.data_extractor.words_to_data(b)
-                        print(f"Parsed {len(data)} words from midi as efficient REMI.")
+                        print(data)
                         
                         training_data.append(data)
                     else:
