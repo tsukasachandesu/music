@@ -42,17 +42,11 @@ class DictionaryGenerator(object):
 
         tempo_classes = ['Tempo Class_fast', 'Tempo Class_mid', 'Tempo Class_slow']
         
-        for i in range(65):
+        for i in range(11):
             append_to_dictionary(f"Instrument_{i}")
 
         for i in range(64):
             append_to_dictionary(f"Note Duration_{i}")
-
-        for i in range(128):
-            append_to_dictionary(f"Note On_{i}")
-
-        for i in range(32):
-            append_to_dictionary(f"Note Velocity_{i}")
 
         for i in range(16):
             append_to_dictionary(f"Position_{i + 1}/16")
@@ -69,5 +63,10 @@ class DictionaryGenerator(object):
             append_to_dictionary(f"diamet_{i}")
         for i in range(213):
             append_to_dictionary(f"diff_{i}")
+
+        for i in range(128):
+            append_to_dictionary(f"Note On_{i}")
+        for i in range(32):
+            append_to_dictionary(f"Note Velocity_{i}")
 
         return Dictionary(dictionary[0], dictionary[1])
