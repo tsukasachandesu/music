@@ -133,10 +133,8 @@ class RemiDataManager(DataManager):
                         for i in aho:
                             ahoho.append( np.linalg.norm(ce_sum1(qq,i)-minor_key_position(3)))
                         aaah = ['C major', 'G major', 'D major', 'A major', 'E major', 'B major', 'F major', 'B- major', 'E- major', 'A- major', 'D- major', 'G- major', 'A minor', 'E minor', 'B minor', 'F# minor', 'C# minor', 'G# minor', 'D minor', 'G minor', 'C minor', 'F minor', 'B- minor', 'E- minor']
-                        print(ahoho)
-
                         anunu= np.argmin(np.array(ahoho))
-                        print(anunu)
+                        
                         print(aaah[anunu])
                         print(aho2[anunu])
 
@@ -198,7 +196,7 @@ class RemiDataManager(DataManager):
                                 b.append("diff_" +  str(np.argmin(np.abs(np.array(dife) - key_dife[numin]))))
                                 numin = numin + 1
                         
-                        
+                        print(b)
                         data = self.data_extractor.words_to_data(b)
                         print(f"Parsed {len(data)} words from midi as efficient REMI.")
                         
