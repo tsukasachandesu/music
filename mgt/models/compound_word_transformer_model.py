@@ -55,8 +55,8 @@ defaults = {
     'learning_rate': 1e-4,
     'dropout': 0.1,
     'dim': 512,
-    'depth': 12,
-    'heads': 8
+    'depth': 16,
+    'heads': 12
 }
 
 
@@ -90,7 +90,7 @@ class CompoundWordTransformerModel(object):
     def train(self,
               x_train,
               epochs,
-              batch_size=4,
+              batch_size=6,
               stop_loss=None,
               batches_per_epoch=100,
               report_per_x_batches=20,
