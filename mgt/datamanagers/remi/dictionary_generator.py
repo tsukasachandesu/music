@@ -41,10 +41,7 @@ class DictionaryGenerator(object):
                   'Chord_G:aug', 'Chord_G:dim', 'Chord_G:dom', 'Chord_G:maj', 'Chord_G:min', 'Chord_N:N']
 
         tempo_classes = ['Tempo Class_fast', 'Tempo Class_mid', 'Tempo Class_slow']
-
-        for chord in chords:
-            append_to_dictionary(chord)
-
+        
         for i in range(65):
             append_to_dictionary(f"Instrument_{i}")
 
