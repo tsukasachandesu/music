@@ -91,14 +91,16 @@ class RemiDataManager(DataManager):
             return diameters
         
         
-        
+        print("mae")
         training_data = []
         for path in midi_paths:
             for transposition_step in self.transposition_steps:
                 try:
                     if self.efficient_remi_config.enabled:
+                        print("mae1")
                         events = self.data_extractor.extract_events(path, transposition_step)
                         words = self.efficient_remi_converter.convert_to_efficient_remi(events)
+                        print(words)
                         cur_bar, cur_pos = -1, -1
                         cur = 0
                         for ev in words:
