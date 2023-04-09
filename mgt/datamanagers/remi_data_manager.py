@@ -208,7 +208,7 @@ class RemiDataManager(DataManager):
                                 duration = int(posi) + 1
                                 st = cur_bar * 16 + cur_pos -1
                                 for i in range(duration):
-                                    poly_record[st + i].append(pitch_index_to_pitch_name[name])
+                                    poly_record[st + i].append(pitch_index_to_pitch_name[name])                                                       
                         qq=[]
                         for q in poly_record:
                             qq.append(list(set(q)))
