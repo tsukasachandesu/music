@@ -12,7 +12,7 @@ from tension_calculation import *
 defaults = {
     'use_chords': False,
     'use_note_name': True,
-    'transposition_steps':[0],
+    'transposition_steps':[-3, -2, -1, 0, 1, 2, 3],
     'map_tracks_to_instruments': {},
     'instrument_mapping': {
         1: 0,
@@ -181,6 +181,7 @@ class RemiDataManager(DataManager):
         training_data = []
         for path in midi_paths:
             for transposition_step in self.transposition_steps:
+                try:
 
                     if self.efficient_remi_config.enabled:
                         events = self.data_extractor.extract_events(path, transposition_step)
@@ -277,15 +278,16 @@ class RemiDataManager(DataManager):
                                 b.append("diff_" +  str(np.argmin(np.abs(np.array(dife) - key_dife[numin]))))
                                 numin = numin + 1
                         
-                        print(b)
+
                         data = self.data_extractor.words_to_data(b)
-                        print(data)
+
                         
                         training_data.append(data)
                     else:
                         data = self.data_extractor.extract_data(path, transposition_step)
                         training_data.append(data)
-
+                except Exception as e:
+                    print(e)
 
         return DataSet(training_data, self.dictionary)
 
