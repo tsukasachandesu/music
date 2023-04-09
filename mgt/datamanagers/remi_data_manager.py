@@ -135,9 +135,6 @@ class RemiDataManager(DataManager):
                         aaah = ['C major', 'G major', 'D major', 'A major', 'E major', 'B major', 'F major', 'B- major', 'E- major', 'A- major', 'D- major', 'G- major', 'A minor', 'E minor', 'B minor', 'F# minor', 'C# minor', 'G# minor', 'D minor', 'G minor', 'C minor', 'F minor', 'B- minor', 'E- minor']
                         anunu= np.argmin(np.array(ahoho))
                         
-                        print(aaah[anunu])
-                        print(aho2[anunu])
-
                         keynub = aho2[anunu]
 
                         centroids = [np.array([10,10,10])]
