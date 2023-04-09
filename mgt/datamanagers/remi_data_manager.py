@@ -71,13 +71,13 @@ class RemiDataManager(DataManager):
             count = 0
             shift = d
             for timestep, data in enumerate(indices):
-            for pitch in data:
-                if pitch:
-                    shifted = pitch - shift
-                if shifted < 0:
-                    shifted += 12
-                total += pitch_index_to_position(note_index_to_pitch_index[shifted])
-                count += 1
+                for pitch in data:
+                    if pitch:
+                        shifted = pitch - shift
+                        if shifted < 0:
+                            shifted += 12
+                        total += pitch_index_to_position(note_index_to_pitch_index[shifted])
+                        count += 1
             return total/count
         def cal_diameter1(piano_roll,key_index: int) -> List[int]:
             diameters = []
