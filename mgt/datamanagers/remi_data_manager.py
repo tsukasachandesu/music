@@ -181,7 +181,7 @@ class RemiDataManager(DataManager):
         training_data = []
         for path in midi_paths:
             for transposition_step in self.transposition_steps:
-                try:
+
                     if self.efficient_remi_config.enabled:
                         events = self.data_extractor.extract_events(path, transposition_step)
                         words = self.efficient_remi_converter.convert_to_efficient_remi(events)
@@ -289,8 +289,7 @@ class RemiDataManager(DataManager):
                     else:
                         data = self.data_extractor.extract_data(path, transposition_step)
                         training_data.append(data)
-                except Exception as e:
-                    print(e)
+
 
         return DataSet(training_data, self.dictionary)
 
