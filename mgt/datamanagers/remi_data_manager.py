@@ -280,6 +280,7 @@ class RemiDataManager(DataManager):
                         
 
                         data = self.data_extractor.words_to_data(b)
+                        print(f"Parsed {len(data)} words from midi as efficient REMI.")
 
                         
                         training_data.append(data)
