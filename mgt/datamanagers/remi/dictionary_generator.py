@@ -66,5 +66,11 @@ class DictionaryGenerator(object):
 
         for i in range(10):
             append_to_dictionary(f"Note Octave_{i}")
+         for i in range(233):
+            append_to_dictionary(f"cent_{i}")
+        for i in range(13):
+            append_to_dictionary(f"diamet_{i}")
+        for i in range(213):
+            append_to_dictionary(f"diff_{i}")
 
         return Dictionary(dictionary[0], dictionary[1])
