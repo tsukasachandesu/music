@@ -190,8 +190,8 @@ class RemiDataManager(DataManager):
                         for ev in words:
                             if "Bar" in ev:
                                 cur += 1
-                        poly_record =[[] * 1 for i in range((cur +1)* 16)]
-                        pol_record =[[0,0,0,0,0,0,0,0,0,0,0,0] * 1 for i in range((cur +1)* 16)]
+                        poly_record =[[] * 1 for i in range((cur +5)* 16)]
+                        pol_record =[[0,0,0,0,0,0,0,0,0,0,0,0] * 1 for i in range((cur +5)* 16)]
                         cur_bar, cur_pos = -1, -1
                         pitch_name_to_pitch_index = {0 :"C", 1:"C#",2:"D",3:"D#",4:"E",5:"F",6:"F#",7:"G",8:"G#",9:"A",10:"A#",11:"B"}
                         pitch_index_to_pitch_name = {v: k for k, v in pitch_name_to_pitch_index.items()}
@@ -207,9 +207,7 @@ class RemiDataManager(DataManager):
                                 posi = ev.split("_")[1]
                                 duration = int(posi) + 1
                                 st = cur_bar * 16 + cur_pos -1
-                                print(duration)
                                 for i in range(duration):
-                                    print(name)
                                     poly_record[st + i].append(pitch_index_to_pitch_name[name])                                                       
                         qq=[]
                         for q in poly_record:
