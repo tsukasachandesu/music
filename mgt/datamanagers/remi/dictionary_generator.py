@@ -42,7 +42,7 @@ class DictionaryGenerator(object):
 
         tempo_classes = ['Tempo Class_fast', 'Tempo Class_mid', 'Tempo Class_slow']
         
-        for i in range(11):
+        for i in range(2):
             append_to_dictionary(f"Instrument_{i}")
 
         for i in range(64):
