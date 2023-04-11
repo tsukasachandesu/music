@@ -103,7 +103,8 @@ class TransformerModel(object):
         initial = torch.tensor([prompt]).long().to(utils.get_device())  # assume 0 is start token
 
         sample = self.model.generate(initial, output_length, temperature=temperature, filter_thres=filter_treshold)
-        return sample.cpu().detach().numpy()[0]
+        print(sample)
+        return 
 
     def create_model(self):
 
