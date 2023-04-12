@@ -13,7 +13,7 @@ from mgt.models import utils
 
 
 defaults = {
-    'max_sequence_length': 512,
+    'max_sequence_length': 1024,
     'learning_rate': 1e-4,
     'dropout': 0.1,
     'dim': 512,
@@ -93,7 +93,8 @@ class TransformerModel(object):
 
             running_time = (time.time() - start_time)
             print(f"Loss after epoch {epoch + 1} is {epoch_loss}. Running time: {running_time}")
-
+            
+            
     def generate(self, output_length=100, temperature=1., filter_treshold=0.9, prompt=None):
         print(f"Generating a new song with {output_length} characters.")
         if prompt is None:
@@ -103,8 +104,7 @@ class TransformerModel(object):
         initial = torch.tensor([prompt]).long().to(utils.get_device())  # assume 0 is start token
 
         sample = self.model.generate(initial, output_length, temperature=temperature, filter_thres=filter_treshold)
-        print(sample)
-        return 
+        return sample.cpu().detach().numpy()[0]
 
     def create_model(self):
 
