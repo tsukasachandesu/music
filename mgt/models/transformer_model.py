@@ -5,7 +5,7 @@ import time
 
 import torch
 import numpy as np
-from palm_pytorch.triton import PaLM
+from palm_pytorch import PaLM
 from palm_pytorch.autoregressive_wrapper import AutoregressiveWrapper
 
 from mgt.datamanagers.data_manager import Dictionary
