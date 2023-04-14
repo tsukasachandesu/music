@@ -1,6 +1,6 @@
 #
-workflow
-remove tempo and velocity→tension calculation→(Tonal Interval Space)→(Voice leading)→BPE→DeepSpeed→PalM→(RLHF)
+workflow：
+remove tempo and velocity token→tension calculation→(Tonal Interval Space)→(Voice leading)→BPE→DeepSpeed→PalM→(RLHF)
 
 # Music Generation Toolbox
 
