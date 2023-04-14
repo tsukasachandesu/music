@@ -103,7 +103,7 @@ class TransformerModel(object):
         self.model.eval()
         initial = torch.tensor([prompt]).long().to(utils.get_device())  # assume 0 is start token
 
-        sample = self.model.generate(output_length, initial)
+        sample = self.model.generate(2048, initial)
         return sample.cpu().detach().numpy()[0]
 
     def create_model(self):
