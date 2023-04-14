@@ -23,10 +23,6 @@ defaults = {
     'heads': 8
 }
 
-
-accelerator = Accelerator()
-device = accelerator.device
-
 class TransformerModel(object):
 
     def __init__(self,
