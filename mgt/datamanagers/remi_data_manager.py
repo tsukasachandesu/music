@@ -12,7 +12,7 @@ from tension_calculation import *
 defaults = {
     'use_chords': False,
     'use_note_name': True,
-    'transposition_steps':[-5,-4,-3,-2,-1,0,1,2,3,4,5,6],
+    'transposition_steps':[0],
     'map_tracks_to_instruments': {},
     'instrument_mapping': {
         1:0,
