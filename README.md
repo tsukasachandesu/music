@@ -1,3 +1,7 @@
+#
+workflow
+remove tempo and velocity→tension calculation→(Tonal Interval Space)→(Voice leading)→BPE→DeepSpeed→PalM→(RLHF)
+
 # Music Generation Toolbox
 
 State-of-the-art algorithms for generation music.
