@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from datetime import time
 
 import time
@@ -6,9 +7,10 @@ import time
 import torch
 import numpy as np
 
-from x_transformers import TransformerWrapper, Decoder, AutoregressiveWrapper
+from palm_rlhf_pytorch import PaLM
 
 from mgt.datamanagers.data_manager import Dictionary
+
 from mgt.models import utils
 
 
@@ -17,8 +19,8 @@ defaults = {
     'learning_rate': 1e-4,
     'dropout': 0.1,
     'dim': 512,
-    'depth': 17,
-    'heads': 13
+    'depth': 8,
+    'heads': 8
 }
 
 
@@ -106,23 +108,7 @@ class TransformerModel(object):
         return sample.cpu().detach().numpy()[0]
 
     def create_model(self):
-        model = AutoregressiveWrapper(TransformerWrapper(
-            num_tokens=568,
-            max_seq_len=self.max_sequence_length,
-            attn_layers=Decoder(
-                dim=self.dim,
-                depth=self.depth,
-                heads=self.heads,
-                ff_swish = True,
-                ff_glu = True,  
-                attn_dropout=self.dropout,  # dropout post-attention
-                ff_dropout=self.dropout,  # feedforward dropout
-                rotary_xpos = True   
-            )
-        ),  mask_prob = 0.15,
-            ignore_index=0,
-            pad_value=0
-        ).to(utils.get_device())
+        model = PaLM(num_tokens=568,dim=512,depth=8,flash_attn=False).to(utils.get_device())
 
         return model
 
