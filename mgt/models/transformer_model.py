@@ -24,6 +24,9 @@ defaults = {
 }
 
 
+accelerator = Accelerator()
+device = accelerator.device
+
 class TransformerModel(object):
 
     def __init__(self,
@@ -69,7 +72,7 @@ class TransformerModel(object):
 
                     torch_batch = torch.tensor(batch).long().to(utils.get_device())
 
-                    loss = self.model(torch_batch)
+                    loss = self.model(torch_batch, return_loss=True)
                     loss.backward()
 
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), 0.5)
