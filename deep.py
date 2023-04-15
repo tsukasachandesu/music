@@ -114,7 +114,7 @@ for _ in range(EPOCHS):
             model.eval()          
             prompt = [2]
             initial = torch.tensor([prompt]).long().cuda() 
-            sample = self.model.generate(GENERATE_LENGTH, initial)
+            sample =model.generate(GENERATE_LENGTH, initial)
             sample = sample.cpu().detach().numpy()[0]
             midi = datamanager.to_midi(sample)
             midi.save("1.midi")
