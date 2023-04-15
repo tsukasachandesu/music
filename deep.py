@@ -25,7 +25,7 @@ def get_batch(training_data, max_sequence_length):
     song_index = random.randint(0, len(training_data) - 1)
     starting_index = random.randint(0, len(training_data[song_index]) - 1)
     padded_song = pad(training_data[selection[0]], max_sequence_length)
-    a = padded_song[selection[1]: selection[1] + max_sequence_length + 1])
+    a = padded_song[selection[1]: selection[1] + max_sequence_length + 1]
     return torch.tensor(a).long()
 
 class TextSamplerDataset(Dataset):
