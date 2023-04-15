@@ -107,7 +107,7 @@ for _ in range(EPOCHS):
             model.eval()
             with torch.no_grad():
                 inp = random.choice(val_dataset)[:-1]
-                loss = model(inp[None, :].cuda(), return_loss = True))
+                loss = model(inp[None, :].cuda(), return_loss = True)
                 print(f'validation loss: {loss.item()}')
 
         if i % GENERATE_EVERY == 0:
