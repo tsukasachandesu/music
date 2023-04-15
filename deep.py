@@ -2,7 +2,6 @@ import pickle
 import deepspeed
 from palm_rlhf_pytorch import PaLM
 from mgt.datamanagers.remi_data_manager import RemiDataManager
-from mgt.models.transformer_model import TransformerModel
 from mgt.datamanagers.data_helper import DataHelper
 from mgt.datamanagers.remi.efficient_remi_config import EfficientRemiConfig
 
@@ -39,10 +38,82 @@ class TextSamplerDataset(Dataset):
         song_index = random.randint(0, len(self.data) - 1)
         starting_index = random.randint(0, len(self.data[song_index]) - 1)
         padded_song = pad(self.data[song_index ], self.seq_len)
-        a = padded_song[starting_index: starting_index + self.seq_len + 1])
+        a = padded_song[starting_index: starting_index + self.seq_len + 1]
         return torch.tensor(a).long()
     def __len__(self):
-        return 4000
+        return 1000
+  
+def add_argument():
+    parser=argparse.ArgumentParser(description='enwik8')
+
+    parser.add_argument('--with_cuda', default=True, action='store_true',
+                        help='use CPU in case there\'s no GPU support')
+    parser.add_argument('--use_ema', default=False, action='store_true',
+                        help='whether use exponential moving average')
+    parser.add_argument('-b', '--batch_size', default=32, type=int,
+                        help='mini-batch size (default: 32)')
+    parser.add_argument('-e', '--epochs', default=30, type=int,
+                        help='number of total epochs (default: 30)')
+    parser.add_argument('--local_rank', type=int, default=-1,
+                       help='local rank passed from distributed launcher')
+
+    parser = deepspeed.add_config_arguments(parser)
+    args=parser.parse_args()
+    return args
+
+# constants
+
+EPOCHS = 5
+GRADIENT_ACCUMULATE_EVERY = 4
+VALIDATE_EVERY = 1000
+GENERATE_EVERY = 1000
+GENERATE_LENGTH = 1024
+SEQ_LEN = 1024
+
+# instantiate GPT-like decoder model
+
+model = PaLM(num_tokens=568, dim=1024, depth=24, dim_head=128, heads=12, flash_attn=False)
+model = model.cuda()
+
+data_train = DataHelper.load('/content/drive/MyDrive/yuno')
+data_train = data_train.data
+
+train_dataset = TextSamplerDataset(data_train, SEQ_LEN)
+val_dataset = TextSamplerDataset(data_train, SEQ_LEN)
+
+# setup deepspeed
+
+cmd_args = add_argument()
+model_engine, optimizer, trainloader, _ = deepspeed.initialize(args=cmd_args, model=model, model_parameters=model.parameters(), training_data=train_dataset)
+
+# training
+
+for _ in range(EPOCHS):
+    for i, data in enumerate(trainloader):
+        model_engine.train()
+        data = data.to(model_engine.local_rank)
+        loss = model_engine(data, return_loss = True)
+
+        model_engine.backward(loss)
+        torch.nn.utils.clip_grad_norm_(model_engine.parameters(), 0.5)
+        model_engine.step()
+        print(loss.item() * GRADIENT_ACCUMULATE_EVERY)
+
+        if i % VALIDATE_EVERY == 0:
+            model.eval()
+            with torch.no_grad():
+                inp = random.choice(val_dataset)[:-1]
+                loss = model(inp[None, :].cuda(), return_loss = True)
+                print(f'validation loss: {loss.item()}')
+      
+        if i % GENERATE_EVERY == 0:
+            model.eval()
+            initial = torch.tensor([[2]]).long().cuda()
+            sample = model.generate(GENERATE_LENGTH, initial)
+            datamanager = RemiDataManager(efficient_remi_config=EfficientRemiConfig(enabled=True, remove_velocity=True))
+            midi = datamanager.to_midi(sample.cpu().detach().numpy()[0])
+            midi.save("1.midi")
+            
   
 def add_argument():
     parser=argparse.ArgumentParser(description='enwik8')
