@@ -1,7 +1,7 @@
 import pickle
 import deepspeed
-from palm_pytorch import PaLM
-from palm_pytorch.autoregressive_wrapper import AutoregressiveWrapper
+from palm_rlhf_pytorch import PaLM
+
 
 import random
 import tqdm
@@ -13,6 +13,7 @@ from einops import rearrange
 from torch import einsum, nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset
+import argparse
 
 def pad(array, max_sequence_length, padding_character=0):
     return list(np.repeat(padding_character, max_sequence_length)) + array
