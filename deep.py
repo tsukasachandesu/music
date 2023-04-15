@@ -27,6 +27,10 @@ def get_batch(training_data, max_sequence_length):
     a = padded_song[selection[1]: selection[1] + max_sequence_length + 1]
     return torch.tensor(a).long()
 
+datamanager = RemiDataManager(
+    efficient_remi_config=EfficientRemiConfig(enabled=True, remove_velocity=True)
+)
+
 class TextSamplerDataset(Dataset):
     def __init__(self, data, seq_len):
         super().__init__()
@@ -41,79 +45,7 @@ class TextSamplerDataset(Dataset):
         a = padded_song[starting_index: starting_index + self.seq_len + 1]
         return torch.tensor(a).long()
     def __len__(self):
-        return 1000
-  
-def add_argument():
-    parser=argparse.ArgumentParser(description='enwik8')
-
-    parser.add_argument('--with_cuda', default=True, action='store_true',
-                        help='use CPU in case there\'s no GPU support')
-    parser.add_argument('--use_ema', default=False, action='store_true',
-                        help='whether use exponential moving average')
-    parser.add_argument('-b', '--batch_size', default=32, type=int,
-                        help='mini-batch size (default: 32)')
-    parser.add_argument('-e', '--epochs', default=30, type=int,
-                        help='number of total epochs (default: 30)')
-    parser.add_argument('--local_rank', type=int, default=-1,
-                       help='local rank passed from distributed launcher')
-
-    parser = deepspeed.add_config_arguments(parser)
-    args=parser.parse_args()
-    return args
-
-# constants
-
-EPOCHS = 5
-GRADIENT_ACCUMULATE_EVERY = 4
-VALIDATE_EVERY = 1000
-GENERATE_EVERY = 1000
-GENERATE_LENGTH = 1024
-SEQ_LEN = 1024
-
-# instantiate GPT-like decoder model
-
-model = PaLM(num_tokens=568, dim=1024, depth=24, dim_head=128, heads=12, flash_attn=False)
-model = model.cuda()
-
-data_train = DataHelper.load('/content/drive/MyDrive/yuno')
-data_train = data_train.data
-
-train_dataset = TextSamplerDataset(data_train, SEQ_LEN)
-val_dataset = TextSamplerDataset(data_train, SEQ_LEN)
-
-# setup deepspeed
-
-cmd_args = add_argument()
-model_engine, optimizer, trainloader, _ = deepspeed.initialize(args=cmd_args, model=model, model_parameters=model.parameters(), training_data=train_dataset)
-
-# training
-
-for _ in range(EPOCHS):
-    for i, data in enumerate(trainloader):
-        model_engine.train()
-        data = data.to(model_engine.local_rank)
-        loss = model_engine(data, return_loss = True)
-
-        model_engine.backward(loss)
-        torch.nn.utils.clip_grad_norm_(model_engine.parameters(), 0.5)
-        model_engine.step()
-        print(loss.item() * GRADIENT_ACCUMULATE_EVERY)
-
-        if i % VALIDATE_EVERY == 0:
-            model.eval()
-            with torch.no_grad():
-                inp = random.choice(val_dataset)[:-1]
-                loss = model(inp[None, :].cuda(), return_loss = True)
-                print(f'validation loss: {loss.item()}')
-      
-        if i % GENERATE_EVERY == 0:
-            model.eval()
-            initial = torch.tensor([[2]]).long().cuda()
-            sample = model.generate(GENERATE_LENGTH, initial)
-            datamanager = RemiDataManager(efficient_remi_config=EfficientRemiConfig(enabled=True, remove_velocity=True))
-            midi = datamanager.to_midi(sample.cpu().detach().numpy()[0])
-            midi.save("1.midi")
-            
+        return 4000
   
 def add_argument():
     parser=argparse.ArgumentParser(description='enwik8')
@@ -139,12 +71,12 @@ EPOCHS = 5
 GRADIENT_ACCUMULATE_EVERY = 4
 VALIDATE_EVERY = 4000
 GENERATE_EVERY = 4000
-GENERATE_LENGTH = 1024
-SEQ_LEN = 1024
+GENERATE_LENGTH = 2048
+SEQ_LEN = 2048
 
 # instantiate GPT-like decoder model
 
-model = PaLM(num_tokens=568, dim=1024, depth=24, dim_head=128, heads=12, flash_attn=False)
+model = PaLM(num_tokens=568, dim=512, depth=12, dim_head=128, heads=8, flash_attn=True)
 model = model.cuda()
 
 data_train = DataHelper.load('/content/drive/MyDrive/yuno')
@@ -159,7 +91,7 @@ cmd_args = add_argument()
 model_engine, optimizer, trainloader, _ = deepspeed.initialize(args=cmd_args, model=model, model_parameters=model.parameters(), training_data=train_dataset)
 
 # training
-
+         
 for _ in range(EPOCHS):
     for i, data in enumerate(trainloader):
         model_engine.train()
@@ -179,16 +111,10 @@ for _ in range(EPOCHS):
                 print(f'validation loss: {loss.item()}')
 
         if i % GENERATE_EVERY == 0:
-            model.eval()
-            inp = random.choice(val_dataset)[:-1]
-
-            print(f'%s \n\n %s', (prime, '*' * 100))
-
-            sample = model.generate(inp[None, ...].cuda(), GENERATE_LENGTH)
-            
+            model.eval()          
             prompt = [2]
-            initial = torch.tensor([prompt]).long().to(utils.get_device())  # assume 0 is start token
-            sample = self.model.generate(initial, GENERATE_LENGTH)
+            initial = torch.tensor([prompt]).long().cuda() 
+            sample = self.model.generate(GENERATE_LENGTH, initial)
             sample = sample.cpu().detach().numpy()[0]
             midi = datamanager.to_midi(sample)
             midi.save("1.midi")
