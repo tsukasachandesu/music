@@ -76,7 +76,7 @@ SEQ_LEN = 2048
 
 # instantiate GPT-like decoder model
 
-model = PaLM(num_tokens=568, dim=512, depth=12, dim_head=128, heads=8, flash_attn=True)
+model = PaLM(num_tokens=568, dim=512, depth=12, dim_head=128, heads=8, flash_attn=False)
 model = model.cuda()
 
 data_train = DataHelper.load('/content/drive/MyDrive/yuno')
