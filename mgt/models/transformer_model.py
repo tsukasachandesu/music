@@ -1,48 +1,117 @@
-from __future__ import annotations
+import pickle
+import deepspeed
+from palm_pytorch import PaLM
+from palm_pytorch.autoregressive_wrapper import AutoregressiveWrapper
+from mgt.datamanagers.data_helper import DataHelper
+from mgt.datamanagers.remi_data_manager import RemiDataManager
+from mgt.datamanagers.remi.efficient_remi_config import EfficientRemiConfig
 
-from datetime import time
-
-import time
-
-import torch
+import random
+import tqdm
+import gzip
 import numpy as np
+import torch
+import torch.optim as optim
+from einops import rearrange
+from torch import einsum, nn
+import torch.nn.functional as F
+from torch.utils.data import DataLoader, Dataset
+import argparse
 
-from palm_rlhf_pytorch import PaLM
+def add_argument():
+    parser=argparse.ArgumentParser(description='enwik8')
 
-from mgt.datamanagers.data_manager import Dictionary
+    parser.add_argument('--with_cuda', default=True, action='store_true',
+                        help='use CPU in case there\'s no GPU support')
+    parser.add_argument('--use_ema', default=False, action='store_true',
+                        help='whether use exponential moving average')
+    parser.add_argument('-b', '--batch_size', default=48, type=int,
+                        help='mini-batch size (default: 32)')
+    parser.add_argument('-e', '--epochs', default=10, type=int,
+                        help='number of total epochs (default: 30)')
+    parser.add_argument('--local_rank', type=int, default=-1,
+                       help='local rank passed from distributed launcher')
 
-from mgt.models import utils
+    parser = deepspeed.add_config_arguments(parser)
+    args=parser.parse_args()
+    return args
 
+def pad(array, max_sequence_length, padding_character=0):
+    return list(np.repeat(padding_character, max_sequence_length)) + array
 
-defaults = {
-    'max_sequence_length':1536,
-    'learning_rate': 1e-4,
-    'dropout': 0.1,
-    'dim': 512,
-    'depth': 8,
-    'heads': 8
-}
+class TextSamplerDataset(Dataset):
+    def __init__(self, data, seq_len):
+        super().__init__()
+        self.data = data
+        self.seq_len = seq_len
 
-class TransformerModel(object):
+    def __getitem__(self, index):
 
-    def __init__(self,
-                 dictionary: Dictionary,
-                 max_sequence_length=defaults['max_sequence_length'],
-                 learning_rate=defaults['learning_rate'],
-                 dropout=defaults['dropout'],
-                 dim=defaults['dim'],
-                 depth=defaults['depth'],
-                 heads=defaults['heads']
-                 ):
-        self.dictionary = dictionary
-        self.learning_rate = learning_rate
-        self.max_sequence_length = max_sequence_length
-        self.dropout = dropout
-        self.dim = dim
-        self.depth = depth
-        self.heads = heads
-        self.model = self.create_model()
-        self.optimizer = self.create_optimizer()
+        song_index = random.randint(0, len(self.data) - 1)
+        starting_index = random.randint(0, len(self.data[song_index]) - 1)
+        padded_song = pad(self.data[song_index], self.seq_len)
+        bat = padded_song[starting_index: starting_index + self.seq_len + 1]
+        full = torch.tensor(bat).long()
+        return full
+
+    def __len__(self):
+        return 4000
+
+# constants
+
+EPOCHS = 10
+GRADIENT_ACCUMULATE_EVERY = 4
+VALIDATE_EVERY = 4000
+GENERATE_EVERY = 4000
+GENERATE_LENGTH = 1024
+SEQ_LEN = 3000
+
+model = PaLM(num_tokens = 568, dim = 512, depth = 12)
+model = AutoregressiveWrapper(model, max_seq_len=SEQ_LEN)
+model.cuda()
+
+x_train = DataHelper.load('/content/drive/MyDrive/yuno')
+x_train = x_train.data
+
+train_dataset = TextSamplerDataset(x_train, SEQ_LEN)
+val_dataset = TextSamplerDataset(x_train, SEQ_LEN)
+
+# setup deepspeed
+
+cmd_args = add_argument()
+
+model_engine, optimizer, trainloader, _ = deepspeed.initialize(args=cmd_args, model=model, model_parameters=model.parameters(), training_data=train_dataset)
+# training
+
+for _ in range(EPOCHS):
+    for i, data in enumerate(trainloader):
+        model_engine.train()
+        data = data.to(model_engine.local_rank)
+        loss = model_engine(data)
+        model_engine.backward(loss)
+        torch.nn.utils.clip_grad_norm_(model_engine.parameters(), 0.5)
+        model_engine.step()
+        print(loss.item() * GRADIENT_ACCUMULATE_EVERY)
+
+        if i % VALIDATE_EVERY == 0:
+            model_engine.save_checkpoint("/content")
+            model.eval()
+            with torch.no_grad():
+                inp = random.choice(val_dataset)[:-1]
+                loss = model(inp[None, :].cuda())
+                print(f'validation loss: {loss.item()}')
+
+        if i % GENERATE_EVERY == 0:
+            model.eval()
+
+            prompt = [2]
+            initial = torch.tensor([prompt]).long().cuda() # assume 0 is start token
+            sample = model.generate(initial, GENERATE_LENGTH)
+            datamanager = RemiDataManager(
+              efficient_remi_config=EfficientRemiConfig(enabled=True, remove_velocity=True)
+              )
+            midi = datamanager.to_midi(sample.cpu().detach().numpy()[0])
+            midi.save("1.midi")
 
     def set_learning_rate(self, learning_rate):
         self.learning_rate = learning_rate
