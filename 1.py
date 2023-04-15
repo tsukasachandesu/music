@@ -1,7 +1,7 @@
 
 import pickle
 import deepspeed
-from palm_rlhf_pytorch import PaLM
+from x_transformers import TransformerWrapper, Decoder, AutoregressiveWrapper
 from mgt.datamanagers.remi_data_manager import RemiDataManager
 from mgt.datamanagers.data_helper import DataHelper
 from mgt.datamanagers.remi.efficient_remi_config import EfficientRemiConfig
