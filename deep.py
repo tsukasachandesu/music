@@ -1,7 +1,10 @@
 import pickle
 import deepspeed
 from palm_rlhf_pytorch import PaLM
-
+from mgt.datamanagers.remi_data_manager import RemiDataManager
+from mgt.models.transformer_model import TransformerModel
+from mgt.datamanagers.data_helper import DataHelper
+from mgt.datamanagers.remi.efficient_remi_config import EfficientRemiConfig
 
 import random
 import tqdm
@@ -18,24 +21,33 @@ import argparse
 def pad(array, max_sequence_length, padding_character=0):
     return list(np.repeat(padding_character, max_sequence_length)) + array
 
-def get_batch(training_data, batch_size, max_sequence_length):
-    indices = []
-    for i in range(batch_size):
-        song_index = random.randint(0, len(training_data) - 1)
-        starting_index = random.randint(0, len(training_data[song_index]) - 1)
-        indices.append((song_index, starting_index))
+def get_batch(training_data, max_sequence_length):
+    song_index = random.randint(0, len(training_data) - 1)
+    starting_index = random.randint(0, len(training_data[song_index]) - 1)
+    padded_song = pad(training_data[selection[0]], max_sequence_length)
+    a = padded_song[selection[1]: selection[1] + max_sequence_length + 1])
+    return torch.tensor(a).long()
 
-    sequences = []
-    for selection in indices:
-        padded_song = pad(training_data[selection[0]], max_sequence_length)
-        sequences.append(padded_song[selection[1]: selection[1] + max_sequence_length + 1])
+class TextSamplerDataset(Dataset):
+    def __init__(self, data, seq_len):
+        super().__init__()
+        self.data = data
+        self.seq_len = seq_len
 
-    return sequences
+    def __getitem__(self, index): 
+        
+        song_index = random.randint(0, len(self.data) - 1)
+        starting_index = random.randint(0, len(self.data[song_index]) - 1)
+        padded_song = pad(self.data[song_index ], self.seq_len)
+        a = padded_song[starting_index: starting_index + self.seq_len + 1])
+        return torch.tensor(a).long()
+    def __len__(self):
+        return 4000
   
 def add_argument():
     parser=argparse.ArgumentParser(description='enwik8')
 
-    parser.add_argument('--with_cuda', default=False, action='store_true',
+    parser.add_argument('--with_cuda', default=True, action='store_true',
                         help='use CPU in case there\'s no GPU support')
     parser.add_argument('--use_ema', default=False, action='store_true',
                         help='whether use exponential moving average')
@@ -52,35 +64,23 @@ def add_argument():
 
 # constants
 
-EPOCHS = 20
+EPOCHS = 5
 GRADIENT_ACCUMULATE_EVERY = 4
-VALIDATE_EVERY = 100
-GENERATE_EVERY = 500
-GENERATE_LENGTH = 512
+VALIDATE_EVERY = 4000
+GENERATE_EVERY = 4000
+GENERATE_LENGTH = 1024
 SEQ_LEN = 1024
-
-# helpers
-
-def decode_token(token):
-    return str(chr(max(32, token)))
-
-def decode_tokens(tokens):
-    return "".join(list(map(decode_token, tokens)))
 
 # instantiate GPT-like decoder model
 
-model = PaLM(num_tokens = 256, dim = 512, depth = 8)
+model = PaLM(num_tokens=568, dim=1024, depth=24, dim_head=128, heads=12, flash_attn=False)
+model = model.cuda()
 
-model = AutoregressiveWrapper(model, max_seq_len=2048)
-model.cuda()
+data_train = DataHelper.load('/content/drive/MyDrive/yuno')
+data_train = data_train.data
 
-with open('pickle.pkl', 'rb') as f:
-    x_train = pickle.load(f)  
-
-batch = utils.get_batch(x_train, batch_size=100000, max_sequence_length=SEQ_LEN)
-train_dataset = torch.tensor(batch).long()
-batch = utils.get_batch(x_train, batch_size=10, max_sequence_length=SEQ_LEN)
-val_dataset = torch.tensor(batch).long()
+train_dataset = TextSamplerDataset(data_train, SEQ_LEN)
+val_dataset = TextSamplerDataset(data_train, SEQ_LEN)
 
 # setup deepspeed
 
@@ -93,7 +93,8 @@ for _ in range(EPOCHS):
     for i, data in enumerate(trainloader):
         model_engine.train()
         data = data.to(model_engine.local_rank)
-        loss = model_engine(data)
+        loss = model_engine(data, return_loss = True)
+
         model_engine.backward(loss)
         torch.nn.utils.clip_grad_norm_(model_engine.parameters(), 0.5)
         model_engine.step()
@@ -103,14 +104,21 @@ for _ in range(EPOCHS):
             model.eval()
             with torch.no_grad():
                 inp = random.choice(val_dataset)[:-1]
-                loss = model(inp[None, :].cuda())
+                loss = model(inp[None, :].cuda(), return_loss = True))
                 print(f'validation loss: {loss.item()}')
 
         if i % GENERATE_EVERY == 0:
             model.eval()
             inp = random.choice(val_dataset)[:-1]
-            prime = decode_tokens(inp)
+
             print(f'%s \n\n %s', (prime, '*' * 100))
 
             sample = model.generate(inp[None, ...].cuda(), GENERATE_LENGTH)
-            print(sample[0])
+            
+            prompt = [2]
+            initial = torch.tensor([prompt]).long().to(utils.get_device())  # assume 0 is start token
+            sample = self.model.generate(initial, GENERATE_LENGTH)
+            sample = sample.cpu().detach().numpy()[0]
+            midi = datamanager.to_midi(sample)
+            midi.save("1.midi")
+            
