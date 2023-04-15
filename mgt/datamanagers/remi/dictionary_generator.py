@@ -70,3 +70,4 @@ class DictionaryGenerator(object):
             append_to_dictionary(f"Note Velocity_{i}")
 
         return Dictionary(dictionary[0], dictionary[1])
+    
