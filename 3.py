@@ -67,7 +67,7 @@ def add_argument():
 
 # constants
 
-EPOCHS = 1
+EPOCHS = 2
 GRADIENT_ACCUMULATE_EVERY = 4
 VALIDATE_EVERY = 4000
 GENERATE_EVERY = 4000
@@ -89,7 +89,7 @@ val_dataset = TextSamplerDataset(data_train, SEQ_LEN)
 
 cmd_args = add_argument()
 model_engine, optimizer, trainloader, _ = deepspeed.initialize(args=cmd_args, model=model, model_parameters=model.parameters(), training_data=train_dataset)
-_, client_sd = model_engine.load_checkpoint('/content/1/global_step250')
+_, client_sd = model_engine.load_checkpoint('/content/drive/MyDrive/)
 # training
          
 for _ in range(EPOCHS):
