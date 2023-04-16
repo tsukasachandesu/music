@@ -1,6 +1,6 @@
 import pickle
 import deepspeed
-from palm_rlhf_pytorch import PaLM
+from x_transformers import TransformerWrapper, Decoder, AutoregressiveWrapper
 from mgt.datamanagers.remi_data_manager import RemiDataManager
 from mgt.datamanagers.data_helper import DataHelper
 from mgt.datamanagers.remi.efficient_remi_config import EfficientRemiConfig
@@ -72,12 +72,26 @@ GRADIENT_ACCUMULATE_EVERY = 4
 VALIDATE_EVERY = 4000
 GENERATE_EVERY = 4000
 GENERATE_LENGTH = 2048
-SEQ_LEN = 2048
+SEQ_LEN = 1500
 
 # instantiate GPT-like decoder model
 
-model = PaLM(num_tokens=568, dim=512, depth=12, dim_head=128, heads=8, flash_attn=False)
-model = model.cuda()
+model = AutoregressiveWrapper(TransformerWrapper(
+    num_tokens=150,
+    max_seq_len=SEQ_LEN,attn_layers=Decoder(
+        dim=512,
+        depth=14,
+        heads=12,
+        ff_swish = True,
+        ff_glu = True,  
+        attn_dropout=self.dropout,  # dropout post-attention
+        ff_dropout=self.dropout,  # feedforward dropout
+        rotary_xpos = True)),  
+                              mask_prob = 0.15,
+                              ignore_index=0,
+                              pad_value=0
+).cuda()
+
 
 data_train = DataHelper.load('/content/drive/MyDrive/yuno')
 data_train = data_train.data
@@ -96,7 +110,7 @@ for _ in range(EPOCHS):
     for i, data in enumerate(trainloader):
         model_engine.train()
         data = data.to(model_engine.local_rank)
-        loss = model_engine(data, return_loss = True)
+        loss = model_engine(data)
 
         model_engine.backward(loss)
         torch.nn.utils.clip_grad_norm_(model_engine.parameters(), 0.5)
@@ -107,14 +121,14 @@ for _ in range(EPOCHS):
             model.eval()
             with torch.no_grad():
                 inp = random.choice(val_dataset)[:-1]
-                loss = model(inp[None, :].cuda(), return_loss = True)
+                loss = model(inp[None, :].cuda())
                 print(f'validation loss: {loss.item()}')
 
         if i % GENERATE_EVERY == 0:
             model.eval()          
             prompt = [2]
             initial = torch.tensor([prompt]).long().cuda() 
-            sample = model.generate(GENERATE_LENGTH, initial)
+            sample = model.generate(initial,GENERATE_LENGTH)
             sample = sample.cpu().detach().numpy()[0]
             midi = datamanager.to_midi(sample)
             midi.save("1.midi")
