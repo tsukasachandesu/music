@@ -199,7 +199,7 @@ class RemiDataManager(DataManager):
                         
 
                         data = self.data_extractor.words_to_data(words)
-                        print(f"Parsed {len(data)} words from midi as efficient REMI.")]
+                        print(f"Parsed {len(data)} words from midi as efficient REMI.")
                         print(data)
 
                         
