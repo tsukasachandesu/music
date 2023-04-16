@@ -54,7 +54,7 @@ def add_argument():
                         help='use CPU in case there\'s no GPU support')
     parser.add_argument('--use_ema', default=False, action='store_true',
                         help='whether use exponential moving average')
-    parser.add_argument('-b', '--batch_size', default=32, type=int,
+    parser.add_argument('-b', '--batch_size', default=16, type=int,
                         help='mini-batch size (default: 32)')
     parser.add_argument('-e', '--epochs', default=30, type=int,
                         help='number of total epochs (default: 30)')
@@ -77,15 +77,15 @@ SEQ_LEN = 1500
 # instantiate GPT-like decoder model
 
 model = AutoregressiveWrapper(TransformerWrapper(
-    num_tokens=150,
+    num_tokens=126,
     max_seq_len=SEQ_LEN,attn_layers=Decoder(
         dim=512,
-        depth=14,
+        depth=12,
         heads=12,
         ff_swish = True,
         ff_glu = True,  
-        attn_dropout=self.dropout,  # dropout post-attention
-        ff_dropout=self.dropout,  # feedforward dropout
+        attn_dropout=0.1,  # dropout post-attention
+        ff_dropout=0.1,  # feedforward dropout
         rotary_xpos = True)),  
                               mask_prob = 0.15,
                               ignore_index=0,
