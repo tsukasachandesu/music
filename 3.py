@@ -119,3 +119,4 @@ for _ in range(EPOCHS):
             midi = datamanager.to_midi(sample)
             midi.save("1.midi")
             model_engine.save_checkpoint("/content/1")
+model_engine.save_checkpoint("/content/1")
