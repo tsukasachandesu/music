@@ -77,7 +77,7 @@ SEQ_LEN = 1500
 # instantiate GPT-like decoder model
 
 model = AutoregressiveWrapper(TransformerWrapper(
-    num_tokens=126,
+    num_tokens=150,
     max_seq_len=SEQ_LEN,attn_layers=Decoder(
         dim=512,
         depth=12,
