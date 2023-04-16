@@ -67,7 +67,7 @@ def add_argument():
 
 # constants
 
-EPOCHS = 5
+EPOCHS = 1
 GRADIENT_ACCUMULATE_EVERY = 4
 VALIDATE_EVERY = 4000
 GENERATE_EVERY = 4000
@@ -79,7 +79,7 @@ SEQ_LEN = 3000
 model = PaLM(num_tokens=126, dim=512, depth=24, dim_head=128, heads=12, flash_attn=True)
 model = model.cuda()
 
-data_train = DataHelper.load('/content/drive/MyDrive/yunoq')
+data_train = DataHelper.load('/content/drive/MyDrive/you')
 data_train = data_train.data
 
 train_dataset = TextSamplerDataset(data_train, SEQ_LEN)
@@ -89,7 +89,7 @@ val_dataset = TextSamplerDataset(data_train, SEQ_LEN)
 
 cmd_args = add_argument()
 model_engine, optimizer, trainloader, _ = deepspeed.initialize(args=cmd_args, model=model, model_parameters=model.parameters(), training_data=train_dataset)
-
+_, client_sd = model_engine.load_checkpoint('/content/1/global_step250')
 # training
          
 for _ in range(EPOCHS):
