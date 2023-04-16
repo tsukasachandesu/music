@@ -72,12 +72,12 @@ GRADIENT_ACCUMULATE_EVERY = 4
 VALIDATE_EVERY = 4000
 GENERATE_EVERY = 4000
 GENERATE_LENGTH = 2048
-SEQ_LEN = 1500
+SEQ_LEN = 1024
 
 # instantiate GPT-like decoder model
 
 model = AutoregressiveWrapper(TransformerWrapper(
-    num_tokens=150,
+    num_tokens=126,
     max_seq_len=SEQ_LEN,attn_layers=Decoder(
         dim=512,
         depth=12,
@@ -93,7 +93,7 @@ model = AutoregressiveWrapper(TransformerWrapper(
 ).cuda()
 
 
-data_train = DataHelper.load('/content/drive/MyDrive/yuno')
+data_train = DataHelper.load('/content/drive/MyDrive/yunoa')
 data_train = data_train.data
 
 train_dataset = TextSamplerDataset(data_train, SEQ_LEN)
