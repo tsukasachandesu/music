@@ -76,10 +76,10 @@ SEQ_LEN = 2048
 
 # instantiate GPT-like decoder model
 
-model = PaLM(num_tokens=126, dim=512, depth=16, dim_head=128, heads=8, flash_attn=True)
+model = PaLM(num_tokens=126, dim=512, depth=24, dim_head=128, heads=12, flash_attn=True)
 model = model.cuda()
 
-data_train = DataHelper.load('/content/drive/MyDrive/yuno1')
+data_train = DataHelper.load('/content/drive/MyDrive/yunoq')
 data_train = data_train.data
 
 train_dataset = TextSamplerDataset(data_train, SEQ_LEN)
