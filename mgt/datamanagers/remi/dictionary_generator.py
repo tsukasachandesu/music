@@ -41,15 +41,19 @@ class DictionaryGenerator(object):
                   'Chord_G:aug', 'Chord_G:dim', 'Chord_G:dom', 'Chord_G:maj', 'Chord_G:min', 'Chord_N:N']
 
         tempo_classes = ['Tempo Class_fast', 'Tempo Class_mid', 'Tempo Class_slow']
-        
+       
+
+        for i in range(16):
+            append_to_dictionary(f"Position_{i + 1}/16")
+
+        for i in range(7680):
+            append_to_dictionary(f"Pitchdur_{i}")
+
         for i in range(2):
             append_to_dictionary(f"Instrument_{i}")
 
         for i in range(64):
             append_to_dictionary(f"Note Duration_{i}")
-
-        for i in range(16):
-            append_to_dictionary(f"Position_{i + 1}/16")
 
         note_names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
         for note_name in note_names:
@@ -57,12 +61,6 @@ class DictionaryGenerator(object):
 
         for i in range(10):
             append_to_dictionary(f"Note Octave_{i}")
-        for i in range(233):
-            append_to_dictionary(f"cent_{i}")
-        for i in range(13):
-            append_to_dictionary(f"diamet_{i}")
-        for i in range(213):
-            append_to_dictionary(f"diff_{i}")
 
         for i in range(128):
             append_to_dictionary(f"Note On_{i}")
