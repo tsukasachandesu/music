@@ -38,7 +38,7 @@ defaults = {
     'num_tokens': [
         4,    # Type
         17,   # Bar / Beat
-        65,  # Instrument
+        2,  # Instrument
         12,   # Note name
         9,    # Octave
         64,   # Duration
@@ -46,10 +46,10 @@ defaults = {
     'emb_sizes': [
         32,   # Type
         96,   # Bar / Beat
-        256,  # Instrument
+        32,  # Instrument
         512,  # Note Name
         128,  # Octave
-        128,  # Duration
+        224,  # Duration
     ],
     'max_sequence_length': 1024,
     'learning_rate': 1e-4,
