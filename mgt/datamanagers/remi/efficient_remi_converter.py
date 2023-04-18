@@ -145,7 +145,6 @@ class EfficientRemiConverter(object):
         events = []
         current_instrument = None
         current_position = None
-        print(remi_items)
         for item in remi_items:
             if item.type == RemiEventType.BAR:
                 events.extend(item.original_events)
@@ -156,6 +155,10 @@ class EfficientRemiConverter(object):
             else:
                 write_instrument = False
                 write_position = False
+                print(item)
+                print(item.original_events[0])
+                print(item.original_events[1])
+                print(item.original_events[2])
 
                 if current_instrument is None or current_instrument != item.instrument:
                     current_instrument = item.instrument
@@ -173,7 +176,6 @@ class EfficientRemiConverter(object):
 
                 if self.config.remove_velocity:
                     events.extend(item.original_events[3:])  # Velocity is on index 2
-                    print(item.original_events[3:])
                 else:
                     events.extend(item.original_events[2:])
                     
