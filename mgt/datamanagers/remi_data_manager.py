@@ -196,10 +196,29 @@ class RemiDataManager(DataManager):
                     if self.efficient_remi_config.enabled:
                         events = self.data_extractor.extract_events(path, transposition_step)
                         words = self.efficient_remi_converter.convert_to_efficient_remi(events)
-                        print(words)
+                        note_names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 
+                        events = words
+                        for index, event in enumerate(events):
+                            if "Instrument" in event:
+                                del events[index]
+                        for index, event in enumerate(events):
+                            if "Name" in event:
+                                name = event.split("_")[1]
+                                octave = events[index+1].split("_")[1]
+                                pitch = int(octave) * 12 + note_names.index(name)
+                                events[index] = 'Pitch_'+str(pitch)
+                                del events[index+1]
+                        for index, event in enumerate(events):
+                            if "Pitch" in event:
+                                name = event.split("_")[1]
+                                octave = events[index+1].split("_")[1]
+                                pitch = int(name) + int(octave) * 120
+                                events[index] = 'Pitchdur_'+str(pitch)
+                                del events[index+1]
+                        words = events
                         data = self.data_extractor.words_to_data(words)
-                        print(data)
+
 
                         training_data.append(data)
                     else:
