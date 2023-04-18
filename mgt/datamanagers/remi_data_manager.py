@@ -231,8 +231,10 @@ class RemiDataManager(DataManager):
 
     def to_midi(self, data) -> MidiWrapper:
         if self.efficient_remi_config.enabled:
+            efficient_words = list(map(lambda x: self.dictionary.data_to_word(x), data))
+            
             hy = []
-            for index, event in enumerate(data):
+            for index, event in enumerate(efficient_words):
                 hy.append(event)
                 if "Pitchdur" in event:
                     name = event.split("_")[1]
@@ -258,11 +260,8 @@ class RemiDataManager(DataManager):
                 hyyy.append(event)
                 if "Position" in event:
                     hyyy.append('Instrument_0')            
-            
-            
-            data = hyyy
-            efficient_words = list(map(lambda x: self.dictionary.data_to_word(x), data))
-            words = self.efficient_remi_converter.convert_to_normal_remi(efficient_words)
+
+            words = self.efficient_remi_converter.convert_to_normal_remi(hyyy)
             data = self.data_extractor.words_to_data(words)
 
         return MidiToolkitWrapper(self.to_midi_mapper.to_midi(data))
