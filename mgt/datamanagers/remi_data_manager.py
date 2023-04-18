@@ -231,6 +231,36 @@ class RemiDataManager(DataManager):
 
     def to_midi(self, data) -> MidiWrapper:
         if self.efficient_remi_config.enabled:
+            hy = []
+            for index, event in enumerate(events):
+                hy.append(event)
+                if "Pitchdur" in event:
+                    name = event.split("_")[1]
+                    inde = int(name) % 120
+                    ind = int((int(name) / 120))
+                    hy.pop()
+                    hy.append('Pitch_'+str(inde))
+                    hy.append('Note Duration_'+str(ind))
+            hyy = []
+            for index, event in enumerate(hy):
+                hyy.append(event)
+                if "Pitch" in event:
+                    name = event.split("_")[1]
+                    name = int(name)
+                    note_index = name % 12
+                    note_names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+                    octave = int((name / 12))
+                    hyy.pop()
+                    hyy.append('Note Name_'+note_names[note_index])
+                    hyy.append('Note Octave_'+str(octave))
+            hyyy = []
+            for index, event in enumerate(hyy):
+                hyyy.append(event)
+                if "Position" in event:
+                    hyyy.append('Instrument_0')            
+            
+            
+            data = hyyy
             efficient_words = list(map(lambda x: self.dictionary.data_to_word(x), data))
             words = self.efficient_remi_converter.convert_to_normal_remi(efficient_words)
             data = self.data_extractor.words_to_data(words)
