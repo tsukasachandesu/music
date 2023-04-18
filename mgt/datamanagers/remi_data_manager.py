@@ -232,7 +232,7 @@ class RemiDataManager(DataManager):
     def to_midi(self, data) -> MidiWrapper:
         if self.efficient_remi_config.enabled:
             hy = []
-            for index, event in enumerate(events):
+            for index, event in enumerate(data):
                 hy.append(event)
                 if "Pitchdur" in event:
                     name = event.split("_")[1]
