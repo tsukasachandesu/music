@@ -151,7 +151,6 @@ class EfficientRemiConverter(object):
                 current_instrument = None
                 current_position = None
             elif item.type == RemiEventType.TEMPO:
-                print(item.original_events)
                 events.extend(item.original_events)
             else:
                 write_instrument = False
@@ -172,10 +171,6 @@ class EfficientRemiConverter(object):
                     events.append(item.original_events[1])
 
                 if self.config.remove_velocity:
-                    print(item)
-                    print("token")
-                    print(item.original_events[3:])
-                    
                     events.extend(item.original_events[3:])  # Velocity is on index 2
                 else:
                     events.extend(item.original_events[2:])
