@@ -13,12 +13,12 @@ from mgt.models import utils
 
 
 defaults = {
-    'max_sequence_length':1024,
+    'max_sequence_length':512,
     'learning_rate': 1e-4,
     'dropout': 0.1,
     'dim': 512,
-    'depth': 14,
-    'heads': 12
+    'depth': 12,
+    'heads': 8
 }
 
 
@@ -47,8 +47,8 @@ class TransformerModel(object):
         self.learning_rate = learning_rate
         self.optimizer = self.create_optimizer()
 
-    def train(self, x_train, epochs, batch_size=8, stop_loss=None, batches_per_epoch=100, report_per_x_batches=20,
-              gradient_accumulation_steps=8):
+    def train(self, x_train, epochs, batch_size=4, stop_loss=None, batches_per_epoch=100, report_per_x_batches=20,
+              gradient_accumulation_steps=1):
         self.model.train()
         start_time = time.time()
         for epoch in range(epochs):
@@ -107,7 +107,7 @@ class TransformerModel(object):
 
     def create_model(self):
         model = AutoregressiveWrapper(TransformerWrapper(
-            num_tokens=126,
+            num_tokens=7700,
             max_seq_len=self.max_sequence_length,
             attn_layers=Decoder(
                 dim=self.dim,
