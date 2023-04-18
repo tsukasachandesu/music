@@ -163,7 +163,10 @@ class CompoundWordTransformerModel(object):
                 heads=self.heads,
                 attn_dropout=self.dropout,  # dropout post-attention
                 ff_dropout=self.dropout,  # feedforward dropout
-                rotary_pos_emb=True
+                alibi_pos_bias = True, # turns on ALiBi positional embedding
+                alibi_num_heads = 4,
+                ff_swish = True, # set this to True
+                ff_glu = True
             )
         )).to(get_device())
 
