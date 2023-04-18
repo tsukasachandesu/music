@@ -171,10 +171,11 @@ class EfficientRemiConverter(object):
                     events.append(item.original_events[1])
 
                 if self.config.remove_velocity:
+                    print("ugoitieruka")
+                    print(item.original_events[3:])
                     events.extend(item.original_events[3:])  # Velocity is on index 2
                 else:
-                    print("ugoitieruka")
-                    print(item.original_events[2:])
+
                     events.extend(item.original_events[2:])
                     
 
