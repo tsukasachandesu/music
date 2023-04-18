@@ -145,6 +145,7 @@ class EfficientRemiConverter(object):
         events = []
         current_instrument = None
         current_position = None
+        print(remi_items)
         for item in remi_items:
             if item.type == RemiEventType.BAR:
                 events.extend(item.original_events)
@@ -174,5 +175,6 @@ class EfficientRemiConverter(object):
                     events.extend(item.original_events[3:])  # Velocity is on index 2
                 else:
                     events.extend(item.original_events[2:])
+                    print(item.original_events[2:])
 
         return events
