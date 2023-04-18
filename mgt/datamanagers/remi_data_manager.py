@@ -198,7 +198,7 @@ class RemiDataManager(DataManager):
                         words = self.efficient_remi_converter.convert_to_efficient_remi(events)
 
                         data = self.data_extractor.words_to_data(words)
-                        print(f"Parsed {len(data)} words from midi as efficient REMI.")
+                        print(words)
 
                         training_data.append(data)
                     else:
