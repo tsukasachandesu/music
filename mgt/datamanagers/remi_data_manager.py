@@ -244,15 +244,10 @@ class RemiDataManager(DataManager):
                 h.append(event)
                 if "Position_1/16" in event:
                     h.pop()
-                    h.append('Pitch_'+str(inde))
-                    
-                    
-
-                
-                
-            
+                    h.append('Bar_None')
+                    h.append('Position_1/16')
             hy = []
-            for index, event in enumerate(efficient_words):
+            for index, event in enumerate(h):
                 hy.append(event)
                 if "Pitchdur" in event:
                     name = event.split("_")[1]
