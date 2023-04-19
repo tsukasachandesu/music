@@ -199,12 +199,7 @@ class RemiDataManager(DataManager):
                         note_names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
                         
                         events = words
-
-                        for index, event in enumerate(events):
-                            if "Bar" in event:
-                                del events[index]                        
-                        
-                        
+                       
                         for index, event in enumerate(events):
                             if "Instrument" in event:
                                 del events[index]
@@ -223,8 +218,8 @@ class RemiDataManager(DataManager):
                                 events[index] = 'Pitchdur_'+str(pitch)
                                 del events[index+1]
                         words = events
-                        data = self.data_extractor.words_to_data(words)
 
+                        data = self.data_extractor.words_to_data(words)
 
                         training_data.append(data)
                     else:
@@ -238,16 +233,10 @@ class RemiDataManager(DataManager):
     def to_midi(self, data) -> MidiWrapper:
         if self.efficient_remi_config.enabled:
             efficient_words = list(map(lambda x: self.dictionary.data_to_word(x), data))
-            
-            h = []
-            for index, event in enumerate(efficient_words):
-                h.append(event)
-                if "Position_1/16" in event:
-                    h.pop()
-                    h.append('Bar_None')
-                    h.append('Position_1/16')
+
+
             hy = []
-            for index, event in enumerate(h):
+            for index, event in enumerate(efficient_words):
                 hy.append(event)
                 if "Pitchdur" in event:
                     name = event.split("_")[1]
