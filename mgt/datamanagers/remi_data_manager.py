@@ -197,8 +197,14 @@ class RemiDataManager(DataManager):
                         events = self.data_extractor.extract_events(path, transposition_step)
                         words = self.efficient_remi_converter.convert_to_efficient_remi(events)
                         note_names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
-
+                        
                         events = words
+
+                        for index, event in enumerate(events):
+                            if "Bar" in event:
+                                del events[index]                        
+                        
+                        
                         for index, event in enumerate(events):
                             if "Instrument" in event:
                                 del events[index]
@@ -232,6 +238,18 @@ class RemiDataManager(DataManager):
     def to_midi(self, data) -> MidiWrapper:
         if self.efficient_remi_config.enabled:
             efficient_words = list(map(lambda x: self.dictionary.data_to_word(x), data))
+            
+            h = []
+            for index, event in enumerate(efficient_words):
+                h.append(event)
+                if "Position_1/16" in event:
+                    h.pop()
+                    h.append('Pitch_'+str(inde))
+                    
+                    
+
+                
+                
             
             hy = []
             for index, event in enumerate(efficient_words):
