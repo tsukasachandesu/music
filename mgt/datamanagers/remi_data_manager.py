@@ -11,7 +11,7 @@ import numpy as np
 defaults = {
     'use_chords': False,
     'use_note_name': True,
-    'transposition_steps':[0],
+    'transposition_steps':[0,1,2,3,4,5,6,7,-1,-2,-3,-4,-5,-6],
     'map_tracks_to_instruments': {},
     'instrument_mapping': {
         1:0,
