@@ -278,3 +278,4 @@ class RemiDataManager(DataManager):
             data = self.data_extractor.words_to_data(words)
 
         return MidiToolkitWrapper(self.to_midi_mapper.to_midi(data))
+    
