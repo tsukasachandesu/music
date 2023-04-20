@@ -16,9 +16,9 @@ defaults = {
     'max_sequence_length':1024,
     'learning_rate': 1e-4,
     'dropout': 0.1,
-    'dim': 768,
-    'depth': 13,
-    'heads': 9
+    'dim': 1024,
+    'depth': 12,
+    'heads': 8
 }
 
 
@@ -107,7 +107,7 @@ class TransformerModel(object):
 
     def create_model(self):
         model = AutoregressiveWrapper(TransformerWrapper(
-            num_tokens=7700,
+            num_tokens=10000,
             max_seq_len=self.max_sequence_length,
             attn_layers=Decoder(
                 dim=self.dim,
