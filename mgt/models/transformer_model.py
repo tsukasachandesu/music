@@ -120,7 +120,7 @@ class TransformerModel(object):
            recurrent_layers = (4,),
            use_flash_attn = True
        )
-      train_wrapper = RecurrentTrainerWrapper(
+      model = RecurrentTrainerWrapper(
           model,
           xl_memories_dropout = 0.1,
           state_dropout = 0.1,
