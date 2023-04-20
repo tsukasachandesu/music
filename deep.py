@@ -1,6 +1,6 @@
 import pickle
 import deepspeed
-from palm_rlhf_pytorch import PaLM
+from block_recurrent_transformer_pytorch import BlockRecurrentTransformer, RecurrentTrainerWrapper
 from mgt.datamanagers.remi_data_manager import RemiDataManager
 from mgt.datamanagers.data_helper import DataHelper
 from mgt.datamanagers.remi.efficient_remi_config import EfficientRemiConfig
@@ -70,16 +70,31 @@ def add_argument():
 EPOCHS = 5
 GRADIENT_ACCUMULATE_EVERY = 4
 VALIDATE_EVERY = 4000
-GENERATE_EVERY = 4000
+GENERATE_EVERY = 3900
 GENERATE_LENGTH = 2048
 SEQ_LEN = 2048
 
 # instantiate GPT-like decoder model
 
-model = PaLM(num_tokens=568, dim=512, depth=12, dim_head=128, heads=8, flash_attn=False)
-model = model.cuda()
+model = BlockRecurrentTransformer(
+    num_tokens = 7700,
+    dim = 768,
+    depth = 12,
+    dim_head = 64,
+    heads = 8,
+    max_seq_len = 2048,
+    block_width = 512,
+    num_state_vectors = 512,
+    recurrent_layers = (4,),
+    use_flash_attn = True
+)
+model = RecurrentTrainerWrapper(
+    model,
+    xl_memories_dropout = 0.1,
+    state_dropout = 0.1,
+).cuda()
 
-data_train = DataHelper.load('/content/drive/MyDrive/yuno')
+data_train = DataHelper.load('/content/drive/MyDrive/set')
 data_train = data_train.data
 
 train_dataset = TextSamplerDataset(data_train, SEQ_LEN)
@@ -96,79 +111,8 @@ for _ in range(EPOCHS):
     for i, data in enumerate(trainloader):
         model_engine.train()
         data = data.to(model_engine.local_rank)
-        loss = model_engine(data, return_loss = True)
-
-        model_engine.backward(loss)
-        torch.nn.utils.clip_grad_norm_(model_engine.parameters(), 0.5)
-        model_engine.step()
-        print(loss.item() * GRADIENT_ACCUMULATE_EVERY)
-
-        if i % VALIDATE_EVERY == 0:
-            model.eval()
-            with torch.no_grad():
-                inp = random.choice(val_dataset)[:-1]
-                loss = model(inp[None, :].cuda(), return_loss = True)
-                print(f'validation loss: {loss.item()}')
-
-        if i % GENERATE_EVERY == 0:
-            model.eval()          
-            prompt = [2]
-            initial = torch.tensor([prompt]).long().cuda() 
-            sample = model.generate(GENERATE_LENGTH, initial)
-            sample = sample.cpu().detach().numpy()[0]
-            midi = datamanager.to_midi(sample)
-            midi.save("1.midi")
-            model_engine.save_checkpoint("/content/1")
-                       help='local rank passed from distributed launcher')
-
-    parser = deepspeed.add_config_arguments(parser)
-    args=parser.parse_args()
-    return args
-
-# constants
-
-EPOCHS = 20
-GRADIENT_ACCUMULATE_EVERY = 4
-VALIDATE_EVERY = 100
-GENERATE_EVERY = 500
-GENERATE_LENGTH = 512
-SEQ_LEN = 1024
-
-# helpers
-
-def decode_token(token):
-    return str(chr(max(32, token)))
-
-def decode_tokens(tokens):
-    return "".join(list(map(decode_token, tokens)))
-
-# instantiate GPT-like decoder model
-
-model = PaLM(num_tokens = 256, dim = 512, depth = 8)
-
-model = AutoregressiveWrapper(model, max_seq_len=2048)
-model.cuda()
-
-with open('pickle.pkl', 'rb') as f:
-    x_train = pickle.load(f)  
-
-batch = utils.get_batch(x_train, batch_size=100000, max_sequence_length=SEQ_LEN)
-train_dataset = torch.tensor(batch).long()
-batch = utils.get_batch(x_train, batch_size=10, max_sequence_length=SEQ_LEN)
-val_dataset = torch.tensor(batch).long()
-
-# setup deepspeed
-
-cmd_args = add_argument()
-model_engine, optimizer, trainloader, _ = deepspeed.initialize(args=cmd_args, model=model, model_parameters=model.parameters(), training_data=train_dataset)
-
-# training
-
-for _ in range(EPOCHS):
-    for i, data in enumerate(trainloader):
-        model_engine.train()
-        data = data.to(model_engine.local_rank)
         loss = model_engine(data)
+
         model_engine.backward(loss)
         torch.nn.utils.clip_grad_norm_(model_engine.parameters(), 0.5)
         model_engine.step()
@@ -182,10 +126,11 @@ for _ in range(EPOCHS):
                 print(f'validation loss: {loss.item()}')
 
         if i % GENERATE_EVERY == 0:
-            model.eval()
-            inp = random.choice(val_dataset)[:-1]
-            prime = decode_tokens(inp)
-            print(f'%s \n\n %s', (prime, '*' * 100))
-
-            sample = model.generate(inp[None, ...].cuda(), GENERATE_LENGTH)
-            print(sample[0])
+            model.eval()          
+            prompt = [2]
+            initial = torch.tensor([prompt]).long().cuda() 
+            sample = model.generate(GENERATE_LENGTH, initial)
+            sample = sample.cpu().detach().numpy()[0]
+            midi = datamanager.to_midi(sample)
+            midi.save("1.midi")
+            model_engine.save_checkpoint("/content/1")
