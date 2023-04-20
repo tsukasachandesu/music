@@ -6,7 +6,8 @@ import time
 import torch
 import numpy as np
 
-from x_transformers import TransformerWrapper, Decoder, AutoregressiveWrapper
+from block_recurrent_transformer_pytorch import BlockRecurrentTransformer, RecurrentTrainerWrapper
+
 
 from mgt.datamanagers.data_manager import Dictionary
 from mgt.models import utils
@@ -106,24 +107,25 @@ class TransformerModel(object):
         return sample.cpu().detach().numpy()[0]
 
     def create_model(self):
-        model = AutoregressiveWrapper(TransformerWrapper(
-            num_tokens=7700,
-            max_seq_len=self.max_sequence_length,
-            attn_layers=Decoder(
-                dim=self.dim,
-                depth=self.depth,
-                heads=self.heads,
-                ff_swish = True,
-                ff_glu = True,  
-                attn_dropout=self.dropout,  # dropout post-attention
-                ff_dropout=self.dropout,  # feedforward dropout
-                rotary_xpos = True   
-            )
-        ),  mask_prob = 0.15,
-            ignore_index=0,
-            pad_value=0
-        ).to(utils.get_device())
 
+       model = BlockRecurrentTransformer(
+           num_tokens = 7700,
+           dim = 768,
+           depth = 12,
+           dim_head = 64,
+           heads = 8,
+           max_seq_len = 1024,
+           block_width = 512,
+           num_state_vectors = 512,
+           recurrent_layers = (4,),
+           use_flash_attn = True
+       )
+      train_wrapper = RecurrentTrainerWrapper(
+          model,
+          xl_memories_dropout = 0.1,
+          state_dropout = 0.1,
+      ).to(utils.get_device())
+       
         return model
 
     def create_optimizer(self):
