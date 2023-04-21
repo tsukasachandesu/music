@@ -119,18 +119,11 @@ for _ in range(EPOCHS):
         model_engine.step()
         print(loss.item() * GRADIENT_ACCUMULATE_EVERY)
 
-        if i % VALIDATE_EVERY == 0:
-            model.eval()
-            with torch.no_grad():
-                inp = random.choice(val_dataset)[:-1]
-                loss = model(inp[None, :].cuda())
-                print(f'validation loss: {loss.item()}')
-
         if i % GENERATE_EVERY == 0:
             model.eval()          
             prompt = [2]
             initial = torch.tensor([prompt]).long().cuda() 
-            sample = model.generate(GENERATE_LENGTH, initial)
+            sample = model.generate(initial,GENERATE_LENGTH)
             sample = sample.cpu().detach().numpy()[0]
             midi = datamanager.to_midi(sample)
             midi.save("1.midi")
