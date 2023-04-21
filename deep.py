@@ -43,7 +43,7 @@ class TextSamplerDataset(Dataset):
         starting_index = random.randint(0, len(self.data[song_index]) - 1)
         padded_song = pad(self.data[song_index ], self.seq_len)
         a = padded_song[starting_index: starting_index + self.seq_len + 1]
-        print(a.size())
+
         return torch.tensor(a).long()
     def __len__(self):
         return 2000
@@ -103,7 +103,7 @@ train_dataset = TextSamplerDataset(data_train, SEQ_LEN)
 
 cmd_args = add_argument()
 model_engine, optimizer, trainloader, _ = deepspeed.initialize(args=cmd_args, model=model, model_parameters=model.parameters(), training_data=train_dataset)
-_, client_sd = model_engine.load_checkpoint("/content/1", ckpt_id)
+_, client_sd = model_engine.load_checkpoint("/content/1")
 
 # training
          
