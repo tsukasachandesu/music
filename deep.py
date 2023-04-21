@@ -54,7 +54,7 @@ def add_argument():
                         help='use CPU in case there\'s no GPU support')
     parser.add_argument('--use_ema', default=False, action='store_true',
                         help='whether use exponential moving average')
-    parser.add_argument('-b', '--batch_size', default=32, type=int,
+    parser.add_argument('-b', '--batch_size', default=16, type=int,
                         help='mini-batch size (default: 32)')
     parser.add_argument('-e', '--epochs', default=30, type=int,
                         help='number of total epochs (default: 30)')
@@ -68,7 +68,7 @@ def add_argument():
 # constants
 
 EPOCHS = 5
-GRADIENT_ACCUMULATE_EVERY = 4
+GRADIENT_ACCUMULATE_EVERY = 1
 VALIDATE_EVERY = 4000
 GENERATE_EVERY = 3900
 GENERATE_LENGTH = 2048
@@ -78,15 +78,15 @@ SEQ_LEN = 1024
 
 model = BlockRecurrentTransformer(
     num_tokens = 7700,
-    dim = 768,
-    depth = 16,
+    dim = 512,
+    depth = 12,
     dim_head = 64,
-    heads = 10,
-    max_seq_len = SEQ_LEN,
+    heads = 8,
+    max_seq_len = 1024,
     block_width = 512,
     num_state_vectors = 512,
     recurrent_layers = (4,),
-    use_flash_attn = True
+    use_flash_attn = False
 )
 model = RecurrentTrainerWrapper(
     model,
