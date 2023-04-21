@@ -46,7 +46,7 @@ class TextSamplerDataset(Dataset):
         print(a.size())
         return torch.tensor(a).long()
     def __len__(self):
-        return 1000
+        return 2000
   
 def add_argument():
     parser=argparse.ArgumentParser(description='enwik8')
@@ -70,8 +70,8 @@ def add_argument():
 
 EPOCHS = 5
 GRADIENT_ACCUMULATE_EVERY = 1
-GENERATE_EVERY = 3900
-GENERATE_LENGTH = 2048
+GENERATE_EVERY = 1800
+GENERATE_LENGTH = 1024
 SEQ_LEN = 1024
 
 # instantiate GPT-like decoder model
@@ -79,9 +79,9 @@ SEQ_LEN = 1024
 model = BlockRecurrentTransformer(
     num_tokens = 7700,
     dim = 512,
-    depth = 12,
+    depth = 16,
     dim_head = 64,
-    heads = 8,
+    heads = 12,
     max_seq_len = 1024,
     block_width = 512,
     num_state_vectors = 512,
