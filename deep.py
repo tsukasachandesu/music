@@ -55,7 +55,7 @@ def add_argument():
                         help='use CPU in case there\'s no GPU support')
     parser.add_argument('--use_ema', default=False, action='store_true',
                         help='whether use exponential moving average')
-    parser.add_argument('-b', '--batch_size', default=64, type=int,
+    parser.add_argument('-b', '--batch_size', default=32, type=int,
                         help='mini-batch size (default: 32)')
     parser.add_argument('-e', '--epochs', default=30, type=int,
                         help='number of total epochs (default: 30)')
@@ -78,7 +78,7 @@ SEQ_LEN = 1024
 
 model = BlockRecurrentTransformer(
     num_tokens = 7700,
-    dim = 768,
+    dim = 512,
     depth = 16,
     dim_head = 64,
     heads = 12,
@@ -126,88 +126,3 @@ for _ in range(EPOCHS):
             midi = datamanager.to_midi(sample)
             midi.save("1.midi")
     model_engine.save_checkpoint("/content/1") 
-
-        return torch.tensor(a).long()
-    def __len__(self):
-        return 2000
-  
-def add_argument():
-    parser=argparse.ArgumentParser(description='enwik8')
-
-    parser.add_argument('--with_cuda', default=True, action='store_true',
-                        help='use CPU in case there\'s no GPU support')
-    parser.add_argument('--use_ema', default=False, action='store_true',
-                        help='whether use exponential moving average')
-    parser.add_argument('-b', '--batch_size', default=32, type=int,
-                        help='mini-batch size (default: 32)')
-    parser.add_argument('-e', '--epochs', default=30, type=int,
-                        help='number of total epochs (default: 30)')
-    parser.add_argument('--local_rank', type=int, default=-1,
-                       help='local rank passed from distributed launcher')
-
-    parser = deepspeed.add_config_arguments(parser)
-    args=parser.parse_args()
-    return args
-
-# constants
-
-EPOCHS = 5
-GRADIENT_ACCUMULATE_EVERY = 3
-GENERATE_EVERY = 1800
-GENERATE_LENGTH = 1024
-SEQ_LEN = 1024
-
-# instantiate GPT-like decoder model
-
-model = BlockRecurrentTransformer(
-    num_tokens = 7700,
-    dim = 512,
-    depth = 16,
-    dim_head = 64,
-    heads = 12,
-    max_seq_len = 1024,
-    block_width = 512,
-    num_state_vectors = 512,
-    recurrent_layers = (4,),
-    use_flash_attn = False
-)
-model = RecurrentTrainerWrapper(
-    model,
-    xl_memories_dropout = 0.1,
-    state_dropout = 0.1,
-).cuda()
-
-data_train = DataHelper.load('/content/drive/MyDrive/set')
-data_train = data_train.data
-
-train_dataset = TextSamplerDataset(data_train, SEQ_LEN)
-
-# setup deepspeed
-
-cmd_args = add_argument()
-model_engine, optimizer, trainloader, _ = deepspeed.initialize(args=cmd_args, model=model, model_parameters=model.parameters(), training_data=train_dataset)
-_, client_sd = model_engine.load_checkpoint("/content/1")
-
-# training
-         
-for _ in range(EPOCHS):
-    for i, data in enumerate(trainloader):
-        model_engine.train()
-        data = data.to(model_engine.local_rank)
-        loss = model_engine(data)
-
-        model_engine.backward(loss)
-        torch.nn.utils.clip_grad_norm_(model_engine.parameters(), 0.5)
-        model_engine.step()
-        print(loss.item() * GRADIENT_ACCUMULATE_EVERY)
-
-        if i % GENERATE_EVERY == 0:
-            model.eval()          
-            prompt = [2]
-            initial = torch.tensor([prompt]).long().cuda() 
-            sample = model.generate(initial,GENERATE_LENGTH)
-            sample = sample.cpu().detach().numpy()[0]
-            midi = datamanager.to_midi(sample)
-            midi.save("1.midi")
-            model_engine.save_checkpoint("/content/1") 
-            
