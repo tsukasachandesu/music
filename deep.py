@@ -126,5 +126,5 @@ for _ in range(EPOCHS):
             sample = sample.cpu().detach().numpy()[0]
             midi = datamanager.to_midi(sample)
             midi.save("1.midi")
-            model_engine.save_checkpoint("/content/1",ckpt_id) 
+            model_engine.save_checkpoint("/content/1") 
             
