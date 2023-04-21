@@ -72,7 +72,7 @@ GRADIENT_ACCUMULATE_EVERY = 4
 VALIDATE_EVERY = 4000
 GENERATE_EVERY = 3900
 GENERATE_LENGTH = 2048
-SEQ_LEN = 2048
+SEQ_LEN = 1024
 
 # instantiate GPT-like decoder model
 
@@ -82,7 +82,7 @@ model = BlockRecurrentTransformer(
     depth = 16,
     dim_head = 64,
     heads = 10,
-    max_seq_len = 1024,
+    max_seq_len = SEQ_LEN,
     block_width = 512,
     num_state_vectors = 512,
     recurrent_layers = (4,),
