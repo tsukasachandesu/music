@@ -46,7 +46,7 @@ class TextSamplerDataset(Dataset):
         print(a.size())
         return torch.tensor(a).long()
     def __len__(self):
-        return 4000
+        return 1000
   
 def add_argument():
     parser=argparse.ArgumentParser(description='enwik8')
@@ -55,7 +55,7 @@ def add_argument():
                         help='use CPU in case there\'s no GPU support')
     parser.add_argument('--use_ema', default=False, action='store_true',
                         help='whether use exponential moving average')
-    parser.add_argument('-b', '--batch_size', default=4, type=int,
+    parser.add_argument('-b', '--batch_size', default=32, type=int,
                         help='mini-batch size (default: 32)')
     parser.add_argument('-e', '--epochs', default=30, type=int,
                         help='number of total epochs (default: 30)')
@@ -70,10 +70,9 @@ def add_argument():
 
 EPOCHS = 5
 GRADIENT_ACCUMULATE_EVERY = 1
-VALIDATE_EVERY = 4000
 GENERATE_EVERY = 3900
 GENERATE_LENGTH = 2048
-SEQ_LEN = 512
+SEQ_LEN = 1024
 
 # instantiate GPT-like decoder model
 
@@ -83,7 +82,7 @@ model = BlockRecurrentTransformer(
     depth = 12,
     dim_head = 64,
     heads = 8,
-    max_seq_len = 512,
+    max_seq_len = 1024,
     block_width = 512,
     num_state_vectors = 512,
     recurrent_layers = (4,),
@@ -99,12 +98,12 @@ data_train = DataHelper.load('/content/drive/MyDrive/set')
 data_train = data_train.data
 
 train_dataset = TextSamplerDataset(data_train, SEQ_LEN)
-val_dataset = TextSamplerDataset(data_train, SEQ_LEN)
 
 # setup deepspeed
 
 cmd_args = add_argument()
 model_engine, optimizer, trainloader, _ = deepspeed.initialize(args=cmd_args, model=model, model_parameters=model.parameters(), training_data=train_dataset)
+_, client_sd = model_engine.load_checkpoint("/content/1", ckpt_id)
 
 # training
          
@@ -127,4 +126,5 @@ for _ in range(EPOCHS):
             sample = sample.cpu().detach().numpy()[0]
             midi = datamanager.to_midi(sample)
             midi.save("1.midi")
-            model_engine.save_checkpoint("/content/1")
+            model_engine.save_checkpoint("/content/1",ckpt_id) 
+            
