@@ -43,6 +43,7 @@ class TextSamplerDataset(Dataset):
         starting_index = random.randint(0, len(self.data[song_index]) - 1)
         padded_song = pad(self.data[song_index ], self.seq_len)
         a = padded_song[starting_index: starting_index + self.seq_len + 1]
+        print(a.size())
         return torch.tensor(a).long()
     def __len__(self):
         return 4000
@@ -54,7 +55,7 @@ def add_argument():
                         help='use CPU in case there\'s no GPU support')
     parser.add_argument('--use_ema', default=False, action='store_true',
                         help='whether use exponential moving average')
-    parser.add_argument('-b', '--batch_size', default=16, type=int,
+    parser.add_argument('-b', '--batch_size', default=4, type=int,
                         help='mini-batch size (default: 32)')
     parser.add_argument('-e', '--epochs', default=30, type=int,
                         help='number of total epochs (default: 30)')
@@ -72,7 +73,7 @@ GRADIENT_ACCUMULATE_EVERY = 1
 VALIDATE_EVERY = 4000
 GENERATE_EVERY = 3900
 GENERATE_LENGTH = 2048
-SEQ_LEN = 1025
+SEQ_LEN = 512
 
 # instantiate GPT-like decoder model
 
@@ -82,7 +83,7 @@ model = BlockRecurrentTransformer(
     depth = 12,
     dim_head = 64,
     heads = 8,
-    max_seq_len = 1024,
+    max_seq_len = 512,
     block_width = 512,
     num_state_vectors = 512,
     recurrent_layers = (4,),
