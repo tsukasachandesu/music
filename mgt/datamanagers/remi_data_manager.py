@@ -226,30 +226,7 @@ class RemiDataManager(DataManager):
 
                     if self.efficient_remi_config.enabled:
                         events = self.data_extractor.extract_events(path, transposition_step)
-                        words = self.efficient_remi_converter.convert_to_efficient_remi(events)                     
-                        
-                        note_names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
-                        
-                        events = words
-                       
-                        for index, event in enumerate(events):
-                            if "Instrument" in event:
-                                del events[index]
-                        for index, event in enumerate(events):
-                            if "Name" in event:
-                                name = event.split("_")[1]
-                                octave = events[index+1].split("_")[1]
-                                pitch = int(octave) * 12 + note_names.index(name)
-                                events[index] = 'Pitch_'+str(pitch)
-                                del events[index+1]
-                        for index, event in enumerate(events):
-                            if "Pitch" in event:
-                                name = event.split("_")[1]
-                                octave = events[index+1].split("_")[1]
-                                pitch = int(name) + int(octave) * 120
-                                events[index] = 'Pitchdur_'+str(pitch)
-                                del events[index+1]
-                        words = events
+                        words = self.efficient_remi_converter.convert_to_efficient_remi(events) 
                         
                         cur_bar, cur_pos = -1, -1
                         cur = 0
@@ -342,8 +319,30 @@ class RemiDataManager(DataManager):
                                 b.append("cent_" +  str(np.argmin(np.abs(np.array(cent) - key_diff[numin]))))
                                 b.append("diff_" +  str(np.argmin(np.abs(np.array(dife) - key_dife[numin]))))
                                 numin = numin + 1
-                        print(b)
-                        data = self.data_extractor.words_to_data(b)
+                        
+                        note_names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+                        
+                        events = b
+                       
+                        for index, event in enumerate(events):
+                            if "Instrument" in event:
+                                del events[index]
+                        for index, event in enumerate(events):
+                            if "Name" in event:
+                                name = event.split("_")[1]
+                                octave = events[index+1].split("_")[1]
+                                pitch = int(octave) * 12 + note_names.index(name)
+                                events[index] = 'Pitch_'+str(pitch)
+                                del events[index+1]
+                        for index, event in enumerate(events):
+                            if "Pitch" in event:
+                                name = event.split("_")[1]
+                                octave = events[index+1].split("_")[1]
+                                pitch = int(name) + int(octave) * 120
+                                events[index] = 'Pitchdur_'+str(pitch)
+                                del events[index+1]
+
+                        data = self.data_extractor.words_to_data(events)
 
                         training_data.append(data)
                     else:
