@@ -343,6 +343,7 @@ class RemiDataManager(DataManager):
                                 del events[index+1]
 
                         data = self.data_extractor.words_to_data(events)
+                        print(events)
 
                         training_data.append(data)
                     else:
