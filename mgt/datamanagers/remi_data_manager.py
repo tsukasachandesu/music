@@ -187,7 +187,35 @@ class RemiDataManager(DataManager):
         self.to_midi_mapper = ToMidiMapper(self.dictionary)
 
     def prepare_data(self, midi_paths) -> DataSet:
-
+        def ce_sum1(indices: List[int], d,start=None, end=None) -> ndarray:
+            if not start:
+                start = 0
+            if not end:
+                end = len(indices)
+            indices = indices[start:end]
+            total = np.zeros(3)
+            count = 0
+            shift = d
+            for timestep, data in enumerate(indices):
+                for pitch in data:
+                    if pitch:
+                        shifted = pitch - shift
+                        if shifted < 0:
+                            shifted += 12
+                        total += pitch_index_to_position(note_index_to_pitch_index[shifted])
+                        count += 1
+            return total/count
+        def cal_diameter1(piano_roll,key_index: int) -> List[int]:
+            diameters = []
+            indices = []
+            for i in piano_roll:
+                shifte = i - key_index
+                if shifte < 0:
+                    shifte += 12
+                indices.append(note_index_to_pitch_index[shifte])
+            diameters.append(largest_distance(indices))
+            return diameters
+        
         training_data = []
         for path in midi_paths:
             for transposition_step in self.transposition_steps:
@@ -289,7 +317,6 @@ class RemiDataManager(DataManager):
                                 b.append("diff_" +  str(np.argmin(np.abs(np.array(dife) - key_dife[numin]))))
                                 numin = numin + 1
                         
-                        
                         note_names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
                         
                         events = b
@@ -327,7 +354,6 @@ class RemiDataManager(DataManager):
     def to_midi(self, data) -> MidiWrapper:
         if self.efficient_remi_config.enabled:
             efficient_words = list(map(lambda x: self.dictionary.data_to_word(x), data))
-
 
             hy = []
             for index, event in enumerate(efficient_words):
