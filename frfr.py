@@ -38,10 +38,10 @@ class CFG:
     LEARNING_RATE: float = 3e-4
     SEQ_LEN: int = 1024
     NUM_CPU: int = multiprocessing.cpu_count()
-    RESUME_FROM_CHECKPOINT: str = None
+    RESUME_FROM_CHECKPOINT: str = "/content/music/palm2/step_200"
     CHECKPOINTING_STEPS: int = 100
     OUTPUT_DIR: str = "palm2"
-    VALIDATION_STEPS: int = 100
+    VALIDATION_STEPS: int = 10
     ENTITY_NAME: str = "a_man_chooses"
 
 
@@ -82,7 +82,7 @@ class TextSampleDataset2(Dataset):
         self.max_length = max_length
         
     def __len__(self):
-        return 10
+        return 8
 
     def __getitem__(self, idx):
         song_index = random.randint(0, len(self.data) - 1)
@@ -176,7 +176,7 @@ def main():
 
     # I do not know why Huggingface recommends recalculation of max_train_steps
 
-    max_train_steps = math.ceil(len(train_loader) / CFG.GRADIENT_ACCUMULATE_EVERY)
+    max_train_steps = math.ceil(len(train_loader) / CFG.GRADIENT_ACCUMULATE_EVERY * 3)
     accelerator.print(f"Max train steps recalculated: {max_train_steps}")
 
     # Total batch size for logging
