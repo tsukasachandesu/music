@@ -62,7 +62,7 @@ class TextSampleDataset1(Dataset):
         self.max_length = max_length
         
     def __len__(self):
-        return 1000
+        return 10000
 
     def __getitem__(self, idx):
         song_index = random.randint(0, len(self.data) - 1)
@@ -108,8 +108,7 @@ def main():
 
     accelerator = Accelerator(
         gradient_accumulation_steps=CFG.GRADIENT_ACCUMULATE_EVERY,
-        mixed_precision="fp16",
-        log_with="wandb",
+        mixed_precision="fp16"
     )
 
     accelerator.init_trackers(
@@ -150,7 +149,7 @@ def main():
     )
 
     # Determine number of training steps
-
+    
     max_train_steps = math.ceil(len(train_loader) / CFG.GRADIENT_ACCUMULATE_EVERY)
     accelerator.print(f"Max train steps: {max_train_steps}")
 
@@ -175,8 +174,8 @@ def main():
     accelerator.register_for_checkpointing(lr_scheduler)
 
     # I do not know why Huggingface recommends recalculation of max_train_steps
-
-    max_train_steps = math.ceil(len(train_loader) / CFG.GRADIENT_ACCUMULATE_EVERY * 3)
+    num_epochs = 3
+    max_train_steps = math.ceil(len(train_loader) / CFG.GRADIENT_ACCUMULATE_EVERY * num_epochs)
     accelerator.print(f"Max train steps recalculated: {max_train_steps}")
 
     # Total batch size for logging
@@ -214,42 +213,42 @@ def main():
     # training
 
     model.train()
-    for step, batch in enumerate(train_loader):
-        with accelerator.accumulate(model):
-            loss = model(batch, return_loss=True)
-            accelerator.backward(loss)
+    for epoch in range(num_epochs):
+      for step, batch in enumerate(train_loader):
+          with accelerator.accumulate(model):
+              loss = model(batch, return_loss=True)
+              accelerator.backward(loss)
 
-            accelerator.log({"loss": loss.item()}, step=step)
+              if accelerator.sync_gradients:
+                  accelerator.clip_grad_norm_(model.parameters(), 1.0)
 
-            if accelerator.sync_gradients:
-                accelerator.clip_grad_norm_(model.parameters(), 1.0)
+              optim.step()
+              lr_scheduler.step()
+              optim.zero_grad()
 
-            optim.step()
-            lr_scheduler.step()
-            optim.zero_grad()
+          if accelerator.sync_gradients:
+              progress_bar.update(1)
+              completed_steps += 1
 
-        if accelerator.sync_gradients:
-            progress_bar.update(1)
-            completed_steps += 1
-
-        if isinstance(CFG.CHECKPOINTING_STEPS, int):
-            if completed_steps % CFG.CHECKPOINTING_STEPS == 0:
-                output_dir = f"step_{completed_steps }"
-                if CFG.OUTPUT_DIR is not None:
-                    output_dir = os.path.join(CFG.OUTPUT_DIR, output_dir)
-                accelerator.save_state(output_dir)
+          if isinstance(CFG.CHECKPOINTING_STEPS, int):
+              if completed_steps % CFG.CHECKPOINTING_STEPS == 0:
+                  output_dir = f"step_{completed_steps }"
+                  if CFG.OUTPUT_DIR is not None:
+                      output_dir = os.path.join(CFG.OUTPUT_DIR, output_dir)
+                  accelerator.save_state(output_dir)
 
         # validation - I was following Lucidrains validation here...
 
-        if step % CFG.VALIDATION_STEPS == 0:
-            model.eval()
-            with torch.no_grad():
-                for batch in val_loader:
-                    loss = model(batch, return_loss=True)
-                    accelerator.log({"val_loss": loss.item()}, step=step)
+          if step % CFG.VALIDATION_STEPS == 0:
+              model.eval()
+              with torch.no_grad():
+                  for batch in val_loader:
+                      loss = model(batch, return_loss=True)
+                      accelerator.print(step)
+                      accelerator.print(loss.item())
 
-        if completed_steps >= max_train_steps:
-            break
+          if completed_steps >= max_train_steps:
+              break
 
     accelerator.end_training()
     accelerator.save_state("/content")
