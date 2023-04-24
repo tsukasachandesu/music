@@ -40,7 +40,7 @@ class CFG:
     NUM_CPU: int = multiprocessing.cpu_count()
     RESUME_FROM_CHECKPOINT: str = None
     CHECKPOINTING_STEPS: int = 100
-    OUTPUT_DIR: str = "palm"
+    OUTPUT_DIR: str = "palm2"
     VALIDATION_STEPS: int = 100
     ENTITY_NAME: str = "a_man_chooses"
 
@@ -133,7 +133,7 @@ def main():
     # instantiate palm
 
     model = PaLM(
-        num_tokens=7700, dim=512, depth=12, dim_head=128, heads=8, flash_attn=False
+        num_tokens=7700, dim=512, depth=6, dim_head=128, heads=8, flash_attn=False
     )
 
     model = model.to(accelerator.device)
@@ -252,19 +252,7 @@ def main():
             break
 
     accelerator.end_training()
-
-    # save final model
-
-    if CFG.OUTPUT_DIR is not None:
-        accelerator.wait_for_everyone()
-        unwrapped_model = accelerator.unwrap_model(model)
-        unwrapped_model.save_pretrained(
-            f"{CFG.OUTPUT_DIR}/final",
-            is_main_process=accelerator.is_main_process,
-            save_function=accelerator.save,
-            state_dict=accelerator.get_state_dict(model),
-        )
-
+    accelerator.save_state("/content")
 
 if __name__ == "__main__":
     main()
