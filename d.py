@@ -11,6 +11,26 @@ from torch.utils.data import DataLoader, Dataset
 from palm_rlhf_pytorch import PaLM
 from accelerate import Accelerator
 
+class TextSampleDataset(Dataset):
+    def __init__(self, split, max_length=1024):
+        f = open('/content/music/1.pickle','rb')
+        self.data  = pickle.load(f)
+        self.max_length = max_length
+        
+    def __len__(self):
+        return 1000
+
+    def __getitem__(self, idx):
+        song_index = random.randint(0, len(self.data) - 1)
+        if len(self.data[song_index]) <= self.max_length:
+          starting_index = random.randint(0, len(self.data[song_index]) - 1)
+          padded_song = self.data[song_index] + list(np.repeat(0, self.max_length))
+          a = padded_song[0:self.max_length]
+        else:
+          starting_index = random.randint(0, len(self.data[song_index]) - self.max_length)
+          a = self.data[song_index][starting_index: starting_index + self.max_length]
+        return torch.tensor(a).long()
+
 # constants
 
 NUM_BATCHES = int(1e5)
@@ -30,13 +50,6 @@ def cycle(loader):
         for data in loader:
             yield data
 
-def decode_token(token):
-    return str(chr(max(32, token)))
-
-def decode_tokens(tokens):
-    return "".join(list(map(decode_token, tokens)))
-
-
 # accelerator
 
 accelerator = Accelerator()
@@ -52,25 +65,6 @@ model = PaLM(
 ).to(device)
 
 # prepare enwik8 data
-
-with gzip.open("./data/enwik8.gz") as file:
-    data = np.frombuffer(file.read(int(95e6)), dtype=np.uint8).copy()
-    np_train, np_valid = np.split(data, [int(90e6)])
-    data_train, data_val = torch.from_numpy(np_train), torch.from_numpy(np_valid)
-
-class TextSamplerDataset(Dataset):
-    def __init__(self, data, seq_len):
-        super().__init__()
-        self.data = data
-        self.seq_len = seq_len
-
-    def __getitem__(self, index):
-        rand_start = torch.randint(0, self.data.size(0) - self.seq_len, (1,))
-        full_seq = self.data[rand_start : rand_start + self.seq_len + 1].long()
-        return full_seq.to(device)
-
-    def __len__(self):
-        return self.data.size(0) // self.seq_len
 
 train_dataset = TextSamplerDataset(data_train, SEQ_LEN)
 val_dataset = TextSamplerDataset(data_val, SEQ_LEN)
