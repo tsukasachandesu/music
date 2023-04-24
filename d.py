@@ -11,7 +11,16 @@ from torch.utils.data import DataLoader, Dataset
 from palm_rlhf_pytorch import PaLM
 from accelerate import Accelerator
 
-class TextSampleDataset(Dataset):
+import pickle
+from mgt.datamanagers.remi_data_manager import RemiDataManager
+from mgt.datamanagers.data_helper import DataHelper
+from mgt.datamanagers.remi.efficient_remi_config import EfficientRemiConfig
+
+datamanager = RemiDataManager(
+    efficient_remi_config=EfficientRemiConfig(enabled=True, remove_velocity=True)
+)
+
+class TextSampleDataset1(Dataset):
     def __init__(self, split, max_length=1024):
         f = open('/content/music/1.pickle','rb')
         self.data  = pickle.load(f)
@@ -19,6 +28,26 @@ class TextSampleDataset(Dataset):
         
     def __len__(self):
         return 1000
+
+    def __getitem__(self, idx):
+        song_index = random.randint(0, len(self.data) - 1)
+        if len(self.data[song_index]) <= self.max_length:
+          starting_index = random.randint(0, len(self.data[song_index]) - 1)
+          padded_song = self.data[song_index] + list(np.repeat(0, self.max_length))
+          a = padded_song[0:self.max_length]
+        else:
+          starting_index = random.randint(0, len(self.data[song_index]) - self.max_length)
+          a = self.data[song_index][starting_index: starting_index + self.max_length]
+        return torch.tensor(a).long()
+ 
+class TextSampleDataset2(Dataset):
+    def __init__(self, split, max_length=1024):
+        f = open('/content/music/1.pickle','rb')
+        self.data  = pickle.load(f)
+        self.max_length = max_length
+        
+    def __len__(self):
+        return 10
 
     def __getitem__(self, idx):
         song_index = random.randint(0, len(self.data) - 1)
@@ -66,8 +95,8 @@ model = PaLM(
 
 # prepare enwik8 data
 
-train_dataset = TextSamplerDataset(data_train, SEQ_LEN)
-val_dataset = TextSamplerDataset(data_val, SEQ_LEN)
+train_dataset = TextSamplerDataset1(data_train, SEQ_LEN)
+val_dataset = TextSamplerDataset2(data_val, SEQ_LEN)
 train_loader = cycle(DataLoader(train_dataset, batch_size=BATCH_SIZE))
 val_loader = cycle(DataLoader(val_dataset, batch_size=BATCH_SIZE))
 
@@ -78,6 +107,7 @@ optim = Lion(model.palm_parameters(), lr = LEARNING_RATE)
 model, optim, train_loader, val_loader = accelerator.prepare(
     model, optim, train_loader, val_loader
 )
+accelerator.save_state(output_dir="my_checkpoint")
 
 # training
 
@@ -102,10 +132,10 @@ for i in tqdm.tqdm(range(NUM_BATCHES), mininterval=10.0, desc="training"):
 
     if i % GENERATE_EVERY == 0:
         model.eval()
-        inp = random.choice(val_dataset)[:PRIME_LENGTH]
-        prime = decode_tokens(inp)
-        accelerator.print(f"%s \n\n %s", (prime, "*" * 100))
+        prompt = [2]
+        initial = torch.tensor([prompt]).long().cuda() 
 
-        sample = model.generate(GENERATE_LENGTH, inp[None, ...])
-        output_str = decode_tokens(sample[0])
-        accelerator.print(output_str, "\n")
+        sample = model.generate(GENERATE_LENGTH, initial)
+        sample = sample.cpu().detach().numpy()[0]
+        midi = datamanager.to_midi(sample)
+        midi.save("1.midi")
