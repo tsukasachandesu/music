@@ -20,6 +20,8 @@ datamanager = RemiDataManager(
     efficient_remi_config=EfficientRemiConfig(enabled=True, remove_velocity=True)
 )
 
+from transformers import get_linear_schedule_with_warmup
+
 class TextSampleDataset1(Dataset):
     def __init__(self, split, max_length=1024):
         f = open('/content/music/1.pickle','rb')
@@ -81,7 +83,11 @@ def cycle(loader):
 
 # accelerator
 
-accelerator = Accelerator()
+accelerator = Accelerator(
+    mixed_precision="fp16",
+    gradient_accumulation_steps=GRADIENT_ACCUMULATE_EVERY
+)
+
 device = accelerator.device
 
 # instantiate palm
@@ -104,9 +110,21 @@ val_loader = cycle(DataLoader(val_dataset, batch_size=BATCH_SIZE))
 
 optim = Lion(model.palm_parameters(), lr = LEARNING_RATE)
 
-model, optim, train_loader, val_loader = accelerator.prepare(
-    model, optim, train_loader, val_loader
+max_train_steps = math.ceil(len(train_loader) / GRADIENT_ACCUMULATE_EVERY)
+NUM_WARMUP_STEPS = int(max_train_steps * 0.069420)
+lr_scheduler = get_linear_schedule_with_warmup(
+    optimizer=optim,
+    num_warmup_steps=NUM_WARMUP_STEPS * GRADIENT_ACCUMULATE_EVERY,
+    num_training_steps=max_train_steps * GRADIENT_ACCUMULATE_EVERY,
 )
+
+model, optim, train_loader, val_loader = accelerator.prepare(
+    model, optim, train_loader, val_loader, lr_scheduler
+)
+
+accelerator.register_for_checkpointing(lr_scheduler)
+max_train_steps = math.ceil(len(train_loader) / CFG.GRADIENT_ACCUMULATE_EVERY)
+
 accelerator.save_state(output_dir="my_checkpoint")
 
 # training
