@@ -38,9 +38,9 @@ class CFG:
     SEQ_LEN: int = 2048
     NUM_CPU: int = multiprocessing.cpu_count()
     RESUME_FROM_CHECKPOINT: str = "/content/music/palm"
-    CHECKPOINTING_STEPS: int = 200
+    CHECKPOINTING_STEPS: int = 600
     OUTPUT_DIR: str = "palm"
-    VALIDATION_STEPS: int = 100
+    VALIDATION_STEPS: int = 500
     ENTITY_NAME: str = "a_man_chooses"
 
 
@@ -61,13 +61,13 @@ class TextSampleDataset1(Dataset):
         self.max_length = max_length
         
     def __len__(self):
-        return 9000
+        return 10
 
     def __getitem__(self, idx):
         song_index = random.randint(0, len(self.data) - 1)
         if len(self.data[song_index]) <= self.max_length:
           starting_index = random.randint(0, len(self.data[song_index]) - 1)
-          padded_song = self.data[song_index] + list(np.repeat(0, self.max_length))
+          padded_song = list(np.repeat(0, self.max_length))+self.data[song_index]
           a = padded_song[0:self.max_length]
         else:
           starting_index = random.randint(0, len(self.data[song_index]) - self.max_length)
@@ -82,7 +82,7 @@ class TextSampleDataset2(Dataset):
         self.max_length = max_length
         
     def __len__(self):
-        return 1
+        return 10
 
     def __getitem__(self, idx):
         song_index = random.randint(0, len(self.data) - 1)
@@ -238,7 +238,13 @@ def main():
           if completed_steps >= max_train_steps:
               break
     
-    
+    model.eval()
+    prompt = [2]
+    initial = torch.tensor([prompt]).long().cuda() 
+    sample = model.generate(2048, initial)
+    sample = sample.cpu().detach().numpy()[0]
+    midi = datamanager.to_midi(sample)
+    midi.save("1.midi")
     accelerator.save_state(output_dir="palm")
     accelerator.end_training()
 
