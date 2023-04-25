@@ -37,8 +37,8 @@ class CFG:
     LEARNING_RATE: float = 3e-4
     SEQ_LEN: int = 2048
     NUM_CPU: int = multiprocessing.cpu_count()
-    RESUME_FROM_CHECKPOINT: str = None
-    CHECKPOINTING_STEPS: int = 100
+    RESUME_FROM_CHECKPOINT: str = "/content/music/palm/"
+    CHECKPOINTING_STEPS: int = 200
     OUTPUT_DIR: str = "palm"
     VALIDATION_STEPS: int = 100
     ENTITY_NAME: str = "a_man_chooses"
@@ -61,7 +61,7 @@ class TextSampleDataset1(Dataset):
         self.max_length = max_length
         
     def __len__(self):
-        return 500
+        return 10000
 
     def __getitem__(self, idx):
         song_index = random.randint(0, len(self.data) - 1)
@@ -87,7 +87,7 @@ class TextSampleDataset2(Dataset):
         song_index = random.randint(0, len(self.data) - 1)
         if len(self.data[song_index]) <= self.max_length:
           starting_index = random.randint(0, len(self.data[song_index]) - 1)
-          padded_song = self.data[song_index] + list(np.repeat(0, self.max_length))
+          padded_song = list(np.repeat(0, self.max_length))+self.data[song_index]   
           a = padded_song[0:self.max_length]
         else:
           starting_index = random.randint(0, len(self.data[song_index]) - self.max_length)
