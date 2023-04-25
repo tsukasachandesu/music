@@ -4,7 +4,7 @@ import os
 from itertools import chain
 import random
 import torch
-from accelerate import Accelerator
+from accelerate import Accelerator, DeepSpeedPlugin
 from datasets import load_dataset
 from torch.nn import functional as F
 from torch.optim import AdamW
@@ -17,7 +17,6 @@ from transformers import (
 )
 import numpy as np
 from palm_rlhf_pytorch import PaLM
-from accelerator import Accelerator, DeepSpeedPlugin
 import pickle
 
 from mgt.datamanagers.remi_data_manager import RemiDataManager
@@ -101,8 +100,8 @@ class TextSampleDataset2(Dataset):
 def main():
     data1 = TextSampleDataset1()
     data2 = TextSampleDataset2()
-    train_loader = DataLoader(data1, batch_size=BATCH_SIZE)
-    val_loader= DataLoader(data2, batch_size=BATCH_SIZE)
+    train_loader = DataLoader(data1, batch_size=CFG.BATCH_SIZE)
+    val_loader= DataLoader(data2, batch_size=CFG.BATCH_SIZE)
 
     # accelerator
 
