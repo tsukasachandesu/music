@@ -17,7 +17,7 @@ from transformers import (
 )
 import numpy as np
 from palm_rlhf_pytorch import PaLM
-
+from accelerator import Accelerator, DeepSpeedPlugin
 import pickle
 
 from mgt.datamanagers.remi_data_manager import RemiDataManager
