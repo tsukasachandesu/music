@@ -106,8 +106,8 @@ def main():
     # accelerator
 
     accelerator = Accelerator(
-        gradient_accumulation_steps=CFG.GRADIENT_ACCUMULATE_EVERY,
-        mixed_precision="fp16"
+        mixed_precision="bf16", 
+        gradient_accumulation_steps=CFG.GRADIENT_ACCUMULATE_EVERY
     )
 
     accelerator.init_trackers(
