@@ -38,7 +38,7 @@ class CFG:
     SEQ_LEN: int = 2048
     NUM_CPU: int = multiprocessing.cpu_count()
     RESUME_FROM_CHECKPOINT: str = None
-    CHECKPOINTING_STEPS: int = 1000
+    CHECKPOINTING_STEPS: int = 100
     OUTPUT_DIR: str = "palm"
     VALIDATION_STEPS: int = 100
     ENTITY_NAME: str = "a_man_chooses"
@@ -55,13 +55,13 @@ def print_num_params(model, accelerator: Accelerator):
 # dataloaders
 
 class TextSampleDataset1(Dataset):
-    def __init__(self, max_length=1024):
+    def __init__(self, max_length=2048):
         f = open('/content/music/1.pickle','rb')
         self.data  = pickle.load(f)
         self.max_length = max_length
         
     def __len__(self):
-        return 5000
+        return 500
 
     def __getitem__(self, idx):
         song_index = random.randint(0, len(self.data) - 1)
@@ -75,7 +75,7 @@ class TextSampleDataset1(Dataset):
         return torch.tensor(a).long().cuda()
  
 class TextSampleDataset2(Dataset):
-    def __init__(self, max_length=1024):
+    def __init__(self, max_length=2048):
         f = open('/content/music/1.pickle','rb')
         self.data  = pickle.load(f)
         self.max_length = max_length
@@ -196,18 +196,6 @@ def main():
             accelerator.print(f"Resuming from checkpoint {CFG.RESUME_FROM_CHECKPOINT}")
             accelerator.load_state(CFG.RESUME_FROM_CHECKPOINT)
             path = os.path.basename(CFG.RESUME_FROM_CHECKPOINT)
-        training_difference = os.path.splitext(path)[0]
-
-        # need to multiply `gradient_accumulation_steps` to reflect real steps
-        resume_step = (
-            int(training_difference.replace("step_", ""))
-            * CFG.GRADIENT_ACCUMULATE_EVERY
-        )
-
-    if CFG.RESUME_FROM_CHECKPOINT and resume_step is not None:
-        train_loader = accelerator.skip_first_batches(train_loader, resume_step)
-        completed_steps += resume_step
-        progress_bar.update(resume_step)
 
     # training
 
@@ -248,9 +236,10 @@ def main():
 
           if completed_steps >= max_train_steps:
               break
-
+    
+    
+    accelerator.save_state(output_dir="palm")
     accelerator.end_training()
-    accelerator.save_state("palm")
 
 if __name__ == "__main__":
     main()
