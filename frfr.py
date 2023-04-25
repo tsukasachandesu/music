@@ -31,8 +31,8 @@ datamanager = RemiDataManager(
 
 
 class CFG:
-    BATCH_SIZE: int = 6
-    GRADIENT_ACCUMULATE_EVERY: int = 1
+    BATCH_SIZE: int = 16
+    GRADIENT_ACCUMULATE_EVERY: int = 3
     SEED: int = 42
     LEARNING_RATE: float = 3e-4
     SEQ_LEN: int = 2048
@@ -81,7 +81,7 @@ class TextSampleDataset2(Dataset):
         self.max_length = max_length
         
     def __len__(self):
-        return 8
+        return 1
 
     def __getitem__(self, idx):
         song_index = random.randint(0, len(self.data) - 1)
@@ -131,7 +131,7 @@ def main():
     # instantiate palm
 
     model = PaLM(
-        num_tokens=7700, dim=512, depth=24, dim_head=128, heads=8, flash_attn=True
+        num_tokens=7700, dim=768, depth=24, dim_head=128, heads=8, flash_attn=True
     )
 
     model = model.to(accelerator.device)
