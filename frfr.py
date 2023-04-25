@@ -32,16 +32,16 @@ datamanager = RemiDataManager(
 
 
 class CFG:
-    BATCH_SIZE: int = 4
+    BATCH_SIZE: int = 6
     GRADIENT_ACCUMULATE_EVERY: int = 1
     SEED: int = 42
     LEARNING_RATE: float = 3e-4
-    SEQ_LEN: int = 1024
+    SEQ_LEN: int = 2048
     NUM_CPU: int = multiprocessing.cpu_count()
-    RESUME_FROM_CHECKPOINT: str = "/content/music/palm2/step_200"
-    CHECKPOINTING_STEPS: int = 100
-    OUTPUT_DIR: str = "palm2"
-    VALIDATION_STEPS: int = 10
+    RESUME_FROM_CHECKPOINT: str = None
+    CHECKPOINTING_STEPS: int = 1000
+    OUTPUT_DIR: str = "palm"
+    VALIDATION_STEPS: int = 100
     ENTITY_NAME: str = "a_man_chooses"
 
 
@@ -62,7 +62,7 @@ class TextSampleDataset1(Dataset):
         self.max_length = max_length
         
     def __len__(self):
-        return 10000
+        return 5000
 
     def __getitem__(self, idx):
         song_index = random.randint(0, len(self.data) - 1)
@@ -101,8 +101,8 @@ class TextSampleDataset2(Dataset):
 def main():
     data1 = TextSampleDataset1()
     data2 = TextSampleDataset2()
-    train_loader = DataLoader(data1, batch_size=4)
-    val_loader= DataLoader(data2, batch_size=4)
+    train_loader = DataLoader(data1, batch_size=BATCH_SIZE)
+    val_loader= DataLoader(data2, batch_size=BATCH_SIZE)
 
     # accelerator
 
@@ -132,7 +132,7 @@ def main():
     # instantiate palm
 
     model = PaLM(
-        num_tokens=7700, dim=512, depth=6, dim_head=128, heads=8, flash_attn=False
+        num_tokens=7700, dim=512, depth=24, dim_head=128, heads=8, flash_attn=True
     )
 
     model = model.to(accelerator.device)
@@ -251,7 +251,7 @@ def main():
               break
 
     accelerator.end_training()
-    accelerator.save_state("/content")
+    accelerator.save_state("palm")
 
 if __name__ == "__main__":
     main()
