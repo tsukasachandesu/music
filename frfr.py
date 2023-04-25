@@ -37,7 +37,7 @@ class CFG:
     LEARNING_RATE: float = 3e-4
     SEQ_LEN: int = 2048
     NUM_CPU: int = multiprocessing.cpu_count()
-    RESUME_FROM_CHECKPOINT: str = "/content/music/palm/"
+    RESUME_FROM_CHECKPOINT: str = "/content/music/palm"
     CHECKPOINTING_STEPS: int = 200
     OUTPUT_DIR: str = "palm"
     VALIDATION_STEPS: int = 100
@@ -56,12 +56,12 @@ def print_num_params(model, accelerator: Accelerator):
 
 class TextSampleDataset1(Dataset):
     def __init__(self, max_length=2048):
-        f = open('/content/music/1.pickle','rb')
-        self.data  = pickle.load(f)
+        with open('p.pkl', 'rb') as f:
+          self.data = pickle.load(f)  
         self.max_length = max_length
         
     def __len__(self):
-        return 10000
+        return 9000
 
     def __getitem__(self, idx):
         song_index = random.randint(0, len(self.data) - 1)
@@ -76,8 +76,9 @@ class TextSampleDataset1(Dataset):
  
 class TextSampleDataset2(Dataset):
     def __init__(self, max_length=2048):
-        f = open('/content/music/1.pickle','rb')
-        self.data  = pickle.load(f)
+        with open('p.pkl', 'rb') as f:
+          self.data = pickle.load(f)  
+        self.max_length = max_length
         self.max_length = max_length
         
     def __len__(self):
