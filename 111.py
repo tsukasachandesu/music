@@ -12,8 +12,7 @@ from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
 from transformers import (
     default_data_collator,
-    get_linear_schedule_with_warmup,
-    set_seed,
+    get_linear_schedule_with_warmup
 )
 import numpy as np
 from palm_rlhf_pytorch import PaLM
@@ -55,9 +54,8 @@ def print_num_params(model, accelerator: Accelerator):
 # dataloaders
 
 class TextSampleDataset1(Dataset):
-    def __init__(self, max_length=1024):
-        with open('p.pkl', 'rb') as f:
-          self.data = pickle.load(f)  
+    def __init__(self, data, max_length=1024):
+        self.data = data
         self.max_length = max_length
         
     def __len__(self):
@@ -75,10 +73,8 @@ class TextSampleDataset1(Dataset):
         return torch.tensor(a).long()
  
 class TextSampleDataset2(Dataset):
-    def __init__(self, max_length=1024):
-        with open('p.pkl', 'rb') as f:
-          self.data = pickle.load(f)  
-        self.max_length = max_length
+    def __init__(self, data, max_length=1024):
+        self.data = data
         self.max_length = max_length
         
     def __len__(self):
@@ -96,13 +92,14 @@ class TextSampleDataset2(Dataset):
         return torch.tensor(a).long()
 
 # helpers
-
+data_train = DataHelper.load('/content/drive/MyDrive/set')
+data_train = data_train.data
+train_dataset = TextSampleDataset1(data_train, CFG.SEQ_LEN)
+val_dataset = TextSampleDataset1(data_train, CFG.SEQ_LEN)
+train_loader = DataLoader(train_dataset, batch_size=CFG.BATCH_SIZE)
+val_loader= DataLoader(val_dataset, batch_size=CFG.BATCH_SIZE)
 
 def main():
-    data1 = TextSampleDataset1()
-    data2 = TextSampleDataset2()
-    train_loader = DataLoader(data1, batch_size=CFG.BATCH_SIZE)
-    val_loader= DataLoader(data2, batch_size=CFG.BATCH_SIZE)
 
     # accelerator
 
@@ -124,14 +121,10 @@ def main():
 
     accelerator.print(f"Total GPUS: {accelerator.num_processes}")
 
-    # set seed
-
-    set_seed(CFG.SEED)
-
     # instantiate palm
 
     model = PaLM(
-        num_tokens=7700, dim=512, depth=24, dim_head=128, heads=8, flash_attn=False
+        num_tokens=7700, dim=512, depth=12, dim_head=128, heads=8, flash_attn=False
     )
 
     model = model.to(accelerator.device)
