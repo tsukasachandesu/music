@@ -1,7 +1,7 @@
 import pickle
 import deepspeed
-from block_recurrent_transformer_pytorch import BlockRecurrentTransformer, RecurrentTrainerWrapper
-from mgt.datamanagers.remi_data_manager import RemiDataManager
+
+from palm_rlhf_pytorch import PaLMfrom mgt.datamanagers.remi_data_manager import RemiDataManager
 from mgt.datamanagers.data_helper import DataHelper
 from mgt.datamanagers.remi.efficient_remi_config import EfficientRemiConfig
 
@@ -69,23 +69,13 @@ yes = None
 
 # instantiate GPT-like decoder model
 
-model = BlockRecurrentTransformer(
-    num_tokens = 7700,
-    dim = 512,
-    depth = 16,
-    dim_head = 64,
-    heads = 12,
-    max_seq_len = 1024,
-    block_width = 512,
-    num_state_vectors = 512,
-    recurrent_layers = (4,),
-    use_flash_attn = True
-)
-model = RecurrentTrainerWrapper(
-    model,
-    xl_memories_dropout = 0.1,
-    state_dropout = 0.1,
+model = PaLM(
+    num_tokens=7700,
+    dim=512,
+    depth=8,
+    flash_attn=True
 ).cuda()
+
 
 data_train = DataHelper.load('/content/drive/MyDrive/set')
 data_train = data_train.data
