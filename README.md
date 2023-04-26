@@ -4,6 +4,7 @@ remove tempo and velocity token→tension calculation→(Tonal Interval Space)�
 
 Acceleraterでの学習はいまいちなのか，PalM　RLHFがいまいちなのか
 まず，DeepSpeed単体に戻す→それでもだめなら32で
+Block recurrentにするか
 
 
 # Music Generation Toolbox
