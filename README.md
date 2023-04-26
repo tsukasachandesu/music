@@ -2,6 +2,10 @@
 workflow：
 remove tempo and velocity token→tension calculation→(Tonal Interval Space)→(Voice leading)→BPE→DeepSpeed→PalM→(RLHF)
 
+Acceleraterでの学習はいまいちなのか，PalM　RLHFがいまいちなのか
+まず，DeepSpeed単体に戻す→それでもだめなら32で
+
+
 # Music Generation Toolbox
 
 State-of-the-art algorithms for generation music.
