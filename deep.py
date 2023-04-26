@@ -17,36 +17,28 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset
 import argparse
 
-def pad(array, max_sequence_length, padding_character=0):
-    return list(np.repeat(padding_character, max_sequence_length)) + array
-
-def get_batch(training_data, max_sequence_length):
-    song_index = random.randint(0, len(training_data) - 1)
-    starting_index = random.randint(0, len(training_data[song_index]) - 1)
-    padded_song = pad(training_data[selection[0]], max_sequence_length)
-    a = padded_song[selection[1]: selection[1] + max_sequence_length + 1]
-    return torch.tensor(a).long()
-
 datamanager = RemiDataManager(
     efficient_remi_config=EfficientRemiConfig(enabled=True, remove_velocity=True)
 )
 
-class TextSamplerDataset(Dataset):
-    def __init__(self, data, seq_len):
-        super().__init__()
+class Dataset(Dataset):
+    def __init__(self, data, max_length=1024):
         self.data = data
-        self.seq_len = seq_len
-
-    def __getitem__(self, index): 
+        self.max_length = max_length
         
-        song_index = random.randint(0, len(self.data) - 1)
-        starting_index = random.randint(0, len(self.data[song_index]) - 1)
-        padded_song = pad(self.data[song_index ], self.seq_len)
-        a = padded_song[starting_index: starting_index + self.seq_len + 1]
- 
-        return torch.tensor(a).long()
     def __len__(self):
         return 2000
+
+    def __getitem__(self, idx):
+        song_index = random.randint(0, len(self.data) - 1)
+        if len(self.data[song_index]) <= self.max_length:
+          starting_index = random.randint(0, len(self.data[song_index]) - 1)
+          padded_song = list(np.repeat(0, self.max_length))+self.data[song_index]
+          a = padded_song[0:self.max_length]
+        else:
+          starting_index = random.randint(0, len(self.data[song_index]) - self.max_length)
+          a = self.data[song_index][starting_index: starting_index + self.max_length]
+        return torch.tensor(a).long().cuda()
   
 def add_argument():
     parser=argparse.ArgumentParser(description='enwik8')
@@ -86,7 +78,7 @@ model = BlockRecurrentTransformer(
     block_width = 512,
     num_state_vectors = 512,
     recurrent_layers = (4,),
-    use_flash_attn = False
+    use_flash_attn = True
 )
 model = RecurrentTrainerWrapper(
     model,
@@ -96,8 +88,7 @@ model = RecurrentTrainerWrapper(
 
 data_train = DataHelper.load('/content/drive/MyDrive/set')
 data_train = data_train.data
-
-train_dataset = TextSamplerDataset(data_train, SEQ_LEN)
+train_dataset = Dataset(data_train, SEQ_LEN)
 
 # setup deepspeed
 
