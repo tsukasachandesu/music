@@ -50,7 +50,7 @@ def add_argument():
                         help='use CPU in case there\'s no GPU support')
     parser.add_argument('--use_ema', default=False, action='store_true',
                         help='whether use exponential moving average')
-    parser.add_argument('-b', '--batch_size', default=24, type=int,
+    parser.add_argument('-b', '--batch_size', default=20, type=int,
                         help='mini-batch size (default: 32)')
     parser.add_argument('-e', '--epochs', default=30, type=int,
                         help='number of total epochs (default: 30)')
@@ -63,12 +63,12 @@ def add_argument():
 
 # constants
 
-EPOCHS = 10
-GRADIENT_ACCUMULATE_EVERY = 1
+EPOCHS = 20
+GRADIENT_ACCUMULATE_EVERY = 5
 GENERATE_EVERY = 1800
 GENERATE_LENGTH = 1024
 SEQ_LEN = 1024
-yes = None
+yes = "a"
 
 # instantiate GPT-like decoder model
 
@@ -77,7 +77,7 @@ model = PaLM(
     dim=512,
     depth=8,
     flash_attn=True
-).to(device)
+).cuda()
 
 # setup deepspeed
 data_train = DataHelper.load('/content/drive/MyDrive/b.dat')
@@ -97,7 +97,7 @@ for _ in range(EPOCHS):
         model_engine.backward(loss)
         torch.nn.utils.clip_grad_norm_(model_engine.parameters(), 0.5)
         model_engine.step()
-        print(loss.item() * GRADIENT_ACCUMULATE_EVERY)
+        print(loss.item())
 
 model.eval()          
 prompt = [2]
