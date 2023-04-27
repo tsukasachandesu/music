@@ -1,7 +1,7 @@
 import pickle
 import deepspeed
 
-from block_recurrent_transformer_pytorch import BlockRecurrentTransformer, RecurrentTrainerWrapper
+from palm_rlhf_pytorch import PaLM
 
 from mgt.datamanagers.remi_data_manager import RemiDataManager
 from mgt.datamanagers.data_helper import DataHelper
@@ -72,26 +72,12 @@ yes = None
 
 # instantiate GPT-like decoder model
 
-model = BlockRecurrentTransformer(
-    num_tokens = 7700,
-    dim = 768,
-    depth = 12,
-    dim_head = 64,
-    heads = 12,
-    max_seq_len = 1024,
-    block_width = 512,
-    num_state_vectors = 512,
-    recurrent_layers = (4,),
-    use_compressed_mem = True,     # whether to use compressed memories of a single block width, from https://arxiv.org/abs/1911.05507
-    compressed_mem_factor = 4, 
-    use_flash_attn = False
-)
-
-model = RecurrentTrainerWrapper(
-    model,
-    xl_memories_dropout = 0.1,
-    state_dropout = 0.1,
-).cuda()
+model = PaLM(
+    num_tokens=7700,
+    dim=512,
+    depth=8,
+    flash_attn=True
+).to(device)
 
 # setup deepspeed
 data_train = DataHelper.load('/content/drive/MyDrive/b.dat')
@@ -106,8 +92,7 @@ for _ in range(EPOCHS):
     for i, data in enumerate(trainloader):
         model_engine.train()
         data = data.to(model_engine.local_rank)
-        loss = model_engine(data)
- 
+        loss = model_engine(data, return_loss = True)
         model_engine.backward(loss)
         torch.nn.utils.clip_grad_norm_(model_engine.parameters(), 0.5)
         model_engine.step()
@@ -116,10 +101,8 @@ for _ in range(EPOCHS):
 model.eval()          
 prompt = [2]
 initial = torch.tensor([prompt]).long().cuda() 
-sample = model.generate(initial,512)
+sample = model.generate(1024, initial)
 sample = sample.cpu().detach().numpy()[0]
 midi = datamanager.to_midi(sample)
 midi.save("1.midi")
-midi = datamanager.to_midi(data_train[0])
-midi.save("2.midi")
 model_engine.save_checkpoint("/content/3") 
