@@ -50,7 +50,7 @@ def add_argument():
                         help='use CPU in case there\'s no GPU support')
     parser.add_argument('--use_ema', default=False, action='store_true',
                         help='whether use exponential moving average')
-    parser.add_argument('-b', '--batch_size', default=20, type=int,
+    parser.add_argument('-b', '--batch_size', default=16, type=int,
                         help='mini-batch size (default: 32)')
     parser.add_argument('-e', '--epochs', default=30, type=int,
                         help='number of total epochs (default: 30)')
@@ -68,14 +68,16 @@ GRADIENT_ACCUMULATE_EVERY = 5
 GENERATE_EVERY = 1800
 GENERATE_LENGTH = 1024
 SEQ_LEN = 1024
-yes = "a"
+yes = None
 
 # instantiate GPT-like decoder model
 
 model = PaLM(
     num_tokens=7700,
-    dim=512,
-    depth=8,
+    dim=1024,
+    depth=24,
+    dim_head=128, 
+    heads=8,
     flash_attn=True
 ).cuda()
 
