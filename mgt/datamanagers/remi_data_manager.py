@@ -11,137 +11,9 @@ import numpy as np
 defaults = {
     'use_chords': False,
     'use_note_name': True,
-    'transposition_steps':[0,1,2,3,4,5,6,7,-1,-2,-3,-4,-5,-6,12,-12],
+    'transposition_steps':[0],
     'map_tracks_to_instruments': {},
-    'instrument_mapping': {
-        1:0,
-        2:0,
-        3:0,
-        4:0,
-        5:0,
-        6:0,
-        7:0,
-        8:0,
-        9:0,
-        10:0,
-        11:0,
-        12:0,
-        13:0,
-        14:0,
-        15:0,
-        16:0,
-        17:0,
-        18:0,
-        19:0,
-        20:0,
-        21:0,
-        22:0,
-        23:0,
-        24:0,
-        25:0,
-        26:0,
-        27:0,
-        28:0,
-        29:0,
-        30:0,
-        31:0,
-        32:None,
-        33:None,
-        34:None,
-        35:None,
-        36:None,
-        37:None,
-        38:None,
-        39:None,
-        40:0,
-        41:0,
-        42:0,
-        43:0,
-        44:0,
-        45:0,
-        46:0,
-        47:0,
-        48:0,
-        49:0,
-        50:0,
-        51:0,
-        52:0,
-        53:0,
-        54:0,
-        55:0,
-        56:0,
-        57:0,
-        58:0,
-        59:0,
-        60:0,
-        61:0,
-        62:0,
-        63:0,
-        64:0,
-        65:0,
-        66:0,
-        67:0,
-        68:0,
-        69:0,
-        70:0,
-        71:0,
-        72:0,
-        73:0,
-        74:0,
-        75:0,
-        76:0,
-        77:0,
-        78:0,
-        79:0,
-        80:0,
-        81:0,
-        82:0,
-        83:0,
-        84:0,
-        85:0,
-        86:0,
-        87:0,
-        88:0,
-        89:0,
-        90:0,
-        91:0,
-        92:0,
-        93:0,
-        94:0,
-        95:0,
-        96:0,
-        97:0,
-        98:0,
-        99:0,
-        100:0,
-        101:0,
-        102:0,
-        103:0,
-        104:0,
-        105:0,
-        106:0,
-        107:0,
-        108:0,
-        109:0,
-        110:0,
-        111:0,
-        112:None,
-        113:None,
-        114:None,
-        115:None,
-        116:None,
-        117:None,
-        118:None,
-        119:None,
-        120:None,
-        121:None,
-        122:None,
-        123:None,
-        124:None,
-        125:None,
-        126:None,
-        127:None
-    },
+    'instrument_mapping': {},
     'efficient_remi_config': EfficientRemiConfig()
 }
 
@@ -187,7 +59,8 @@ class RemiDataManager(DataManager):
         self.to_midi_mapper = ToMidiMapper(self.dictionary)
 
     def prepare_data(self, midi_paths) -> DataSet:
-
+      
+        note_names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
         training_data = []
         for path in midi_paths:
             for transposition_step in self.transposition_steps:
@@ -195,29 +68,22 @@ class RemiDataManager(DataManager):
 
                     if self.efficient_remi_config.enabled:
                         events = self.data_extractor.extract_events(path, transposition_step)
-                        words = self.efficient_remi_converter.convert_to_efficient_remi(events)
-                        note_names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+                        words = self.efficient_remi_converter.convert_to_efficient_remi(events)                        
                         
-                        events = words
-                       
-                        for index, event in enumerate(events):
-                            if "Instrument" in event:
-                                del events[index]
-                        for index, event in enumerate(events):
+                        for index, event in enumerate(words):
                             if "Name" in event:
                                 name = event.split("_")[1]
                                 octave = events[index+1].split("_")[1]
                                 pitch = int(octave) * 12 + note_names.index(name)
-                                events[index] = 'Pitch_'+str(pitch)
-                                del events[index+1]
-                        for index, event in enumerate(events):
+                                words[index] = 'Pitch_'+str(pitch)
+                                del words[index+1]
+                        for index, event in enumerate(words):
                             if "Pitch" in event:
                                 name = event.split("_")[1]
                                 octave = events[index+1].split("_")[1]
                                 pitch = int(name) + int(octave) * 120
-                                events[index] = 'Pitchdur_'+str(pitch)
-                                del events[index+1]
-                        words = events
+                                words[index] = 'Pitchdur_'+str(pitch)
+                                del words[index+1]
 
                         data = self.data_extractor.words_to_data(words)
 
@@ -233,7 +99,6 @@ class RemiDataManager(DataManager):
     def to_midi(self, data) -> MidiWrapper:
         if self.efficient_remi_config.enabled:
             efficient_words = list(map(lambda x: self.dictionary.data_to_word(x), data))
-
 
             hy = []
             for index, event in enumerate(efficient_words):
@@ -257,14 +122,9 @@ class RemiDataManager(DataManager):
                     hyy.pop()
                     hyy.append('Note Name_'+note_names[note_index])
                     hyy.append('Note Octave_'+str(octave))
-            hyyy = []
-            for index, event in enumerate(hyy):
-                hyyy.append(event)
-                if "Position" in event:
-                    hyyy.append('Instrument_0')            
-
-            words = self.efficient_remi_converter.convert_to_normal_remi(hyyy)
+                    
+            words = self.efficient_remi_converter.convert_to_normal_remi(hyy)
             data = self.data_extractor.words_to_data(words)
-
+            
         return MidiToolkitWrapper(self.to_midi_mapper.to_midi(data))
     
