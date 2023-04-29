@@ -102,7 +102,7 @@ class TransformerModel(object):
 
     def create_model(self):
         model = AutoregressiveWrapper(TransformerWrapper(
-            num_tokens=self.dictionary.size(),
+            num_tokens=7700,
             max_seq_len=self.max_sequence_length,
             attn_layers=Decoder(
                 dim=self.dim,
