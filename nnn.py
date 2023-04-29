@@ -73,14 +73,9 @@ yes = None
 
 # instantiate GPT-like decoder model
 
-model = PaLM(
-    num_tokens=7700,
-    dim=768,
-    depth=24,
-    dim_head=128, 
-    heads=8,
-    flash_attn=True
-).cuda()
+model = PaLM(num_tokens=7700, dim=1024, depth=24)
+model = AutoregressiveWrapper(model, max_seq_len=SEQ_LEN)
+model.cuda()
 
 # setup deepspeed
 data_train = DataHelper.load('/content/drive/MyDrive/b.dat')
