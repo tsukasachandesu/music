@@ -91,7 +91,7 @@ for _ in range(EPOCHS):
     for i, data in enumerate(trainloader):
         model_engine.train()
         data = data.to(model_engine.local_rank)
-        loss = model_engine(data, return_loss = True)
+        loss = model_engine(data)
         model_engine.backward(loss)
         torch.nn.utils.clip_grad_norm_(model_engine.parameters(), 0.5)
         model_engine.step()
@@ -100,7 +100,7 @@ for _ in range(EPOCHS):
 model.eval()          
 prompt = [2]
 initial = torch.tensor([prompt]).long().cuda() 
-sample = model.generate(1024, initial)
+sample = model.generate(initia,1024)
 sample = sample.cpu().detach().numpy()[0]
 midi = datamanager.to_midi(sample)
 midi.save("1.midi")
