@@ -48,7 +48,7 @@ class DictionaryGenerator(object):
         for i in range(7680):
             append_to_dictionary(f"Pitchdur_{i}")
 
-        for i in range(2):
+        for i in range(1):
             append_to_dictionary(f"Instrument_{i}")
 
         for i in range(64):
