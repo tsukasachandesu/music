@@ -1,25 +1,19 @@
 from __future__ import annotations
-from datetime import time
-
 import time
-
 import torch
 import numpy as np
-
-from block_recurrent_transformer_pytorch import BlockRecurrentTransformer, RecurrentTrainerWrapper
-
-
+from x_transformers import TransformerWrapper, Decoder, AutoregressiveWrapper
 from mgt.datamanagers.data_manager import Dictionary
 from mgt.models import utils
 
 
 defaults = {
-    'max_sequence_length':1024,
+    'max_sequence_length': 512,
     'learning_rate': 1e-4,
     'dropout': 0.1,
-    'dim': 768,
+    'dim': 512,
     'depth': 12,
-    'heads': 12
+    'heads': 8
 }
 
 
@@ -48,7 +42,7 @@ class TransformerModel(object):
         self.learning_rate = learning_rate
         self.optimizer = self.create_optimizer()
 
-    def train(self, x_train, epochs, batch_size=5, stop_loss=None, batches_per_epoch=100, report_per_x_batches=20,
+    def train(self, x_train, epochs, batch_size=4, stop_loss=None, batches_per_epoch=100, report_per_x_batches=20,
               gradient_accumulation_steps=1):
         self.model.train()
         start_time = time.time()
@@ -66,7 +60,7 @@ class TransformerModel(object):
                         batch_size=batch_size,
                         max_sequence_length=self.max_sequence_length)
 
-                    torch_batch = torch.tensor(batch).long().to(utils.get_device())
+                    torch_batch = torch.tensor(np.array(batch)).long().to(utils.get_device())
 
                     loss = self.model(torch_batch)
                     loss.backward()
@@ -95,37 +89,34 @@ class TransformerModel(object):
             running_time = (time.time() - start_time)
             print(f"Loss after epoch {epoch + 1} is {epoch_loss}. Running time: {running_time}")
 
-    def generate(self, output_length=100, temperature=1., filter_treshold=0.9, prompt=None):
+    def generate(self, output_length=100, temperature=1., filter_threshold=0.9, prompt=None):
         print(f"Generating a new song with {output_length} characters.")
         if prompt is None:
             prompt = [0]
 
         self.model.eval()
-        initial = torch.tensor([prompt]).long().to(utils.get_device())  # assume 0 is start token
+        initial = torch.tensor(np.array([prompt])).long().to(utils.get_device())  # assume 0 is start token
 
-        sample = self.model.generate(initial, output_length, temperature=temperature, filter_thres=filter_treshold)
+        sample = self.model.generate(initial, output_length, temperature=temperature, filter_thres=filter_threshold)
         return sample.cpu().detach().numpy()[0]
 
     def create_model(self):
-
-        model = BlockRecurrentTransformer(
-            num_tokens = 7700,
-            dim = 768,
-            depth = 12,
-            dim_head = 64,
-            heads = 8,
-            max_seq_len = 1024,
-            block_width = 512,
-            num_state_vectors = 512,
-            recurrent_layers = (4,),
-            use_flash_attn = False
-        )
-        model = RecurrentTrainerWrapper(
-            model,
-            xl_memories_dropout = 0.1,
-            state_dropout = 0.1,
+        model = AutoregressiveWrapper(TransformerWrapper(
+            num_tokens=self.dictionary.size(),
+            max_seq_len=self.max_sequence_length,
+            attn_layers=Decoder(
+                dim=self.dim,
+                depth=self.depth,
+                heads=self.heads,
+                attn_dropout=self.dropout,  # dropout post-attention
+                ff_dropout=self.dropout,  # feedforward dropout
+                rotary_pos_emb=True
+            )
+        ),
+            ignore_index=0,
+            pad_value=0
         ).to(utils.get_device())
-       
+
         return model
 
     def create_optimizer(self):
