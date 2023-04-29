@@ -1,7 +1,8 @@
 import pickle
 import deepspeed
 
-from palm_rlhf_pytorch import PaLM
+from palm_pytorch import PaLM
+from palm_pytorch.autoregressive_wrapper import AutoregressiveWrapper
 
 from mgt.datamanagers.remi_data_manager import RemiDataManager
 from mgt.datamanagers.data_helper import DataHelper
@@ -63,7 +64,7 @@ def add_argument():
 
 # constants
 
-EPOCHS = 20
+EPOCHS = 5
 GRADIENT_ACCUMULATE_EVERY = 4
 GENERATE_EVERY = 1800
 GENERATE_LENGTH = 1024
