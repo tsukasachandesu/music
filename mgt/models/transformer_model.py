@@ -7,7 +7,7 @@ from mgt.datamanagers.data_manager import Dictionary
 from mgt.models import utils
 
 defaults = {
-    'max_sequence_length': 512,
+    'max_sequence_length': 768,
     'learning_rate': 1e-4,
     'dropout': 0.1,
     'dim': 512,
@@ -62,7 +62,7 @@ class TransformerModel(object):
                     torch_batch = torch.tensor(np.array(batch)).long().to(utils.get_device())
 
                     loss = self.model(torch_batch)
-                    print(loss.item())
+
                     loss.backward()
 
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), 0.5)
@@ -104,12 +104,12 @@ class TransformerModel(object):
     def create_model(self):
         model = XLAutoregressiveWrapper(TransformerWrapper(
             num_tokens=7700,
-            max_seq_len=512,
+            max_seq_len=768,
             max_mem_len = 1536,
             attn_layers=Decoder(
                 dim=768,
-                depth=8,
-                heads=10,
+                depth=9,
+                heads=11,
                 rel_pos_bias = True,
             )
         ).to(utils.get_device()),
