@@ -62,6 +62,7 @@ class TransformerModel(object):
                     torch_batch = torch.tensor(np.array(batch)).long().to(utils.get_device())
 
                     loss = self.model(torch_batch)
+                    print(loss.item())
                     loss.backward()
 
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), 0.5)
@@ -114,7 +115,6 @@ class TransformerModel(object):
         ),
             ignore_index=0,
             pad_value=0,
-            max_seq_len=512
         ).to(utils.get_device())
 
         return model
