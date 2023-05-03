@@ -12,8 +12,8 @@ defaults = {
     'learning_rate': 1e-4,
     'dropout': 0.1,
     'dim': 512,
-    'depth': 16,
-    'heads': 10
+    'depth': 12,
+    'heads': 8
 }
 
 
