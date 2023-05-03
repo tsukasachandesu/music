@@ -13,12 +13,11 @@ defaults = {
     'depth': 6,
     'heads': 8,
     'num_memory_tokens': 128,
-    'seq_len': 512,
+    'seq_len': 1024,
     'use_flash_attn': True,
     'use_xl_memories': True,
-    'xl_mem_len': 1024
+    'xl_mem_len': 512
 }
-
 
 class RecurrentMemoryTransformerModel(object):
 
