@@ -14,7 +14,7 @@ defaults = {
     'heads': 8,
     'num_memory_tokens': 128,
     'seq_len': 512,
-    'use_flash_attn': False,
+    'use_flash_attn': True,
     'use_xl_memories': True,
     'xl_mem_len': 1024
 }
