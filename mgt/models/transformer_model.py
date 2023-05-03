@@ -57,7 +57,7 @@ class TransformerModel(object):
                     batch = utils.get_batch(
                         x_train,
                         batch_size=batch_size,
-                        max_sequence_length=1024)
+                        max_sequence_length=756)
 
                     torch_batch = torch.tensor(np.array(batch)).long().to(utils.get_device())
 
@@ -104,7 +104,7 @@ class TransformerModel(object):
         model = XLAutoregressiveWrapper(TransformerWrapper(
             num_tokens=7700,
             max_seq_len=512,
-            max_mem_len = 1024,
+            max_mem_len = 756,
             attn_layers=Decoder(
                 dim=512,
                 depth=6,
@@ -114,6 +114,7 @@ class TransformerModel(object):
         ),
             ignore_index=0,
             pad_value=0,
+            max_seq_len=512
         ).to(utils.get_device())
 
         return model
