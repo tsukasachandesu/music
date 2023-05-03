@@ -5,6 +5,7 @@ import numpy as np
 from x_transformers import TransformerWrapper, Decoder, AutoregressiveWrapper
 from mgt.datamanagers.data_manager import Dictionary
 from mgt.models import utils
+from transformers import GPT2TokenizerFast
 
 
 defaults = {
@@ -98,7 +99,15 @@ class TransformerModel(object):
         initial = torch.tensor(np.array([prompt])).long().to(utils.get_device())  # assume 0 is start token
 
         sample = self.model.generate(initial, output_length, temperature=temperature, filter_thres=filter_threshold)
-        return sample.cpu().detach().numpy()[0]
+        tokenizer = GPT2TokenizerFast.from_pretrained("/content/music/zer2")
+        u = str(tokenizer.decode(sample))
+        voc = {chr(i + 33): i for i in range(7700)}
+        aaaa = []
+        for byte_ in u:
+            aaaa.append(voc[byte_])
+
+
+        return np.array(aaaa)
 
     def create_model(self):
         model = AutoregressiveWrapper(TransformerWrapper(
