@@ -20,7 +20,6 @@ class DictionaryGenerator(object):
         # First word is reserved for padding
         append_to_dictionary("pad")
         append_to_dictionary("mask")
-
         append_to_dictionary('Bar_None')
 
         chords = ['Chord_A#:aug', 'Chord_A#:dim', 'Chord_A#:dom', 'Chord_A#:maj', 'Chord_A#:min', 'Chord_A:aug',
@@ -41,30 +40,19 @@ class DictionaryGenerator(object):
                   'Chord_G:aug', 'Chord_G:dim', 'Chord_G:dom', 'Chord_G:maj', 'Chord_G:min', 'Chord_N:N']
 
         tempo_classes = ['Tempo Class_fast', 'Tempo Class_mid', 'Tempo Class_slow']
-
-        for chord in chords:
-            append_to_dictionary(chord)
-
-        for i in range(129):
-            append_to_dictionary(f"Instrument_{i}")
-
-        for i in range(64):
-            append_to_dictionary(f"Note Duration_{i}")
-
-        for i in range(128):
-            append_to_dictionary(f"Note On_{i}")
-
-        for i in range(32):
-            append_to_dictionary(f"Note Velocity_{i}")
+       
 
         for i in range(16):
             append_to_dictionary(f"Position_{i + 1}/16")
 
-        for tempo_class in tempo_classes:
-            append_to_dictionary(tempo_class)
+        for i in range(7680):
+            append_to_dictionary(f"Pitchdur_{i}")
+
+        for i in range(1):
+            append_to_dictionary(f"Instrument_{i}")
 
         for i in range(64):
-            append_to_dictionary(f"Tempo Value_{i}")
+            append_to_dictionary(f"Note Duration_{i}")
 
         note_names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
         for note_name in note_names:
@@ -73,4 +61,12 @@ class DictionaryGenerator(object):
         for i in range(10):
             append_to_dictionary(f"Note Octave_{i}")
 
+        for i in range(128):
+            append_to_dictionary(f"Note On_{i}")
+        for i in range(32):
+            append_to_dictionary(f"Note Velocity_{i}")
+            
+        
+
         return Dictionary(dictionary[0], dictionary[1])
+    
