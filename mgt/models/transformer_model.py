@@ -93,7 +93,7 @@ class TransformerModel(object):
     def generate(self, output_length=100, temperature=1., filter_threshold=0.9, prompt=None):
         print(f"Generating a new song with {output_length} characters.")
         if prompt is None:
-            prompt = [0]
+            prompt = [2]
 
         self.model.eval()
         initial = torch.tensor(np.array([prompt])).long().to(utils.get_device())  # assume 0 is start token
