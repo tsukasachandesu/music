@@ -14,7 +14,7 @@ defaults = {
     'heads': 8,
     'num_memory_tokens': 128,
     'seq_len': 1024,
-    'use_flash_attn': False,
+    'use_flash_attn': True,
     'use_xl_memories': True,
     'xl_mem_len': 512
 }
@@ -52,7 +52,7 @@ class RecurrentMemoryTransformerModel(object):
         self.learning_rate = learning_rate
         self.optimizer = self.create_optimizer()
 
-    def train(self, x_train, epochs, batch_size=4, stop_loss=None, batches_per_epoch=100, report_per_x_batches=20,
+    def train(self, x_train, epochs, batch_size=6, stop_loss=None, batches_per_epoch=100, report_per_x_batches=20,
               gradient_accumulation_steps=1, num_segments=8):
         sequence_length_including_memory = num_segments * self.seq_len
         self.model.train()
