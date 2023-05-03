@@ -5,8 +5,6 @@ import numpy as np
 from x_transformers import TransformerWrapper, Decoder, XLAutoregressiveWrapper
 from mgt.datamanagers.data_manager import Dictionary
 from mgt.models import utils
-from transformers import GPT2TokenizerFast
-
 
 defaults = {
     'max_sequence_length': 1024,
@@ -106,10 +104,11 @@ class TransformerModel(object):
         model = XLAutoregressiveWrapper(TransformerWrapper(
             num_tokens=7700,
             max_seq_len=512,
+            max_mem_len = 2048,
             attn_layers=Decoder(
-                dim=self.dim,
-                depth=self.depth,
-                heads=self.heads,
+                dim=512,
+                depth=6,
+                heads=8,
                 rel_pos_bias = True,
             )
         ),
