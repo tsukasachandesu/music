@@ -63,7 +63,7 @@ class TransformerModel(object):
 
                     torch_batch = torch.tensor(np.array(batch)).long().to(utils.get_device())
 
-                    loss = self.model(torch_batch)
+                    loss = self.model(torch_batch, return_loss = True)
                     loss.backward()
 
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), 0.5)
@@ -98,7 +98,7 @@ class TransformerModel(object):
         self.model.eval()
         initial = torch.tensor(np.array([prompt])).long().to(utils.get_device())  # assume 0 is start token
 
-        sample = self.model.generate(initial, output_length, temperature=temperature, filter_thres=filter_threshold)
+        sample = self.model.generate(output_length, initial, temperature=temperature, filter_thres=filter_threshold, pad_value = 0)
         return sample.cpu().detach().numpy()[0]
 
     def create_model(self):
