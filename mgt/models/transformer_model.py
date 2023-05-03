@@ -108,8 +108,8 @@ class TransformerModel(object):
             max_mem_len = 1536,
             attn_layers=Decoder(
                 dim=768,
-                depth=9,
-                heads=11,
+                depth=12,
+                heads=8,
                 rel_pos_bias = True,
             )
         ).to(utils.get_device()),
