@@ -59,7 +59,7 @@ class TransformerModel(object):
                     batch = utils.get_batch(
                         x_train,
                         batch_size=batch_size,
-                        max_sequence_length=1025)
+                        max_sequence_length=1024)
 
                     torch_batch = torch.tensor(np.array(batch)).long().to(utils.get_device())
 
