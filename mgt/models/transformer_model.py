@@ -111,7 +111,8 @@ class TransformerModel(object):
                 dim=896,
                 depth=12,
                 heads=10,
-                rotary_xpos = True,
+                alibi_pos_bias = True, # turns on ALiBi positional embedding
+                alibi_num_heads = 4,    # only use ALiBi for 4 out of the 8 heads, so other 4 heads can still attend far distances
                 gate_residual = True,
                 ff_swish = True, # set this to True
                 ff_glu = True    # set to true to use for all feedforwards
