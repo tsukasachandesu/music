@@ -9,12 +9,12 @@ from mgt.models import utils
 defaults = {
     'learning_rate': 1e-4,
     'dropout': 0.1,
-    'dim': 512,
-    'depth': 12,
+    'dim': 768,
+    'depth': 24,
     'heads': 8,
     'num_memory_tokens': 128,
     'seq_len': 1024,
-    'use_flash_attn': True,
+    'use_flash_attn': False,
     'use_xl_memories': True,
     'xl_mem_len': 512
 }
