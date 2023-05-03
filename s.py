@@ -1,7 +1,7 @@
 import pickle
 import deepspeed
 
-from recurrent_memory_transformer_pytorch import RecurrentMemoryTransformer, RecurrentMemoryTransformerWrapper
+from block_recurrent_transformer_pytorch import BlockRecurrentTransformer, RecurrentTrainerWrapper
 
 from mgt.datamanagers.remi_data_manager import RemiDataManager
 from mgt.datamanagers.data_helper import DataHelper
@@ -71,10 +71,24 @@ SEQ_LEN = 1024
 yes = None
 
 # instantiate GPT-like decoder model
+model = BlockRecurrentTransformer(
+    num_tokens = 7700,
+    dim = 512,
+    depth = 12,
+    dim_head = 64,
+    heads = 8,
+    max_seq_len = 1024,
+    block_width = 512,
+    num_state_vectors = 512,
+    recurrent_layers = (4,),
+    use_flash_attn = True
+)
 
-model = RecurrentMemoryTransformer(num_tokens=7700,num_memory_tokens=128,dim=512,depth=12,heads=8,seq_len=1024,use_flash_attn=True,causal=True,dim_head=64,ignore_index=0)
-model = RecurrentMemoryTransformerWrapper(model)
-model.cuda()
+train_wrapper = RecurrentTrainerWrapper(
+    model,
+    xl_memories_dropout = 0.1,
+    state_dropout = 0.1,
+)
 
 # setup deepspeed
 data_train = DataHelper.load('/content/drive/MyDrive/b.dat')
@@ -90,7 +104,7 @@ for _ in range(EPOCHS):
     for i, data in enumerate(trainloader):
         model_engine.train()
         data = data.to(model_engine.local_rank)
-        loss = model_engine(data, memory_replay_backprop=True)
+        loss = model_engine(data)
         model_engine.backward(loss)
         torch.nn.utils.clip_grad_norm_(model_engine.parameters(), 0.5)
         model_engine.step()
