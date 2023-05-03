@@ -99,15 +99,8 @@ class TransformerModel(object):
         initial = torch.tensor(np.array([prompt])).long().to(utils.get_device())  # assume 0 is start token
 
         sample = self.model.generate(initial, output_length, temperature=temperature, filter_thres=filter_threshold)
-        tokenizer = GPT2TokenizerFast.from_pretrained("/content/music/zer2")
         
-        print(sample.cpu().detach().numpy()[0]))
-        print(u)
-        voc = {chr(i + 33): i for i in range(7700)}
-        aaaa = []
-        for byte_ in tokenizer.decode(sample.cpu().detach().numpy()[0]):
-            aaaa.append(voc[byte_])
-        return np.array(aaaa)
+        return sample.cpu().detach().numpy()[0]
 
     def create_model(self):
         model = AutoregressiveWrapper(TransformerWrapper(
