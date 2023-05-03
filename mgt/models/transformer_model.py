@@ -114,7 +114,7 @@ class TransformerModel(object):
                 heads=self.heads,
                 attn_dropout=self.dropout,  # dropout post-attention
                 ff_dropout=self.dropout,  # feedforward dropout
-                rotary_xpos = True,
+                rel_pos_bias = True,
                 ff_glu = True,
                 ff_swish = True,
                 gate_residual = True
