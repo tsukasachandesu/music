@@ -103,7 +103,7 @@ class TransformerModel(object):
 
     def create_model(self):
            
-        model = PaLM(num_tokens=770,dim=768,depth=12,flash_attn=False).cuda()
+        model = PaLM(num_tokens=7700,dim=768,depth=12,flash_attn=False).cuda()
         return model
 
     def create_optimizer(self):
