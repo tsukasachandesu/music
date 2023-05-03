@@ -1,6 +1,8 @@
 import pickle
 import deepspeed
-from x_transformers import TransformerWrapper, Decoder, AutoregressiveWrapper
+
+from recurrent_memory_transformer_pytorch import RecurrentMemoryTransformer, RecurrentMemoryTransformerWrapper
+
 from mgt.datamanagers.remi_data_manager import RemiDataManager
 from mgt.datamanagers.data_helper import DataHelper
 from mgt.datamanagers.remi.efficient_remi_config import EfficientRemiConfig
@@ -17,35 +19,29 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset
 import argparse
 
-def pad(array, max_sequence_length, padding_character=0):
-    return list(np.repeat(padding_character, max_sequence_length)) + array
-
-def get_batch(training_data, max_sequence_length):
-    song_index = random.randint(0, len(training_data) - 1)
-    starting_index = random.randint(0, len(training_data[song_index]) - 1)
-    padded_song = pad(training_data[selection[0]], max_sequence_length)
-    a = padded_song[selection[1]: selection[1] + max_sequence_length + 1]
-    return torch.tensor(a).long()
-
 datamanager = RemiDataManager(
     efficient_remi_config=EfficientRemiConfig(enabled=True, remove_velocity=True)
 )
 
-class TextSamplerDataset(Dataset):
-    def __init__(self, data, seq_len):
-        super().__init__()
+class Dataset(Dataset):
+    def __init__(self, data, max_length=1024):
         self.data = data
-        self.seq_len = seq_len
-
-    def __getitem__(self, index): 
+        self.max_length = max_length
         
-        song_index = random.randint(0, len(self.data) - 1)
-        starting_index = random.randint(0, len(self.data[song_index]) - 1)
-        padded_song = pad(self.data[song_index ], self.seq_len)
-        a = padded_song[starting_index: starting_index + self.seq_len + 1]
-        return torch.tensor(a).long()
     def __len__(self):
-        return 4000
+        return 500
+
+    def __getitem__(self, idx):
+        song_index = random.randint(0, len(self.data) - 1)
+        if len(self.data[song_index]) <= self.max_length:
+          starting_index = random.randint(0, len(self.data[song_index]) - 1)
+          padded_song = self.data[song_index]+list(np.repeat(0, self.max_length))
+          a = padded_song[0:self.max_length]
+        else:
+          starting_index = random.randint(0, len(self.data[song_index]) - self.max_length)
+          a = self.data[song_index][starting_index: starting_index + self.max_length]
+
+        return torch.tensor(a).long()
   
 def add_argument():
     parser=argparse.ArgumentParser(description='enwik8')
@@ -54,7 +50,7 @@ def add_argument():
                         help='use CPU in case there\'s no GPU support')
     parser.add_argument('--use_ema', default=False, action='store_true',
                         help='whether use exponential moving average')
-    parser.add_argument('-b', '--batch_size', default=16, type=int,
+    parser.add_argument('-b', '--batch_size', default=4, type=int,
                         help='mini-batch size (default: 32)')
     parser.add_argument('-e', '--epochs', default=30, type=int,
                         help='number of total epochs (default: 30)')
@@ -68,68 +64,43 @@ def add_argument():
 # constants
 
 EPOCHS = 5
-GRADIENT_ACCUMULATE_EVERY = 4
-VALIDATE_EVERY = 4000
-GENERATE_EVERY = 4000
-GENERATE_LENGTH = 2048
+GRADIENT_ACCUMULATE_EVERY = 1
+GENERATE_EVERY = 1800
+GENERATE_LENGTH = 1024
 SEQ_LEN = 1024
+yes = None
 
 # instantiate GPT-like decoder model
 
-model = AutoregressiveWrapper(TransformerWrapper(
-    num_tokens=126,
-    max_seq_len=SEQ_LEN,attn_layers=Decoder(
-        dim=512,
-        depth=12,
-        heads=12,
-        ff_swish = True,
-        ff_glu = True,  
-        attn_dropout=0.1,  # dropout post-attention
-        ff_dropout=0.1,  # feedforward dropout
-        rotary_xpos = True)),  
-                              mask_prob = 0.15,
-                              ignore_index=0,
-                              pad_value=0
-).cuda()
-
-
-data_train = DataHelper.load('/content/drive/MyDrive/yunoa')
-data_train = data_train.data
-
-train_dataset = TextSamplerDataset(data_train, SEQ_LEN)
-val_dataset = TextSamplerDataset(data_train, SEQ_LEN)
+model = RecurrentMemoryTransformer(num_tokens=7700,num_memory_tokens=128,dim=512,depth=12,heads=8,seq_len=1024,use_flash_attn=True,causal=True,dim_head=64,ignore_index=0)
+model = RecurrentMemoryTransformerWrapper(model)
+model.cuda()
 
 # setup deepspeed
+data_train = DataHelper.load('/content/drive/MyDrive/b.dat')
+data_train = data_train.data
+train_dataset = Dataset(data_train, SEQ_LEN)
 
 cmd_args = add_argument()
 model_engine, optimizer, trainloader, _ = deepspeed.initialize(args=cmd_args, model=model, model_parameters=model.parameters(), training_data=train_dataset)
+if yes:
+    _, client_sd = model_engine.load_checkpoint("/content/3")
 
-# training
-         
 for _ in range(EPOCHS):
     for i, data in enumerate(trainloader):
         model_engine.train()
         data = data.to(model_engine.local_rank)
-        loss = model_engine(data)
-
+        loss = model_engine(data, memory_replay_backprop=True)
         model_engine.backward(loss)
         torch.nn.utils.clip_grad_norm_(model_engine.parameters(), 0.5)
         model_engine.step()
-        print(loss.item() * GRADIENT_ACCUMULATE_EVERY)
+        print(loss.item())
 
-        if i % VALIDATE_EVERY == 0:
-            model.eval()
-            with torch.no_grad():
-                inp = random.choice(val_dataset)[:-1]
-                loss = model(inp[None, :].cuda())
-                print(f'validation loss: {loss.item()}')
-
-        if i % GENERATE_EVERY == 0:
-            model.eval()          
-            prompt = [2]
-            initial = torch.tensor([prompt]).long().cuda() 
-            sample = model.generate(initial,GENERATE_LENGTH)
-            sample = sample.cpu().detach().numpy()[0]
-            midi = datamanager.to_midi(sample)
-            midi.save("1.midi")
-            model_engine.save_checkpoint("/content/1")
+model.eval()          
+prompt = [2]
+initial = torch.tensor([prompt]).long().cuda() 
+sample = model.generate(initial,1024)
+sample = sample.cpu().detach().numpy()[0]
+midi = datamanager.to_midi(sample)
+midi.save("1.midi")
+model_engine.save_checkpoint("/content/3") 
