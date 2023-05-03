@@ -110,9 +110,11 @@ class TransformerModel(object):
             attn_layers=Decoder(
                 dim=896,
                 depth=12,
-                heads=8,
-                rotary_pos_emb = True,
-                gate_residual = True
+                heads=10,
+                rotary_xpos = True,
+                gate_residual = True,
+                ff_swish = True, # set this to True
+                ff_glu = True    # set to true to use for all feedforwards
             )
         ).to(utils.get_device()),
             ignore_index=0,
