@@ -106,11 +106,13 @@ class TransformerModel(object):
             num_tokens=7700,
             max_seq_len=768,
             max_mem_len = 1536,
+            shift_mem_down = 1,
             attn_layers=Decoder(
-                dim=768,
+                dim=896,
                 depth=12,
                 heads=8,
-                rel_pos_bias = True,
+                rotary_pos_emb = True,
+                gate_residual = True
             )
         ).to(utils.get_device()),
             ignore_index=0,
