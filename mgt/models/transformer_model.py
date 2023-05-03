@@ -100,12 +100,12 @@ class TransformerModel(object):
 
         sample = self.model.generate(initial, output_length, temperature=temperature, filter_thres=filter_threshold)
         tokenizer = GPT2TokenizerFast.from_pretrained("/content/music/zer2")
-        u = str(tokenizer.decode(sample.cpu().detach().numpy()[0]))
+        
         print(sample.cpu().detach().numpy()[0]))
         print(u)
         voc = {chr(i + 33): i for i in range(7700)}
         aaaa = []
-        for byte_ in u:
+        for byte_ in tokenizer.decode(sample.cpu().detach().numpy()[0]):
             aaaa.append(voc[byte_])
         return np.array(aaaa)
 
