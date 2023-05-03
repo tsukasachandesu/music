@@ -10,7 +10,7 @@ defaults = {
     'learning_rate': 1e-4,
     'dropout': 0.1,
     'dim': 768,
-    'depth': 24,
+    'depth': 12,
     'heads': 8,
     'num_memory_tokens': 128,
     'seq_len': 1024,
