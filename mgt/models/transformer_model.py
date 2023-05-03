@@ -103,7 +103,7 @@ class TransformerModel(object):
 
     def create_model(self):
            
-        model = BlockRecurrentTransformer(num_tokens = 7700,dim = 512,depth = 6,dim_head = 64,heads = 8,max_seq_len = 1024,block_width = 512,num_state_vectors = 512,recurrent_layers = (4,),use_flash_attn = True)
+        model = BlockRecurrentTransformer(num_tokens = 7700,dim = 512,depth = 12,dim_head = 64,heads = 8,max_seq_len = 1024,block_width = 512,num_state_vectors = 512,recurrent_layers = (4,),use_flash_attn = True)
         model= model.cuda()
         model = RecurrentTrainerWrapper(model,xl_memories_dropout = 0.1,state_dropout = 0.1,)
         return model
