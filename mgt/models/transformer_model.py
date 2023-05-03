@@ -2,7 +2,7 @@ from __future__ import annotations
 import time
 import torch
 import numpy as np
-from x_transformers import TransformerWrapper, Decoder, AutoregressiveWrapper
+from x_transformers import TransformerWrapper, Decoder, XLAutoregressiveWrapper
 from mgt.datamanagers.data_manager import Dictionary
 from mgt.models import utils
 from transformers import GPT2TokenizerFast
@@ -103,24 +103,25 @@ class TransformerModel(object):
         return sample.cpu().detach().numpy()[0]
 
     def create_model(self):
-        model = AutoregressiveWrapper(TransformerWrapper(
-            num_tokens=20000,
+        model = XLAutoregressiveWrapper(TransformerWrapper(
+            num_tokens=7700,
             max_seq_len=self.max_sequence_length,
+            max_mem_len = 2048,
+            shift_mem_down = 1,
             attn_layers=Decoder(
                 dim=self.dim,
                 depth=self.depth,
                 heads=self.heads,
                 attn_dropout=self.dropout,  # dropout post-attention
                 ff_dropout=self.dropout,  # feedforward dropout
-                rotary_xpos = True,
+                rel_pos_bias = True,
                 ff_glu = True,
                 ff_swish = True,
+                gate_residual = True
             )
         ),
             ignore_index=0,
             pad_value=0,
-            mask_prob = 0.15
-
         ).to(utils.get_device())
 
         return model
