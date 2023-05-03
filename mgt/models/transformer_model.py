@@ -106,16 +106,11 @@ class TransformerModel(object):
         model = XLAutoregressiveWrapper(TransformerWrapper(
             num_tokens=7700,
             max_seq_len=512,
-            max_mem_len=1024,
             attn_layers=Decoder(
                 dim=self.dim,
                 depth=self.depth,
                 heads=self.heads,
-                attn_dropout=self.dropout,  # dropout post-attention
-                ff_dropout=self.dropout,  # feedforward dropout
                 rel_pos_bias = True,
-                ff_glu = True,
-                ff_swish = True,
             )
         ),
             ignore_index=0,
