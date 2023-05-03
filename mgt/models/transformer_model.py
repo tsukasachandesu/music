@@ -2,7 +2,7 @@ from __future__ import annotations
 import time
 import torch
 import numpy as np
-from block_recurrent_transformer_pytorch import BlockRecurrentTransformer, RecurrentTrainerWrapper
+from palm_rlhf_pytorch import PaLM
 
 from mgt.datamanagers.data_manager import Dictionary
 from mgt.models import utils
@@ -103,9 +103,7 @@ class TransformerModel(object):
 
     def create_model(self):
            
-        model = BlockRecurrentTransformer(num_tokens = 7700,dim = 768,depth = 24,dim_head = 96,heads = 10,max_seq_len = 1024,block_width = 512,num_state_vectors = 512,recurrent_layers = (10,20),use_flash_attn = False)
-        model= model.cuda()
-        model = RecurrentTrainerWrapper(model,xl_memories_dropout = 0.1,state_dropout = 0.1,)
+        model = PaLM(num_tokens=770,dim=768,depth=12,flash_attn=False).cuda()
         return model
 
     def create_optimizer(self):
