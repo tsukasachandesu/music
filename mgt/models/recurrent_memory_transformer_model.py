@@ -117,7 +117,7 @@ class RecurrentMemoryTransformerModel(object):
 
     def create_model(self):
         model = RecurrentMemoryTransformer(
-            num_tokens=self.dictionary.size(),
+            num_tokens=7700,
             num_memory_tokens=self.num_memory_tokens,
             dim=self.dim,
             depth=self.depth,
