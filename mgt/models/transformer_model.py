@@ -2,16 +2,16 @@ from __future__ import annotations
 import time
 import torch
 import numpy as np
-from x_transformers import TransformerWrapper, Decoder, XLAutoregressiveWrapper
+from x_transformers import TransformerWrapper, Decoder, AutoregressiveWrapper
 from mgt.datamanagers.data_manager import Dictionary
 from mgt.models import utils
 
 defaults = {
-    'max_sequence_length': 768,
+    'max_sequence_length': 1280,
     'learning_rate': 1e-4,
     'dropout': 0.1,
-    'dim': 512,
-    'depth': 12,
+    'dim': 768,
+    'depth': 24,
     'heads': 8
 }
 
@@ -41,8 +41,8 @@ class TransformerModel(object):
         self.learning_rate = learning_rate
         self.optimizer = self.create_optimizer()
 
-    def train(self, x_train, epochs, batch_size=8, stop_loss=None, batches_per_epoch=100, report_per_x_batches=20,
-              gradient_accumulation_steps=1):
+    def train(self, x_train, epochs, batch_size=4, stop_loss=None, batches_per_epoch=100, report_per_x_batches=20,
+              gradient_accumulation_steps=3):
         self.model.train()
         start_time = time.time()
         for epoch in range(epochs):
@@ -57,7 +57,7 @@ class TransformerModel(object):
                     batch = utils.get_batch(
                         x_train,
                         batch_size=batch_size,
-                        max_sequence_length=1536)
+                        max_sequence_length=1280)
 
                     torch_batch = torch.tensor(np.array(batch)).long().to(utils.get_device())
 
@@ -102,26 +102,27 @@ class TransformerModel(object):
         return sample.cpu().detach().numpy()[0]
 
     def create_model(self):
-        model = XLAutoregressiveWrapper(TransformerWrapper(
+        model = AutoregressiveWrapper(TransformerWrapper(
             num_tokens=7700,
-            max_seq_len=768,
-            max_mem_len = 1536,
-            shift_mem_down = 1,
+            max_seq_len=self.max_sequence_length,
             attn_layers=Decoder(
-                dim=896,
-                depth=12,
-                heads=10,
-                rotary_pos_emb = True,
-                gate_residual = True,
+                dim=self.dim,
+                depth=self.depth,
+                heads=self.heads,
+                attn_dropout=self.dropout,  # dropout post-attention
+                ff_dropout=self.dropout,  # feedforward dropout
+                rotary_xpos = True,
                 ff_swish = True, # set this to True
-                ff_glu = True    # set to true to use for all feedforwards
+                ff_glu = True
             )
-        ).to(utils.get_device()),
+        ),
             ignore_index=0,
             pad_value=0,
-        )
+            mask_prob = 0.15
+        ).to(utils.get_device())
 
         return model
+       
 
     def create_optimizer(self):
         return torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
