@@ -45,7 +45,10 @@ def get_batch(training_data: List[np.ndarray], batch_size: int, max_sequence_len
     indices = []
     for i in range(batch_size):
         song_index = random.randint(0, len(training_data) - 1)
-        starting_index = random.randint(0, len(training_data[song_index]) - 1)
+        if len(training_data[song_index]) > max_sequence_length:
+            starting_index = random.randint(0, len(training_data[song_index]) - max_sequence_length)
+        else:
+            starting_index = 0
         indices.append((song_index, starting_index))
 
     sequences = []
