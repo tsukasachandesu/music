@@ -57,15 +57,15 @@ class CompoundWordDataManager(DataManager):
                     a = [[i[0], i[1], dic.get((i[4], i[5], i[6]))] for i in compound_data]
                     d = []
                     for i in a:
-		        if i[0] == 2:
-			    if i == [2,0,0]:
-			        d.append(i)
-                            b = i[1]
+                      if i[0] == 2:
+                        if i == [2,0,0]:
+                          d.append(i)
+                        b = i[1]
                         elif i[0] == 3:
-		            c = i[2]
-		            d.append([3,b,c])
+                          c = i[2]
+                          d.append([3,b,c])
                         else:
-		            d.append(i)
+                          d.append(i)
                     print(f'Extracted {len(d)} compound words.')
                     print(d)
 
