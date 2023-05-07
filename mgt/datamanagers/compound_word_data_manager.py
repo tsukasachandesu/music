@@ -61,11 +61,11 @@ class CompoundWordDataManager(DataManager):
                         if i == [2,0,0]:
                           d.append(i)
                         b = i[1]
-                        elif i[0] == 3:
-                          c = i[2]
-                          d.append([3,b,c])
-                        else:
-                          d.append(i)
+                      elif i[0] == 3:
+                        c = i[2]
+                        d.append([3,b,c])
+                      else:
+                        d.append(i)
                     print(f'Extracted {len(d)} compound words.')
                     print(d)
 
