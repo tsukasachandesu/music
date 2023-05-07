@@ -81,12 +81,18 @@ class CompoundWordDataManager(DataManager):
 
     def to_midi(self, data) -> MidiWrapper:
         dic1 = {}
-        c = 0
+        c = 0        
         for i in range(12):
             for j in range(9):
                 for k in range(64):
                     dic1[c] = [i,j,k]
                     c = c + 1
+        q = []
+        for i in data:
+            if i[0] == 3:
+                q.append([2,i[1],0])
+            q.append(i)
+        data = q    
         q = []
         for i in data:
             q.append([i[0]] + [i[1]] + [0,0] + dic1.get(i[2]) + [31])
