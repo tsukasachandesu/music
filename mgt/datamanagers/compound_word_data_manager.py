@@ -45,6 +45,16 @@ class CompoundWordDataManager(DataManager):
 
     def prepare_data(self, midi_paths) -> DataSet:
         training_data = []
+        
+        dic = {}
+        c = 0
+        for i in range(12):
+            for j in range(9):
+                for k in range(64):
+                    dic[i,j,k] = c
+                    c = c + 1
+
+        
         for path in midi_paths:
             for transposition_step in self.transposition_steps:
                 try:
@@ -54,33 +64,24 @@ class CompoundWordDataManager(DataManager):
                     compound_data = self.compound_word_mapper.map_compound_words_to_data(compound_words)
                     print(compound_data)
                     a = []
-                    b = {}
-                    c = 0
-                    for i in range(12):
-                        for j in range(9):
-                            for k in range(64):
-                                b[i,j,k] = c
-                                c = c + 1
                     for i in compound_data:
-                        a.append([i[0],i[1],b.get((i[4],i[5],i[6]))])
-                    print(a)
+                        a.append([i[0],i[1],dic.get((i[4],i[5],i[6]))])
                     d = []
                     for i in a:
                         if i[0] == 2:
                             if i == [2,0,0]:
                                 d.append(i)
-                                b = i[1]
+                            b = i[1]
+
                         elif i[0] == 3:
                             c = i[2]
                             d.append([3,b,c])
                         else:
                             d.append(i)
-                    print(d)
 
+                    print(f'Extracted {len(d)} compound words.')
 
-                    print(f'Extracted {len(compound_data)} compound words.')
-
-                    training_data.append(compound_data)
+                    training_data.append(d)
                 except Exception as e:
                     print(f"Exception: {e}")
 
@@ -91,5 +92,15 @@ class CompoundWordDataManager(DataManager):
         return list(map(lambda x: self.dictionary.data_to_word(x), remi))
 
     def to_midi(self, data) -> MidiWrapper:
-        remi = self.compound_word_mapper.map_to_remi(data)
+        dic1 = {}
+        c = 0
+        for i in range(12):
+            for j in range(9):
+                for k in range(64):
+                    dic1[c] = [i,j,k]
+                    c = c + 1
+        q = []
+        for i in data:
+            q.append([i[0]] + [i[1]] + [0,0] + dic1.get(i[2]) + [31])
+        remi = self.compound_word_mapper.map_to_remi(q)
         return MidiToolkitWrapper(self.to_midi_mapper.to_midi(remi))
