@@ -53,6 +53,18 @@ class CompoundWordDataManager(DataManager):
                     compound_words = self.compound_word_mapper.map_to_compound(data, self.dictionary)
                     compound_data = self.compound_word_mapper.map_compound_words_to_data(compound_words)
                     print(compound_data)
+                    a = []
+                    b = {}
+                    c = 0
+                    for i in range(12):
+                        for j in range(9):
+                            for k in range(64):
+                                b[i,j,k] = c
+                                c = c + 1
+                    for i in compound_data:
+                        a.append(c.get((i[4],i[5],i[6])))
+                    print(a)
+
 
                     print(f'Extracted {len(compound_data)} compound words.')
 
