@@ -17,7 +17,7 @@ defaults = {
     'num_tokens': [
         4,    # Type
         17,   # Bar / Beat
-        6912,   # Notes
+        6900,   # Notes
     ],
     'emb_sizes': [
         32,   # Type
