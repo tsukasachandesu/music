@@ -48,11 +48,8 @@ class CompoundWordDataManager(DataManager):
         
         dic = {}
         c = 0
-        for i in range(12):
-            for j in range(9):
-                for k in range(64):
-                    dic[i,j,k] = c
-                    c = c + 1
+        dic = {(i, j, k): (c := c + 1) for i in range(12) for j in range(9) for k in range(64)}
+
 
         
         for path in midi_paths:
@@ -63,9 +60,8 @@ class CompoundWordDataManager(DataManager):
                     compound_words = self.compound_word_mapper.map_to_compound(data, self.dictionary)
                     compound_data = self.compound_word_mapper.map_compound_words_to_data(compound_words)
                     print(compound_data)
-                    a = []
-                    for i in compound_data:
-                        a.append([i[0],i[1],dic.get((i[4],i[5],i[6]))])
+                    a = [[i[0], i[1], dic.get((i[4], i[5], i[6]))] for i in compound_data]
+                        
                     d = []
                     for i in a:
                         if i[0] == 2:
