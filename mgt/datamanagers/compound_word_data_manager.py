@@ -47,7 +47,7 @@ class CompoundWordDataManager(DataManager):
         training_data = []
         
         dic = {}
-        c = 0
+        c = -1
         dic = {(i, j, k): (c := c + 1) for i in range(12) for j in range(9) for k in range(64)}
 
 
