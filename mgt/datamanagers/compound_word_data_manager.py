@@ -45,13 +45,8 @@ class CompoundWordDataManager(DataManager):
 
     def prepare_data(self, midi_paths) -> DataSet:
         training_data = []
-        
-        dic = {}
-        c = -1
-        dic = {(i, j, k): (c := c + 1) for i in range(12) for j in range(9) for k in range(64)}
+        dic = {(i, j, k): index for index, (i, j, k) in enumerate((i, j, k) for i in range(12) for j in range(9) for k in range(64))}
 
-
-        
         for path in midi_paths:
             for transposition_step in self.transposition_steps:
                 try:
@@ -60,20 +55,8 @@ class CompoundWordDataManager(DataManager):
                     compound_words = self.compound_word_mapper.map_to_compound(data, self.dictionary)
                     compound_data = self.compound_word_mapper.map_compound_words_to_data(compound_words)
                     print(compound_data)
-                    a = [[i[0], i[1], dic.get((i[4], i[5], i[6]))] for i in compound_data]
-                        
-                    d = []
-                    for i in a:
-                        if i[0] == 2:
-                            if i == [2,0,0]:
-                                d.append(i)
-                            b = i[1]
-
-                        elif i[0] == 3:
-                            c = i[2]
-                            d.append([3,b,c])
-                        else:
-                            d.append(i)
+                    d = [i if i[0] != 3 else [3, 0, i[2]] for i in ([i[0], i[1], dic.get((i[4], i[5], i[6]))] for i in d = [i if i[0] != 3 else [3, 0, i[2]] for i in ([i[0], i[1], dic.get((i[4], i[5], i[6]))] for i in com) if i[0] != 2 or i == [2, 0, 0]]
+) if i[0] != 2 or i == [2, 0, 0]]
 
                     print(f'Extracted {len(d)} compound words.')
 
