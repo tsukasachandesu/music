@@ -62,7 +62,7 @@ class CompoundWordDataManager(DataManager):
                                 b[i,j,k] = c
                                 c = c + 1
                     for i in compound_data:
-                        a.append(b.get((i[4],i[5],i[6])))
+                        a.append([i[0],i[1],b.get((i[4],i[5],i[6]))])
                     print(a)
 
 
