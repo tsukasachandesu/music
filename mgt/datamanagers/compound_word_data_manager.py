@@ -54,11 +54,10 @@ class CompoundWordDataManager(DataManager):
 
                     compound_words = self.compound_word_mapper.map_to_compound(data, self.dictionary)
                     compound_data = self.compound_word_mapper.map_compound_words_to_data(compound_words)
-                    print(compound_data)
                     d = [i if i[0] != 3 else [3, 0, i[2]] for i in ([i[0], i[1], dic.get((i[4], i[5], i[6]))] for i in compound_data) if i[0] != 2 or i == [2, 0, 0]]
 
-
                     print(f'Extracted {len(d)} compound words.')
+                    print(d)
 
                     training_data.append(d)
                 except Exception as e:
