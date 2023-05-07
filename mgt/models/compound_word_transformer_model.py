@@ -27,8 +27,8 @@ defaults = {
     'max_sequence_length': 512,
     'learning_rate': 1e-4,
     'dropout': 0.1,
-    'dim': 512,
-    'depth': 12,
+    'dim': 1024,
+    'depth': 18,
     'heads': 8
 }
 
