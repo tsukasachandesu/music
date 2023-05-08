@@ -90,7 +90,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         # individual output
         self.proj_type = nn.Linear(dim, self.num_tokens[0])
         self.proj_barbeat = nn.Linear(dim, self.num_tokens[1])
-        self.proj_note_name = nn.Sequential(nn.Linear(dim, self.num_tokens[2]),　nn.Tanh(), nn.Linear(dim, self.num_tokens[2]))
+        self.proj_note_name = nn.Sequential(nn.Linear(dim, self.num_tokens[2]), nn.Tanh(), nn.Linear(self.num_tokens[2], self.num_tokens[2]))
+        
+
 
         # in_features is equal to dimension plus dimensions of the type embedding
         self.project_concat_type = nn.Linear(dim + self.emb_sizes[0], dim)
