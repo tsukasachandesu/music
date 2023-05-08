@@ -17,12 +17,20 @@ defaults = {
     'num_tokens': [
         4,    # Type
         17,   # Bar / Beat
-        6912,   # Notes
+        6913,   # Notes
+        6913,   # Notes
+        6913,   # Notes
+        6913,   # Notes
+        6913,   # Notes
     ],
     'emb_sizes': [
         32,   # Type
         96,   # Bar / Beat
         1024,  # Notes
+        1024,
+        1024,
+        1024,
+        1024
     ],
     'max_sequence_length': 512,
     'learning_rate': 1e-4,
