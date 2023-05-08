@@ -75,7 +75,7 @@ class CompoundWordTransformerWrapper(nn.Module):
                 512,  # Tempo
                 512,  # Instrument
                 512,  # Note Name
-                512  # Octave
+                512,  # Octave
                 512,  # Duration
                 512  # Velocity
             ]
