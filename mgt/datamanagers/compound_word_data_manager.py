@@ -66,10 +66,43 @@ class CompoundWordDataManager(DataManager):
                         d.append([3,b,c])
                       else:
                         d.append(i)
-                    print(f'Extracted {len(d)} compound words.')
-                    print(d)
+                    cur = 0
+                    for i in a:
+                        if i == [2, 0, 0]:
+                            cur = cur + 1
+                    p =[[] * 1 for i in range((cur)* 16)]
+                    cur = -1
+                    for i in a:
+                        if i[0] == 3:
+                            p[i[1] + cur * 16].append([i[0],i[1],i[2]])
+                        if i == [2, 0, 0]:
+                            cur = cur + 1
+                    pp = []
+                    cur = 0
+                    for i in p:
+                        if cur % 16==0:
+                            pp.append([[2, 0, 0]])
+                        if i:
+                            pp.append(i)
+                        cur = cur + 1
+                    p  = []
+                    for i in pp:
+                        n =[0,0,0,0,0,0,0,0]
+                        r = 2
+                        for j in i:
+                            n[0] = j[0]
+                            n[1] = j[1]
+                            n[r] = j[2]
+                            if r >= 7:
+                                break
+                            r = r + 1
+                        p.append(n)
+                    p.append([1, 0, 0, 0, 0, 0, 0, 0])
 
-                    training_data.append(d)
+                    print(f'Extracted {len(p)} compound words.')
+                    print(p)
+
+                    training_data.append(p)
                 except Exception as e:
                     print(f"Exception: {e}")
 
