@@ -17,26 +17,28 @@ defaults = {
     'num_tokens': [
         4,    # Type
         17,   # Bar / Beat
-        6913,   # Notes
-        6913,   # Notes
-        6913,   # Notes
-        6913,   # Notes
-        6913,   # Notes
+        6912,  # Tempo
+        6912,  # Instrument
+        6912,   # Note name
+        6912,    # Octave
+        6912,   # Duration
+        6912    # Velocity
     ],
     'emb_sizes': [
         32,   # Type
         96,   # Bar / Beat
-        1024,  # Notes
-        1024,
-        1024,
-        1024,
-        1024
+        512,  # Tempo
+        512,  # Instrument
+        512,  # Note Name
+        512,  # Octave
+        512,  # Duration
+        512   # Velocity
     ],
     'max_sequence_length': 512,
     'learning_rate': 1e-4,
     'dropout': 0.1,
     'dim': 1024,
-    'depth': 18,
+    'depth': 12,
     'heads': 8
 }
 
