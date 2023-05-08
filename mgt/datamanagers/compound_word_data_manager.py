@@ -74,7 +74,7 @@ class CompoundWordDataManager(DataManager):
                             cur = cur + 1
                     p =[[] * 1 for i in range((cur)* 16)]
                     cur = -1
-                    for i in a:
+                    for i in d:
                         if i[0] == 3:
                             p[i[1] + cur * 16].append([i[0],i[1],i[2]])
                         if i == [2, 0, 0]:
