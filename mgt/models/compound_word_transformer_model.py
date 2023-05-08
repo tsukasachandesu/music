@@ -132,9 +132,11 @@ class CompoundWordTransformerModel(object):
                 dim=self.dim,
                 depth=self.depth,
                 heads=self.heads,
+                ff_swish = True, # set this to True
+                ff_glu = True,
                 attn_dropout=self.dropout,  # dropout post-attention
                 ff_dropout=self.dropout,  # feedforward dropout
-                rotary_pos_emb=True
+                rotary_xpos = True
             )
         )).to(get_device())
 
