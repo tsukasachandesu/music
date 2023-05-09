@@ -66,8 +66,7 @@ class CompoundWordDataManager(DataManager):
                         d.append([3,b,c])
                       else:
                         d.append(i)
-                    
-                    
+                       
                     cur = 0
                     for i in d:
                         if i == [2, 0, 0]:
@@ -79,7 +78,7 @@ class CompoundWordDataManager(DataManager):
                             p[i[1] + cur * 16].append([i[0],i[1],i[2]])
                         if i == [2, 0, 0]:
                             cur = cur + 1
-                    print(p)
+
                     pp = []
                     cur = 0
                     for i in p:
@@ -89,7 +88,7 @@ class CompoundWordDataManager(DataManager):
                             pp.append(i)
                         cur = cur + 1
                     p  = []
-                    print(pp)
+
                     for i in pp:
                         n =[0,0,0,0,0,0,0,0]
                         r = 2
@@ -127,11 +126,15 @@ class CompoundWordDataManager(DataManager):
         q = []
         for i in data:
             if i[0] == 3:
-                q.append([2,i[1],0])
-            q.append(i)
-        data = q    
-        q = []
-        for i in data:
-            q.append([i[0]] + [i[1]] + [0,0] + dic1.get(i[2]) + [31])
-        remi = self.compound_word_mapper.map_to_remi(q)
+                q.append([2,i[1],0,0,0,0,0,0])
+            q.append(i)  
+        b = []
+        for i in q:
+          if i[0] == 3:
+            for j in range(6):
+              if i[j+2]:
+                b.append( [i[0]]+[i[1]] + [0,0] + dic1.get(i[j+2])  +[31] )
+          else:
+            b.append( [i[0]]+[i[1]] + [0,0,0,0,0,0]  )
+        remi = self.compound_word_mapper.map_to_remi(b)
         return MidiToolkitWrapper(self.to_midi_mapper.to_midi(remi))
