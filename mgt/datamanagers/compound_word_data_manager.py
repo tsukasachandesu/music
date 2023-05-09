@@ -56,6 +56,7 @@ class CompoundWordDataManager(DataManager):
                     compound_data = self.compound_word_mapper.map_compound_words_to_data(compound_words)
                     a = [[i[0], i[1], dic.get((i[4], i[5], i[6]))] for i in compound_data]
                     d = []
+                    print(a)
                     for i in a:
                       if i[0] == 2:
                         if i == [2,0,0]:
@@ -66,6 +67,7 @@ class CompoundWordDataManager(DataManager):
                         d.append([3,b,c])
                       else:
                         d.append(i)
+                    print(d)
                        
                     cur = 0
                     for i in d:
@@ -74,11 +76,11 @@ class CompoundWordDataManager(DataManager):
                     p =[[] * 1 for i in range((cur)* 16)+1]
                     cur = -1
                     for i in d:
-                        if i[0] == 3:
-                            p[i[1] + cur * 16].append([i[0],i[1],i[2]])
                         if i == [2, 0, 0]:
                             cur = cur + 1
-
+                        if i[0] == 3:
+                            p[i[1] + cur * 16].append([i[0],i[1],i[2]])
+                    print(p)
                     pp = []
                     cur = 0
                     for i in p:
@@ -88,6 +90,7 @@ class CompoundWordDataManager(DataManager):
                             pp.append(i)
                         cur = cur + 1
                     p  = []
+                    print(pp)
 
                     for i in pp:
                         n =[0,0,0,0,0,0,0,0]
