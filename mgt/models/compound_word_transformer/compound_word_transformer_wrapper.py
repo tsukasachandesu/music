@@ -100,12 +100,45 @@ class CompoundWordTransformerWrapper(nn.Module):
         # individual output
         self.proj_type = nn.Linear(dim, self.num_tokens[0])
         self.proj_barbeat = nn.Linear(dim, self.num_tokens[1])
-        self.proj_tempo = nn.Linear(dim, self.num_tokens[2])
-        self.proj_instrument = nn.Linear(dim, self.num_tokens[3])
-        self.proj_note_name = nn.Linear(dim, self.num_tokens[4])
-        self.proj_octave = nn.Linear(dim, self.num_tokens[5])
-        self.proj_duration = nn.Linear(dim, self.num_tokens[6])
-        self.proj_velocity = nn.Linear(dim, self.num_tokens[7])
+        self.proj_tempo = nn.Sequential(
+            nn.ReLU(),
+            nn.Linear(dim, dim),
+            nn.ReLU(),
+            nn.Linear(dim, self.num_tokens[2])
+        )
+        self.proj_instrument = = nn.Sequential(
+            nn.ReLU(),
+            nn.Linear(dim, dim),
+            nn.ReLU(),
+            nn.Linear(dim, self.num_tokens[3])
+        )
+        self.proj_note_name = nn.Sequential(
+            nn.ReLU(),
+            nn.Linear(dim, dim),
+            nn.ReLU(),
+            nn.Linear(dim, self.num_tokens[4])
+        )
+        self.proj_octave = nn.Sequential(
+            nn.ReLU(),
+            nn.Linear(dim, dim),
+            nn.ReLU(),
+            nn.Linear(dim, self.num_tokens[5])
+        )
+         
+        self.proj_duration = = nn.Sequential(
+            nn.ReLU(),
+            nn.Linear(dim, dim),
+            nn.ReLU(),
+            nn.Linear(dim, self.num_tokens[6])
+        )
+        
+        self.proj_velocity = nn.Sequential(
+            nn.ReLU(),
+            nn.Linear(dim, dim),
+            nn.ReLU(),
+            nn.Linear(dim, self.num_tokens[7])
+        )
+        
         # in_features is equal to dimension plus dimensions of the type embedding
         self.project_concat_type = nn.Linear(dim + self.emb_sizes[0], dim)
 
