@@ -106,7 +106,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             nn.ReLU(),
             nn.Linear(dim, self.num_tokens[2])
         )
-        self.proj_instrument = = nn.Sequential(
+        self.proj_instrument =  nn.Sequential(
             nn.ReLU(),
             nn.Linear(dim, dim),
             nn.ReLU(),
@@ -125,7 +125,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             nn.Linear(dim, self.num_tokens[5])
         )
          
-        self.proj_duration = = nn.Sequential(
+        self.proj_duration = nn.Sequential(
             nn.ReLU(),
             nn.Linear(dim, dim),
             nn.ReLU(),
