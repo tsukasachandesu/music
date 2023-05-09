@@ -73,7 +73,7 @@ class CompoundWordDataManager(DataManager):
                     for i in d:
                         if i == [2, 0, 0]:
                             cur = cur + 1
-                    p =[[] * 1 for i in range((cur)* 16)+1]
+                    p =[[] * 1 for i in range(cur*16+1)]
                     cur = -1
                     for i in d:
                         if i == [2, 0, 0]:
