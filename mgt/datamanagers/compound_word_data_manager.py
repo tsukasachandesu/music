@@ -56,7 +56,6 @@ class CompoundWordDataManager(DataManager):
                     compound_data = self.compound_word_mapper.map_compound_words_to_data(compound_words)
                     a = [[i[0], i[1], dic.get((i[4], i[5], i[6]))] for i in compound_data]
                     d = []
-                    print(a)
                     for i in a:
                       if i[0] == 2:
                         if i == [2,0,0]:
@@ -66,9 +65,7 @@ class CompoundWordDataManager(DataManager):
                         c = i[2]
                         d.append([3,b,c])
                       else:
-                        d.append(i)
-                    print(d)
-                       
+                        d.append(i)  
                     cur = 0
                     for i in d:
                         if i == [2, 0, 0]:
@@ -80,7 +77,7 @@ class CompoundWordDataManager(DataManager):
                             cur = cur + 1
                         if i[0] == 3:
                             p[i[1] + cur * 16].append([i[0],i[1],i[2]])
-                    print(p)
+
                     pp = []
                     cur = 0
                     for i in p:
@@ -90,7 +87,6 @@ class CompoundWordDataManager(DataManager):
                             pp.append(i)
                         cur = cur + 1
                     p  = []
-                    print(pp)
 
                     for i in pp:
                         n =[0,0,0,0,0,0,0,0]
@@ -108,7 +104,6 @@ class CompoundWordDataManager(DataManager):
                     p.append([1, 0, 0, 0, 0, 0, 0, 0])
 
                     print(f'Extracted {len(p)} compound words.')
-                    print(p)
 
                     training_data.append(p)
                 except Exception as e:
@@ -140,6 +135,6 @@ class CompoundWordDataManager(DataManager):
               if i[j+2]:
                 b.append( [i[0]]+[i[1]] + [0,0] + dic1.get(i[j+2])  +[31] )
           else:
-            b.append( [i[0]]+[i[1]] + [0,0,0,0,0,0]  )
+            b.append( [i[0]]+[i[1]] + [0,0,0,0,0,0])
         remi = self.compound_word_mapper.map_to_remi(b)
         return MidiToolkitWrapper(self.to_midi_mapper.to_midi(remi))
