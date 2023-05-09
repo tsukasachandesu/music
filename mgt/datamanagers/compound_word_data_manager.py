@@ -103,6 +103,8 @@ class CompoundWordDataManager(DataManager):
                                 break
                             r = r + 1
                         p.append(n)
+                    if p[-1] == [2, 0, 0, 0, 0, 0, 0, 0]:
+                        del p[-1]
                     p.append([1, 0, 0, 0, 0, 0, 0, 0])
 
                     print(f'Extracted {len(p)} compound words.')
