@@ -307,6 +307,7 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_barbeat,
                 y
             ], dim=-1)
+        print(embs )
 
         emb_linear = self.in_linear1(embs)
 
