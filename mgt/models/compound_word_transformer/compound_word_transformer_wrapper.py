@@ -299,7 +299,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         hidden = torch.cat((forward_hidden, backward_hidden), dim=-1)
         y = self.li(hidden)
         y = y.reshape([z[0], z[1], 512])
-        print(y.size)
 
         embs = torch.cat(
             [
@@ -307,7 +306,6 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_barbeat,
                 y
             ], dim=-1)
-        print(embs )
 
         emb_linear = self.in_linear1(embs)
 
