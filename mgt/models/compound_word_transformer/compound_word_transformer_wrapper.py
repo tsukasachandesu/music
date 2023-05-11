@@ -159,6 +159,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.norm = nn.LayerNorm(dim)
 
         self.in_linear = nn.Linear(np.sum(self.emb_sizes), emb_dim)
+        self.in_linear1 = nn.Linear(640, emb_dim)
 
         self.init_()
 
@@ -298,6 +299,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         hidden = torch.cat((forward_hidden, backward_hidden), dim=-1)
         y = self.li(hidden)
         y = y.reshape([z[0], z[1], 512])
+        print(y.size)
 
         embs = torch.cat(
             [
@@ -306,7 +308,7 @@ class CompoundWordTransformerWrapper(nn.Module):
                 y
             ], dim=-1)
 
-        emb_linear = self.in_linear(embs)
+        emb_linear = self.in_linear1(embs)
 
         x = emb_linear + self.pos_emb(emb_linear)
         x = self.emb_dropout(x)
