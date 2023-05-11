@@ -103,39 +103,27 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.proj_barbeat = nn.Linear(dim, self.num_tokens[1])
         self.proj_tempo = nn.Sequential(
             nn.ReLU(),
-            nn.Linear(dim, dim),
-            nn.ReLU(),
             nn.Linear(dim, self.num_tokens[2])
         )
         self.proj_instrument =  nn.Sequential(
-            nn.ReLU(),
-            nn.Linear(dim, dim),
             nn.ReLU(),
             nn.Linear(dim, self.num_tokens[3])
         )
         self.proj_note_name = nn.Sequential(
             nn.ReLU(),
-            nn.Linear(dim, dim),
-            nn.ReLU(),
             nn.Linear(dim, self.num_tokens[4])
         )
         self.proj_octave = nn.Sequential(
-            nn.ReLU(),
-            nn.Linear(dim, dim),
             nn.ReLU(),
             nn.Linear(dim, self.num_tokens[5])
         )
          
         self.proj_duration = nn.Sequential(
             nn.ReLU(),
-            nn.Linear(dim, dim),
-            nn.ReLU(),
             nn.Linear(dim, self.num_tokens[6])
         )
         
         self.proj_velocity = nn.Sequential(
-            nn.ReLU(),
-            nn.Linear(dim, dim),
             nn.ReLU(),
             nn.Linear(dim, self.num_tokens[7])
         )
@@ -159,7 +147,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.norm = nn.LayerNorm(dim)
 
         self.in_linear = nn.Linear(np.sum(self.emb_sizes), emb_dim)
-        self.in_linear1 = nn.Linear(640, emb_dim)
+        self.in_linear1 = nn.Linear(1152, emb_dim)
 
         self.init_()
 
@@ -297,8 +285,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         forward_hidden = out[:, -1, :512]
         backward_hidden = out[:, 0, 512:]
         hidden = torch.cat((forward_hidden, backward_hidden), dim=-1)
-        y = self.li(hidden)
-        y = y.reshape([z[0], z[1], 512])
+        y = y.reshape([z[0], z[1], 1024])
 
         embs = torch.cat(
             [
