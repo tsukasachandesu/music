@@ -10,7 +10,7 @@ from x_transformers.x_transformers import AttentionLayers, default, AbsolutePosi
 from mgt.models.compound_word_transformer.compound_transformer_embeddings import CompoundTransformerEmbeddings
 from mgt.models.utils import get_device
 
-from mgt.models.compound_word_transformer.encoder import 
+from mgt.models.compound_word_transformer.encoder import biTransformerEncoder
 
 
 def softmax_with_temperature(logits, temperature):
@@ -155,6 +155,10 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.norm = nn.LayerNorm(dim)
 
         self.in_linear = nn.Linear(np.sum(self.emb_sizes), emb_dim)
+        
+        self.biencoder = biTransformerEncoder(
+            12, 8, 512, 120, d_vae_latent, 0.1, 'relu'
+        )
 
         self.init_()
 
