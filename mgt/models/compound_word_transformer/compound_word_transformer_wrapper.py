@@ -287,7 +287,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_octave = self.word_emb_octave(x[..., 5])
         emb_duration = self.word_emb_duration(x[..., 6])
         emb_velocity = self.word_emb_velocity(x[..., 7])
-        
+        print(x)
+        print(x[:,:,2:])
         y = x[:,:,2:]
         z = y.shepe
         y = y.reshape(-1, z[-1])
