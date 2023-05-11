@@ -10,8 +10,6 @@ from x_transformers.x_transformers import AttentionLayers, default, AbsolutePosi
 from mgt.models.compound_word_transformer.compound_transformer_embeddings import CompoundTransformerEmbeddings
 from mgt.models.utils import get_device
 
-from mgt.models.compound_word_transformer.encoder import biTransformerEncoder
-
 
 def softmax_with_temperature(logits, temperature):
     probs = np.exp(logits / temperature) / np.sum(np.exp(logits / temperature))
@@ -98,6 +96,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.word_emb_octave = CompoundTransformerEmbeddings(self.num_tokens[5], self.emb_sizes[5])
         self.word_emb_duration = CompoundTransformerEmbeddings(self.num_tokens[6], self.emb_sizes[6])
         self.word_emb_velocity = CompoundTransformerEmbeddings(self.num_tokens[7], self.emb_sizes[7])
+        self.word_emb1 = CompoundTransformerEmbeddings(self.num_tokens[7], 512)
+
 
         # individual output
         self.proj_type = nn.Linear(dim, self.num_tokens[0])
@@ -152,13 +152,14 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         self.project_emb = nn.Linear(emb_dim, dim) if emb_dim != dim else nn.Identity()
         self.attn_layers = attn_layers
+        
+        self.attn_layers1 = attn_layers
+        self.pos_emb1 = AbsolutePositionalEmbedding(512, 6) if (
+                use_pos_emb and not attn_layers.has_pos_emb) else always(0)
+        
         self.norm = nn.LayerNorm(dim)
 
         self.in_linear = nn.Linear(np.sum(self.emb_sizes), emb_dim)
-        
-        self.biencoder = biTransformerEncoder(
-            12, 8, 512, 120, d_vae_latent, 0.1, 'relu'
-        )
 
         self.init_()
 
@@ -287,7 +288,17 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_octave = self.word_emb_octave(x[..., 5])
         emb_duration = self.word_emb_duration(x[..., 6])
         emb_velocity = self.word_emb_velocity(x[..., 7])
-
+        
+        embs = torch.cat(
+            [
+                emb_tempo,
+                emb_instrument,
+                emb_note_name,
+                emb_octave,
+                emb_duration,
+                emb_velocity
+            ], dim=-1)
+        
         embs = torch.cat(
             [
                 emb_type,
