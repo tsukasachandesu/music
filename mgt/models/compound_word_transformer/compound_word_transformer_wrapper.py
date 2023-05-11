@@ -290,7 +290,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         print(x)
         print(x[:,:,2:])
         y = x[:,:,2:]
-        z = y.shepe
+        z = y.shape
         y = y.reshape(-1, z[-1])
         y = self.emb1(y)
         out,_ = self.bi(y)    
