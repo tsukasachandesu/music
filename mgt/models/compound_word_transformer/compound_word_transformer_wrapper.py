@@ -10,6 +10,8 @@ from x_transformers.x_transformers import AttentionLayers, default, AbsolutePosi
 from mgt.models.compound_word_transformer.compound_transformer_embeddings import CompoundTransformerEmbeddings
 from mgt.models.utils import get_device
 
+from mgt.models.compound_word_transformer.encoder import 
+
 
 def softmax_with_temperature(logits, temperature):
     probs = np.exp(logits / temperature) / np.sum(np.exp(logits / temperature))
