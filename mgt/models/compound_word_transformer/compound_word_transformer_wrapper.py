@@ -285,7 +285,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         forward_hidden = out[:, -1, :512]
         backward_hidden = out[:, 0, 512:]
         hidden = torch.cat((forward_hidden, backward_hidden), dim=-1)
-        y = y.reshape([z[0], z[1], 1024])
+        y = hidden.reshape([z[0], z[1], 1024])
 
         embs = torch.cat(
             [
