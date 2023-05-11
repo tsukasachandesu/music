@@ -102,29 +102,23 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.proj_type = nn.Linear(dim, self.num_tokens[0])
         self.proj_barbeat = nn.Linear(dim, self.num_tokens[1])
         self.proj_tempo = nn.Sequential(
-            nn.ReLU(),
             nn.Linear(dim, self.num_tokens[2])
         )
         self.proj_instrument =  nn.Sequential(
-            nn.ReLU(),
             nn.Linear(dim, self.num_tokens[3])
         )
         self.proj_note_name = nn.Sequential(
-            nn.ReLU(),
             nn.Linear(dim, self.num_tokens[4])
         )
         self.proj_octave = nn.Sequential(
-            nn.ReLU(),
             nn.Linear(dim, self.num_tokens[5])
         )
          
         self.proj_duration = nn.Sequential(
-            nn.ReLU(),
             nn.Linear(dim, self.num_tokens[6])
         )
         
         self.proj_velocity = nn.Sequential(
-            nn.ReLU(),
             nn.Linear(dim, self.num_tokens[7])
         )
         
