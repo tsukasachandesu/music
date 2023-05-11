@@ -10,11 +10,9 @@ from x_transformers.x_transformers import AttentionLayers, default, AbsolutePosi
 from mgt.models.compound_word_transformer.compound_transformer_embeddings import CompoundTransformerEmbeddings
 from mgt.models.utils import get_device
 
-
 def softmax_with_temperature(logits, temperature):
     probs = np.exp(logits / temperature) / np.sum(np.exp(logits / temperature))
     return probs
-
 
 def weighted_sampling(probs):
     probs /= sum(probs)
@@ -22,7 +20,6 @@ def weighted_sampling(probs):
     sorted_index = np.argsort(probs)[::-1]
     word = np.random.choice(sorted_index, size=1, p=sorted_probs)[0]
     return word
-
 
 # -- nucleus -- #
 def nucleus(probs, probability_treshold):
@@ -41,7 +38,6 @@ def nucleus(probs, probability_treshold):
     word = np.random.choice(candi_index, size=1, p=candi_probs)[0]
     return word
 
-
 def sampling(logit, probability_treshold=None, temperature=1.0):
     logit = logit.squeeze().cpu().detach().numpy()
     probs = softmax_with_temperature(logits=logit, temperature=temperature)
@@ -51,7 +47,6 @@ def sampling(logit, probability_treshold=None, temperature=1.0):
     else:
         cur_word = weighted_sampling(probs)
     return cur_word
-
 
 class CompoundWordTransformerWrapper(nn.Module):
     def __init__(
@@ -96,8 +91,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.word_emb_octave = CompoundTransformerEmbeddings(self.num_tokens[5], self.emb_sizes[5])
         self.word_emb_duration = CompoundTransformerEmbeddings(self.num_tokens[6], self.emb_sizes[6])
         self.word_emb_velocity = CompoundTransformerEmbeddings(self.num_tokens[7], self.emb_sizes[7])
+        
         self.word_emb1 = CompoundTransformerEmbeddings(self.num_tokens[7], 512)
-
+        self.bilstm = nn.LSTM(self.emb_sizes[7], self.num_tokens[7], batch_first=True, bidirectional=True)
 
         # individual output
         self.proj_type = nn.Linear(dim, self.num_tokens[0])
@@ -289,15 +285,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_duration = self.word_emb_duration(x[..., 6])
         emb_velocity = self.word_emb_velocity(x[..., 7])
         
-        embs = torch.cat(
-            [
-                emb_tempo,
-                emb_instrument,
-                emb_note_name,
-                emb_octave,
-                emb_duration,
-                emb_velocity
-            ], dim=-1)
+        emb = self.word_emb_velocity(x[:,:,2:])
+       
         
         embs = torch.cat(
             [
