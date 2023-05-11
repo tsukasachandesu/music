@@ -287,8 +287,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_octave = self.word_emb_octave(x[..., 5])
         emb_duration = self.word_emb_duration(x[..., 6])
         emb_velocity = self.word_emb_velocity(x[..., 7])
-        print(x)
-        print(x[:,:,2:])
+
         y = x[:,:,2:]
         z = y.shape
         y = y.reshape(-1, z[-1])
@@ -298,7 +297,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         backward_hidden = out[:, 0, 512:]
         hidden = torch.cat((forward_hidden, backward_hidden), dim=-1)
         y = self.li(hidden)
-        y = y.reshape(y, [z[0], z[1], 512])
+        y = y.reshape([z[0], z[1], 512])
 
         embs = torch.cat(
             [
