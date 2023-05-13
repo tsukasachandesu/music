@@ -440,12 +440,12 @@ class CompoundWordTransformerWrapper(nn.Module):
         devi=embs.shape
         
         embs = rearrange(embs, 'b s d f -> (b s) d f')
-        embs = embs + self.pos_emb1(embs)
-        embs = rearrange(embs, '(b s) d f -> b s d f', b = devi[0])
+        tokens_with_depth_pos = embs + self.pos_emb1(embs)
+        tokens_with_depth_pos = rearrange(tokens_with_depth_pos, '(b s) d f -> b s d f', b = devi[0])
 
         # spatial tokens is tokens with depth pos reduced along depth dimension + spatial positions
 
-        spatial_tokens = reduce(embs, 'b s d f -> b s f', 'sum') 
+        spatial_tokens = reduce(tokens_with_depth_pos, 'b s d f -> b s f', 'sum') 
         spatial_tokens = spatial_tokens + self.pos_emb(spatial_tokens)
         
         spatial_tokens = torch.cat((
