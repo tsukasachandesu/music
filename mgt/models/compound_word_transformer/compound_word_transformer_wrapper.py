@@ -4,7 +4,9 @@
 # -- temperature -- #
 import numpy as np
 import torch
-from torch import nn
+from torch import nn, einsum
+from einops_exts import rearrange_with_anon_dims
+from einops import rearrange, reduce, repeat
 from x_transformers.x_transformers import AttentionLayers, default, AbsolutePositionalEmbedding, always
 
 from mgt.models.compound_word_transformer.compound_transformer_embeddings import CompoundTransformerEmbeddings
