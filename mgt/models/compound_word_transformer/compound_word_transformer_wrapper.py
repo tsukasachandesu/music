@@ -417,14 +417,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         device=embs.device
         devi=embs.shape
         
-        p = embs.shape
-        out=embs.view(p[0], p[1], -1)
-        emb_linear = self.in_linear(out)
-        x = emb_linear + self.pos_emb(emb_linear)
-        x = self.emb_dropout(x)
-        x = self.project_emb(x)
-
-        
         spatial_pos = self.spatial_pos_emb(torch.arange(devi[1], device = device))
         depth_pos = self.depth_pos_emb(torch.arange(devi[2], device = device))
 
@@ -460,14 +452,15 @@ class CompoundWordTransformerWrapper(nn.Module):
         p = depth_tokens.shape
         depth_tokens=depth_tokens.view(p[0], p[1], -1)
         
-        print(depth_tokens.shape)
-        
+        emb_linear = self.in_linear(depth_tokens)
+        x = emb_linear + self.pos_emb(emb_linear)
+        x = self.emb_dropout(x)
+        x = self.project_emb(x)
 
         if not self.training:
             x.squeeze(0)
 
         x, intermediates = self.attn_layers(x, mask=mask, return_hiddens=True, **kwargs)
         x = self.norm(x)
-        
 
         return x, self.proj_type(x)
