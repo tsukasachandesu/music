@@ -299,6 +299,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         print(h.shape)
         h = self.encoder(h)
         print(h.shape)
+        h=h[:,:1,:]
         h = h.repeat_interleave(15)
         print(h.shape)
         hh = torch.cat([hh,h], dim=-1)
