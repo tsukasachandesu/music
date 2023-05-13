@@ -224,30 +224,30 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.word_emb_duration = CompoundTransformerEmbeddings(self.num_tokens[6], self.emb_sizes[6])
         self.word_emb_velocity = CompoundTransformerEmbeddings(self.num_tokens[7], self.emb_sizes[7])
         
-        self.proj_type1 = nn.Linear(512, self.num_tokens[0])
-        self.proj_barbeat1 = nn.Linear(512, self.num_tokens[1])
+        self.proj_type1 = nn.Linear(4096, self.num_tokens[0])
+        self.proj_barbeat1 = nn.Linear(4096, self.num_tokens[1])
         self.proj_tempo1 = nn.Sequential(
-            nn.Linear(512, self.num_tokens[2])
+            nn.Linear(4096, self.num_tokens[2])
         )
         self.proj_instrument1 =  nn.Sequential(
-            nn.Linear(512, self.num_tokens[3])
+            nn.Linear(4096, self.num_tokens[3])
         )
         self.proj_note_name1 = nn.Sequential(
-            nn.Linear(512, self.num_tokens[4])
+            nn.Linear(4096, self.num_tokens[4])
         )
         self.proj_octave1 = nn.Sequential(
-            nn.Linear(512, self.num_tokens[5])
+            nn.Linear(4096, self.num_tokens[5])
         )
          
         self.proj_duration1 = nn.Sequential(
-            nn.Linear(512, self.num_tokens[6])
+            nn.Linear(4096, self.num_tokens[6])
         )
         
         self.proj_velocity1 = nn.Sequential(
-            nn.Linear(512, self.num_tokens[7])
+            nn.Linear(4096, self.num_tokens[7])
         )
         
-        self.project_concat_type1 = nn.Linear(512 + self.emb_sizes[0], 512)
+        self.project_concat_type1 = nn.Linear(4096 + self.emb_sizes[0], 4096)
         
         # individual output
         self.proj_type = nn.Linear(dim, self.num_tokens[0])
@@ -470,5 +470,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         depth_tokens = self.depth_transformer(depth_tokens)
 
         x = rearrange(depth_tokens, '(b s) d f -> b s d f', b = devi[0])
+        p = x.shape
+        x = x.view(p[0], p[1], -1)
+
 
         return x, self.proj_type1(x)
