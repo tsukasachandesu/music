@@ -7,7 +7,7 @@ import torch
 from torch import nn, einsum
 from einops_exts import rearrange_with_anon_dims
 from einops import rearrange, reduce, repeat
-from x_transformers.x_transformers import AttentionLayers, default, AbsolutePositionalEmbedding, always
+from x_transformers.x_transformers import AttentionLayers, default, AbsolutePositionalEmbedding, always, RotaryEmbedding
 import torch.nn.functional as F
 from mgt.models.compound_word_transformer.compound_transformer_embeddings import CompoundTransformerEmbeddings
 from mgt.models.utils import get_device
@@ -278,8 +278,9 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         self.compound_word_embedding_size = np.sum(emb_sizes)
 
-        self.pos_emb = AbsolutePositionalEmbedding(self.compound_word_embedding_size, max_seq_len) if (
-                use_pos_emb and not attn_layers.has_pos_emb) else always(0)
+        self.pos_emb = AbsolutePositionalEmbedding(512, 255)
+        self.pos_emb1 = AbsolutePositionalEmbedding(512, 8) 
+
         self.emb_dropout = nn.Dropout(emb_dropout)
 
         self.project_emb = nn.Linear(emb_dim, dim) if emb_dim != dim else nn.Identity()
@@ -439,11 +440,11 @@ class CompoundWordTransformerWrapper(nn.Module):
         spatial_pos = self.spatial_pos_emb(torch.arange(devi[1], device = device))
         depth_pos = self.depth_pos_emb(torch.arange(devi[2], device = device))
 
-        tokens_with_depth_pos = embs + depth_pos
+        tokens_with_depth_pos = embs + self.pos_emb1
 
         # spatial tokens is tokens with depth pos reduced along depth dimension + spatial positions
 
-        spatial_tokens = reduce(tokens_with_depth_pos, 'b s d f -> b s f', 'sum') + spatial_pos
+        spatial_tokens = reduce(tokens_with_depth_pos, 'b s d f -> b s f', 'sum') + self.pos_emb
         
         spatial_tokens = torch.cat((
             repeat(self.spatial_start_token, 'f -> b 1 f', b = devi[0]),
@@ -469,6 +470,5 @@ class CompoundWordTransformerWrapper(nn.Module):
         p = x.shape
         x = x.view(p[0], p[1], -1)
         x = self.in_linear1(x)
-        
 
         return x, self.proj_type(x)
