@@ -34,6 +34,9 @@ class VAETransformerEncoder(nn.Module):
     out = self.tr_encoder(x, src_key_padding_mask=padding_mask)
     return out
 
+def softmax_with_temperature(logits, temperature):
+    probs = np.exp(logits / temperature) / np.sum(np.exp(logits / temperature))
+    return probs
 def weighted_sampling(probs):
     probs /= sum(probs)
     sorted_probs = np.sort(probs)[::-1]
