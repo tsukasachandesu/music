@@ -7,7 +7,7 @@ import torch
 from torch import nn, einsum
 from einops_exts import rearrange_with_anon_dims
 from einops import rearrange, reduce, repeat
-from x_transformers.x_transformers import AttentionLayers, default, AbsolutePositionalEmbedding, always, RotaryEmbedding
+from x_transformers.x_transformers import AttentionLayers, default, AbsolutePositionalEmbedding, always
 import torch.nn.functional as F
 from mgt.models.compound_word_transformer.compound_transformer_embeddings import CompoundTransformerEmbeddings
 from mgt.models.utils import get_device
@@ -280,6 +280,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         self.pos_emb = AbsolutePositionalEmbedding(512, 255)
         self.pos_emb1 = AbsolutePositionalEmbedding(512, 8) 
+        
 
         self.emb_dropout = nn.Dropout(emb_dropout)
 
@@ -440,11 +441,11 @@ class CompoundWordTransformerWrapper(nn.Module):
         spatial_pos = self.spatial_pos_emb(torch.arange(devi[1], device = device))
         depth_pos = self.depth_pos_emb(torch.arange(devi[2], device = device))
 
-        tokens_with_depth_pos = embs + self.pos_emb1
+        tokens_with_depth_pos = embs + self.pos_emb1(embs)
 
         # spatial tokens is tokens with depth pos reduced along depth dimension + spatial positions
 
-        spatial_tokens = reduce(tokens_with_depth_pos, 'b s d f -> b s f', 'sum') + self.pos_emb
+        spatial_tokens = reduce(tokens_with_depth_pos, 'b s d f -> b s f', 'sum') + self.pos_emb1(reduce(tokens_with_depth_pos, 'b s d f -> b s f', 'sum'))
         
         spatial_tokens = torch.cat((
             repeat(self.spatial_start_token, 'f -> b 1 f', b = devi[0]),
