@@ -290,7 +290,6 @@ class CompoundWordTransformerWrapper(nn.Module):
             repeat(self.spatial_start_token, 'f -> b 1 f', b = shap[0]),
             spatial_tokens
         ), dim = -2) 
-        print(spatial_tokens.shape)
         
         emb_linear = self.in_linear(embs)
 
