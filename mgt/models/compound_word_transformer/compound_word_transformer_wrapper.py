@@ -77,7 +77,7 @@ class CompoundWordTransformerWrapper(nn.Module):
                 512  # Velocity
             ]
         
-        self.spatial_start_token = nn.Parameter(torch.randn(512))
+        self.spatial_start_token = nn.Parameter(torch.randn(3200))
         self.spatial_pos_emb = nn.Embedding(256 + 1, 3200)
 
         self.emb_sizes = emb_sizes
