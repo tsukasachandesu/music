@@ -98,9 +98,9 @@ class CompoundWordTransformerWrapper(nn.Module):
                 512,  # Tempo
                 512,  # Instrument
                 512,  # Note Name
-                128,  # Octave
-                128,  # Duration
-                128  # Velocity
+                512,  # Octave
+                512,  # Duration
+                512 # Velocity
             ]
 
         self.emb_sizes = emb_sizes
