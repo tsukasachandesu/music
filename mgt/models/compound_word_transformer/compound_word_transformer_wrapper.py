@@ -177,14 +177,12 @@ class CompoundWordTransformerWrapper(nn.Module):
                 512,  # Duration
                 512  # Velocity
             ]
-
-        self.Encoder = VAETransformerEncoder(1, 8, 512, 2048, 0.1, 'relu')
         
         self.depth_pos_emb = nn.Embedding(8, 512)
         
         self.spatial_transformer = Transformer(
             dim = 512,
-            layers = 3,
+            layers = 5,
             dim_head = 64,
             heads = 8,
             attn_dropout = 0.1,
@@ -198,7 +196,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         self.depth_transformer = Transformer(
             dim = 512,
-            layers = 3,
+            layers = 5,
             dim_head = 64,
             heads = 8,
             attn_dropout = 0.1,
