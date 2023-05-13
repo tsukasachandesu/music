@@ -224,6 +224,31 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.word_emb_duration = CompoundTransformerEmbeddings(self.num_tokens[6], self.emb_sizes[6])
         self.word_emb_velocity = CompoundTransformerEmbeddings(self.num_tokens[7], self.emb_sizes[7])
         
+        self.proj_type1 = nn.Linear(512, self.num_tokens[0])
+        self.proj_barbeat1 = nn.Linear(512, self.num_tokens[1])
+        self.proj_tempo1 = nn.Sequential(
+            nn.Linear(512, self.num_tokens[2])
+        )
+        self.proj_instrument1 =  nn.Sequential(
+            nn.Linear(512, self.num_tokens[3])
+        )
+        self.proj_note_name1 = nn.Sequential(
+            nn.Linear(512, self.num_tokens[4])
+        )
+        self.proj_octave1 = nn.Sequential(
+            nn.Linear(512, self.num_tokens[5])
+        )
+         
+        self.proj_duration1 = nn.Sequential(
+            nn.Linear(512, self.num_tokens[6])
+        )
+        
+        self.proj_velocity1 = nn.Sequential(
+            nn.Linear(512, self.num_tokens[7])
+        )
+        
+        self.project_concat_type1 = nn.Linear(512 + self.emb_sizes[0], 512)
+        
         # individual output
         self.proj_type = nn.Linear(dim, self.num_tokens[0])
         self.proj_barbeat = nn.Linear(dim, self.num_tokens[1])
@@ -299,20 +324,20 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         type_word_t = torch.from_numpy(np.array([cur_word_type])).long().to(get_device()).unsqueeze(0)
 
-        tf_skip_type = self.word_emb_type(type_word_t)
+        tf_skip_type = self.word_emb_type1(type_word_t)
 
         # concat
         y_concat_type = torch.cat([h, tf_skip_type], dim=-1)
-        y_ = self.project_concat_type(y_concat_type)
+        y_ = self.project_concat_type1(y_concat_type)
 
         # project other
-        proj_barbeat = self.proj_barbeat(y_)
-        proj_tempo = self.proj_tempo(y_)
-        proj_instrument = self.proj_instrument(y_)
-        proj_note_name = self.proj_note_name(y_)
-        proj_octave = self.proj_octave(y_)
-        proj_duration = self.proj_duration(y_)
-        proj_velocity = self.proj_velocity(y_)
+        proj_barbeat = self.proj_barbeat1(y_)
+        proj_tempo = self.proj_tempo1(y_)
+        proj_instrument = self.proj_instrument1(y_)
+        proj_note_name = self.proj_note_name1(y_)
+        proj_octave = self.proj_octave1(y_)
+        proj_duration = self.proj_duration1(y_)
+        proj_velocity = self.proj_velocity1(y_)
 
         # sampling gen_cond
         cur_word_barbeat = sampling(
@@ -368,20 +393,20 @@ class CompoundWordTransformerWrapper(nn.Module):
                        target
                        ):
 
-        tf_skip_type = self.word_emb_type(target[..., 0])
+        tf_skip_type = self.word_emb_type1(target[..., 0])
 
         y_concat_type = torch.cat([h, tf_skip_type], dim=-1)
-        y_ = self.project_concat_type(y_concat_type)
+        y_ = self.project_concat_type1(y_concat_type)
 
 
-        proj_barbeat = self.proj_barbeat(y_)
+        proj_barbeat = self.proj_barbeat1(y_)
 
-        proj_tempo = self.proj_tempo(y_)
-        proj_instrument = self.proj_instrument(y_)
-        proj_note_name = self.proj_note_name(y_)
-        proj_octave = self.proj_octave(y_)
-        proj_duration = self.proj_duration(y_)
-        proj_velocity = self.proj_velocity(y_)
+        proj_tempo = self.proj_tempo1(y_)
+        proj_instrument = self.proj_instrument1(y_)
+        proj_note_name = self.proj_note_name1(y_)
+        proj_octave = self.proj_octave1(y_)
+        proj_duration = self.proj_duration1(y_)
+        proj_velocity = self.proj_velocity1(y_)
 
         return proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, proj_velocity
 
@@ -444,20 +469,6 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         depth_tokens = self.depth_transformer(depth_tokens)
 
-        depth_tokens = rearrange(depth_tokens, '(b s) d f -> b s d f', b = devi[0])
-        depth_tokens = depth_tokens[:, :-1,:-1,:]
-        p = depth_tokens.shape
-        depth_tokens=depth_tokens.view(p[0], p[1], -1)
-        
-        emb_linear = self.in_linear(depth_tokens)
-        x = emb_linear + self.pos_emb(emb_linear)
-        x = self.emb_dropout(x)
-        x = self.project_emb(x)
+        x = rearrange(depth_tokens, '(b s) d f -> b s d f', b = devi[0])
 
-        if not self.training:
-            x.squeeze(0)
-
-        x, intermediates = self.attn_layers(x, mask=mask, return_hiddens=True, **kwargs)
-        x = self.norm(x)
-
-        return x, self.proj_type(x)
+        return x, self.proj_type1(x)
