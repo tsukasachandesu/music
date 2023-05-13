@@ -139,7 +139,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.norm = nn.LayerNorm(dim)
 
         self.in_linear = nn.Linear(np.sum(self.emb_sizes), emb_dim)
-        self.in_linear1 = nn.Linear(4063, emb_dim)
+        self.in_linear1 = nn.Linear(4096, emb_dim)
         self.in_linear2 = nn.Linear(2048, 1024)
         
         self.encoder = VAETransformerEncoder(
@@ -289,6 +289,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         print(embs.shape)
         
         hh  = rearrange(embs, 'b s d f -> b s (d f)')
+        print(hh.shape)
         hh = self.in_linear1(hh)
         print(hh.shape)
         h = rearrange(hh, 'b s f -> ... s f', s=17)
