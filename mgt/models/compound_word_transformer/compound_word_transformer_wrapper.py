@@ -394,15 +394,16 @@ class CompoundWordTransformerWrapper(nn.Module):
             ], dim=2)
                                                 
         device=embs.device
+        devi=embs.shape
 
-        spatial_pos = self.spatial_pos_emb(torch.arange(255, device = device))
-        depth_pos = self.depth_pos_emb(torch.arange(8, device = device))
+        spatial_pos = self.spatial_pos_emb(torch.arange(devi[1], device = device))
+        depth_pos = self.depth_pos_emb(torch.arange(devi[2], device = device))
         tokens_with_depth_pos = embs + depth_pos
 
         spatial_tokens = reduce(tokens_with_depth_pos, 'b s d f -> b s f', 'sum') + spatial_pos
 
         spatial_tokens = torch.cat((
-            repeat(self.spatial_start_token, 'f -> b 1 f', b = 6),
+            repeat(self.spatial_start_token, 'f -> b 1 f', b = devi[0]),
             spatial_tokens
         ), dim = -2)  
 
@@ -416,7 +417,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         depth_tokens = self.depth_transformer(depth_tokens)
 
-        out= rearrange(depth_tokens, '(b s) d f -> b s d f', b = 6)
+        out= rearrange(depth_tokens, '(b s) d f -> b s d f', b = devi[0])
         p = out.shape
         out=out.view(p[0], p[1], -1)
 
