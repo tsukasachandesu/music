@@ -287,12 +287,12 @@ class CompoundWordTransformerWrapper(nn.Module):
         hh  = rearrange(embs, 'b s d f -> b s (d f)')
 
         hh = self.in_linear1(hh)
-        print(hh.shape)
+        
         pad_size = (17 - hh.shape[1] % 17) % 17
         hh_pad = pad(hh, (0, 0, 0, pad_size))
         new_b = hh_pad.shape[0] * (hh_pad.shape[1] // 17)
         new_s = 17    
-        h = hh.reshape(new_b, new_s, -1) 
+        h = hh_pad.reshape(new_b, new_s, -1) 
 
         h = h + self.pos_emb(h)
         
