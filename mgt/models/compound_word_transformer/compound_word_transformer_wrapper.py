@@ -11,7 +11,7 @@ from x_transformers.x_transformers import AttentionLayers, default, AbsolutePosi
 import torch.nn.functional as F
 from mgt.models.compound_word_transformer.compound_transformer_embeddings import CompoundTransformerEmbeddings
 from mgt.models.utils import get_device
-
+from torch.nn.functional import pad
 
 class VAETransformerEncoder(nn.Module):
   def __init__(self, n_layer, n_head, d_model, d_ff, dropout=0.1, activation='relu'):
