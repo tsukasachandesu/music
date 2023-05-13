@@ -326,16 +326,16 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         # concat
         y_concat_type = torch.cat([h, tf_skip_type], dim=-1)
-        y_ = self.project_concat_type(y_concat_type)
+        y_ = self.project_concat_type1(y_concat_type)
 
         # project other
-        proj_barbeat = self.proj_barbeat(y_)
-        proj_tempo = self.proj_tempo(y_)
-        proj_instrument = self.proj_instrument(y_)
-        proj_note_name = self.proj_note_name(y_)
-        proj_octave = self.proj_octave(y_)
-        proj_duration = self.proj_duration(y_)
-        proj_velocity = self.proj_velocity(y_)
+        proj_barbeat = self.proj_barbeat1(y_)
+        proj_tempo = self.proj_tempo1(y_)
+        proj_instrument = self.proj_instrument1(y_)
+        proj_note_name = self.proj_note_name1(y_)
+        proj_octave = self.proj_octave1(y_)
+        proj_duration = self.proj_duration1(y_)
+        proj_velocity = self.proj_velocity1(y_)
 
         # sampling gen_cond
         cur_word_barbeat = sampling(
@@ -394,17 +394,17 @@ class CompoundWordTransformerWrapper(nn.Module):
         tf_skip_type = self.word_emb_type(target[..., 0])
 
         y_concat_type = torch.cat([h, tf_skip_type], dim=-1)
-        y_ = self.project_concat_type(y_concat_type)
+        y_ = self.project_concat_type1(y_concat_type)
 
 
-        proj_barbeat = self.proj_barbeat(y_)
+        proj_barbeat = self.proj_barbeat1(y_)
 
-        proj_tempo = self.proj_tempo(y_)
-        proj_instrument = self.proj_instrument(y_)
-        proj_note_name = self.proj_note_name(y_)
-        proj_octave = self.proj_octave(y_)
-        proj_duration = self.proj_duration(y_)
-        proj_velocity = self.proj_velocity(y_)
+        proj_tempo = self.proj_tempo1(y_)
+        proj_instrument = self.proj_instrument1(y_)
+        proj_note_name = self.proj_note_name1(y_)
+        proj_octave = self.proj_octave1(y_)
+        proj_duration = self.proj_duration1(y_)
+        proj_velocity = self.proj_velocity1(y_)
 
         return proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, proj_velocity
 
@@ -471,6 +471,5 @@ class CompoundWordTransformerWrapper(nn.Module):
         x = x[:,:-1,:-1,:]
         p = x.shape
         x = x.view(p[0], p[1], -1)
-        x = self.in_linear1(x)
 
-        return x, self.proj_type(x)
+        return x, self.proj_type1(x)
