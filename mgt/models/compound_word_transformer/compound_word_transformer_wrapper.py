@@ -74,6 +74,9 @@ class CompoundWordTransformerWrapper(nn.Module):
                 512,  # Duration
                 512  # Velocity
             ]
+        
+        self.spatial_start_token = nn.Parameter(torch.randn(512))
+        self.spatial_pos_emb = nn.Embedding(256 + 1, 512 #
 
         self.emb_sizes = emb_sizes
 
@@ -276,10 +279,16 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_velocity
             ], dim=-1)
         
-        print(embs.shape) 
-        print(embs.device)
-
-
+        shap = embs.shape
+        shapp = embs.device
+        spatial_pos = self.spatial_pos_emb(torch.arange(shap[1], device = device))
+        spatial_tokens = embs + spatial_pos
+        spatial_tokens = torch.cat((
+            repeat(self.spatial_start_token, 'f -> b 1 f', b = b),
+            spatial_tokens
+        ), dim = -2) 
+        print(spatial_tokens.shape)
+        
         emb_linear = self.in_linear(embs)
 
         x = emb_linear + self.pos_emb(emb_linear)
