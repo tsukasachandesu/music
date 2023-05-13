@@ -290,8 +290,8 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         self.in_linear = nn.Linear(4096, emb_dim)
         self.in_linear1 = nn.Linear(4096, 1024)
-        self.pos_emb = AbsolutePositionalEmbedding(512, 8)
-        self.pos_emb1 = AbsolutePositionalEmbedding(512, 256) 
+        self.pos_emb = AbsolutePositionalEmbedding(512, 256)
+        self.pos_emb1 = AbsolutePositionalEmbedding(512, 8) 
 
         self.init_()
 
