@@ -417,8 +417,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         p = out.shape
         out=out.view(p[0], p[1], -1)
 
-        out= out[:,:-1,:]
+        out= out[:,:,:-512]
         print(out.shape)
+
         emb_linear = self.in_linear(out)
         
         x = emb_linear + self.pos_emb(emb_linear)
