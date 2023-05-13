@@ -292,12 +292,11 @@ class CompoundWordTransformerWrapper(nn.Module):
             ], dim=2)
                          
         print(embs.shape)
-        emb_linear = self.in_linear1(embs)
-        print(emb_linear.shape)
         
-        h = rearrange(emb_linear, 'b d f -> b s d f', d = 17)
+        hh  = rearrange(embs, 'b s d f -> b s (d f)')
+        hh = self.in_linear1(h)
         print(h.shape)
-        h = rearrange(h, 'b s d f -> (b s) d f')
+        h = rearrange(hh, 'b s f -> b s f', s=17)
         print(h.shape)
         h = h + self.pos_emb(h)
         print(h.shape)
@@ -305,11 +304,13 @@ class CompoundWordTransformerWrapper(nn.Module):
         print(h.shape)
         h = h.repeat_interleave(15)
         print(h.shape)
-        embs = torch.cat([embs,h], dim=-1)
+        hh = torch.cat([hh,h], dim=-1)
         print(embs.shape)
-        emb_linear = self.in_linear2(embs)
+        emb_linear = self.in_linear2(hh)
         
-        x = emb_linear + self.pos_emb(emb_linear)
+        
+        
+        x = h + self.pos_emb(h)
         x = self.emb_dropout(x)
         x = self.project_emb(x)
 
