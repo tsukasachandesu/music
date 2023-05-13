@@ -291,7 +291,7 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_velocity
             ], dim=2)
                          
-
+        print(embs.shape)
         emb_linear = self.in_linear1(embs)
         print(emb_linear.shape)
         
