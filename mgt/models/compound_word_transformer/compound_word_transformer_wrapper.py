@@ -445,7 +445,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         # spatial tokens is tokens with depth pos reduced along depth dimension + spatial positions
 
-        spatial_tokens = reduce(tokens_with_depth_pos, 'b s d f -> b s f', 'sum') 
+        spatial_tokens = reduce(embs, 'b s d f -> b s f', 'sum') 
         spatial_tokens = spatial_tokens + self.pos_emb(spatial_tokens)
         
         spatial_tokens = torch.cat((
