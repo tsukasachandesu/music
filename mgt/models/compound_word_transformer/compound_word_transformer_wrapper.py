@@ -417,7 +417,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         depth_tokens = self.depth_transformer(depth_tokens)
         print(depth_tokens.shape, "depth_tokens")
         out= rearrange(depth_tokens, '(b s) d f -> b s d f', b = 6)
-        p = p.shape
+        p = out.shape
         out=out.view(p[0], p[1], -1)
         emb_linear = self.in_linear(out)
         x = emb_linear + self.pos_emb(emb_linear)
