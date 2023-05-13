@@ -180,8 +180,10 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         self.Encoder = VAETransformerEncoder(1, 8, 512, 2048, 0.1, 'relu')
         
+        self.depth_pos_emb = nn.Embedding(8, 512)
+        
         self.spatial_transformer = Transformer(
-            dim = 1024,
+            dim = 512,
             layers = 1,
             dim_head = 64,
             heads = 8,
@@ -189,6 +191,21 @@ class CompoundWordTransformerWrapper(nn.Module):
             ff_dropout = 0.1,
             ff_mult = 4
         )
+        
+        self.spatial_start_token = nn.Parameter(torch.randn(512))
+
+        self.spatial_pos_emb = nn.Embedding(256, 512) 
+
+        self.depth_transformer = Transformer(
+            dim = 512,
+            layers = 1,
+            dim_head = 64,
+            heads = 8,
+            attn_dropout = 0.1,
+            ff_dropout = 0.1,
+            ff_mult = 4
+        )
+
 
         self.emb_sizes = emb_sizes
 
@@ -251,7 +268,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         self.in_linear = nn.Linear(4096, emb_dim)
         
-        self.depth_pos_emb = nn.Embedding(8, 512)
+
 
         self.init_()
 
@@ -399,18 +416,47 @@ class CompoundWordTransformerWrapper(nn.Module):
                                                 
         device=embs.device
         devi=embs.shape
-
-        depth_pos = self.depth_pos_emb(torch.arange(devi[2], device = device))
-        tokens_with_depth_pos = embs + depth_pos  
-        depth_tokens = rearrange(embs, '... n d -> (...) n d')
-        depth_tokens = self.Encoder(depth_tokens)
-        out= rearrange(depth_tokens, '(b s) d f -> b s d f', b = devi[0])
-        p = out.shape
-        out=out.view(p[0], p[1], -1)
+        
+        p = embs.shape
+        out=embs.view(p[0], p[1], -1)
         emb_linear = self.in_linear(out)
         x = emb_linear + self.pos_emb(emb_linear)
         x = self.emb_dropout(x)
         x = self.project_emb(x)
+
+        
+        spatial_pos = self.spatial_pos_emb(torch.arange(devi[1], device = device))
+        depth_pos = self.depth_pos_emb(torch.arange(devi[2], device = device))
+
+        tokens_with_depth_pos = tokens + depth_pos
+
+        # spatial tokens is tokens with depth pos reduced along depth dimension + spatial positions
+
+        spatial_tokens = reduce(tokens_with_depth_pos, 'b s d f -> b s f', 'sum') + spatial_pos
+
+        spatial_tokens = torch.cat((
+            repeat(self.spatial_start_token, 'f -> b 1 f', b = devi[0]),
+            spatial_tokens
+        ), dim = -2)        
+
+        spatial_tokens = self.spatial_transformer(spatial_tokens)
+
+        spatial_tokens = rearrange(spatial_tokens, 'b s f -> b s 1 f')
+
+        # spatial tokens become the start tokens of the depth dimension
+
+        tokens_with_depth_pos = F.pad(tokens_with_depth_pos, (0, 0, 0, 0, 0, 1), value = 0.)
+
+        depth_tokens = torch.cat((spatial_tokens, tokens_with_depth_pos), dim = -2)
+
+        depth_tokens = rearrange(depth_tokens, '... n d -> (...) n d')
+
+        depth_tokens = self.depth_transformer(depth_tokens)
+
+        depth_tokens = rearrange(depth_tokens, '(b s) d f -> b s d f', b = devi[0])
+        
+        print(depth_tokens.shape)
+        
 
         if not self.training:
             x.squeeze(0)
@@ -418,19 +464,5 @@ class CompoundWordTransformerWrapper(nn.Module):
         x, intermediates = self.attn_layers(x, mask=mask, return_hiddens=True, **kwargs)
         x = self.norm(x)
         
-        spatial_tokens = rearrange(x, 'b s f -> b s 1 f')
-        print(spatial_tokens.shape)
-       
-        tokens_with_depth_pos = F.pad(tokens_with_depth_pos, (0, 0, 0, 0, 0, 1), value = 0.)
-        print(tokens_with_depth_pos.shape)
-        depth_tokens = torch.cat((spatial_tokens, tokens_with_depth_pos), dim = -2)
-        print(depth_tokens.shape)
-        depth_tokens = rearrange(depth_tokens, '... n d -> (...) n d')
-        print(depth_tokens.shape)
-        depth_tokens = self.spatial_transformer(depth_tokens)
-        print(depth_tokens.shape)
-        depth_tokens = rearrange(depth_tokens, '(b s) d f -> b s d f', b = 6)
-        depth_tokens = depth_tokens[:, :, :-1,:]
-        print(depth_tokens.shape)
 
         return x, self.proj_type(x)
