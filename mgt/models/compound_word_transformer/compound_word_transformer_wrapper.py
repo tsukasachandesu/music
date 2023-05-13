@@ -394,14 +394,15 @@ class CompoundWordTransformerWrapper(nn.Module):
             ], dim=2)
                                                 
         device=embs.device
-        
         devi=embs.shape
 
         depth_pos = self.depth_pos_emb(torch.arange(devi[2], device = device))
         
         tokens_with_depth_pos = embs + depth_pos
+        print(tokens_with_depth_pos.shape)
         
         depth_tokens = rearrange(embs, '... n d -> (...) n d')
+        print(depth_tokens.shape)
         
         depth_tokens = torch.cat((
             repeat(self.spatial_start_token, 'f -> b 1 f', b = devi[0]),
