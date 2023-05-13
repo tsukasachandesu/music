@@ -419,7 +419,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         x = self.norm(x)
         
         spatial_tokens = rearrange(x, 'b s f -> b s 1 f')
-        
+        print(spatial_tokens.shape)
+       
         tokens_with_depth_pos = F.pad(tokens_with_depth_pos, (0, 0, 0, 0, 0, 1), value = 0.)
         print(tokens_with_depth_pos.shape)
         depth_tokens = torch.cat((spatial_tokens, tokens_with_depth_pos), dim = -2)
