@@ -12,6 +12,87 @@ import torch.nn.functional as F
 from mgt.models.compound_word_transformer.compound_transformer_embeddings import CompoundTransformerEmbeddings
 from mgt.models.utils import get_device
 
+def FeedForward(*, dim, mult = 4, dropout = 0.):
+    return nn.Sequential(
+        nn.LayerNorm(dim),
+        nn.Linear(dim, dim * mult),
+        nn.GELU(),
+        nn.Dropout(dropout),
+        nn.Linear(dim * mult, dim)
+    )
+
+class Attention(nn.Module):
+    def __init__(
+        self,
+        *,
+        dim,
+        dim_head = 64,
+        heads = 8,
+        dropout = 0.
+    ):
+        super().__init__()
+        self.scale = dim_head ** -0.5
+        self.heads = heads
+        inner_dim = dim_head * heads
+
+        self.dropout = nn.Dropout(dropout)
+        self.norm = nn.LayerNorm(dim)
+        self.to_qkv = nn.Linear(dim, inner_dim * 3, bias = False)
+        self.to_out = nn.Linear(inner_dim, dim, bias = False)
+
+    def forward(self, x):
+        h, device = self.heads, x.device
+
+        x = self.norm(x)
+        q, k, v = self.to_qkv(x).chunk(3, dim = -1)
+        q, k, v = map(lambda t: rearrange(t, 'b n (h d) -> b h n d', h = h), (q, k, v))
+
+        q = q * self.scale
+        sim = einsum('b h i d, b h j d -> b h i j', q, k)
+
+        i, j = sim.shape[-2:]
+        mask_value = -torch.finfo(sim.dtype).max
+        mask = torch.ones((i, j), dtype = torch.bool, device = device).triu(j - i + 1)
+        sim = sim.masked_fill(mask, mask_value)
+
+        sim = sim - sim.amax(dim = -1, keepdim = True).detach()
+        attn = sim.softmax(dim = -1)
+        attn = self.dropout(attn)
+
+        out = einsum('b h i j, b h j d -> b h i d', attn, v)
+        out = rearrange(out, 'b h n d -> b n (h d)')
+        return self.to_out(out)
+
+class Transformer(nn.Module):
+    def __init__(
+        self,
+        *,
+        dim,
+        layers,
+        dim_head = 64,
+        heads = 8,
+        attn_dropout = 0.,
+        ff_dropout = 0.,
+        ff_mult = 4
+    ):
+        super().__init__()
+        self.layers = nn.ModuleList([])
+        for _ in range(layers):
+            self.layers.append(nn.ModuleList([
+                Attention(dim = dim, dim_head = dim_head, heads = heads, dropout = attn_dropout),
+                FeedForward(dim = dim, mult = ff_mult, dropout = ff_dropout)
+            ]))
+
+        self.norm = nn.LayerNorm(dim)
+
+    def forward(self, x):
+        for attn, ff in self.layers:
+            x = attn(x) + x
+            x = ff(x) + x
+
+        return self.norm(x)
+
+
 class VAETransformerEncoder(nn.Module):
   def __init__(self, n_layer, n_head, d_model, d_ff, dropout, activation):
     super(VAETransformerEncoder, self).__init__()
@@ -97,7 +178,17 @@ class CompoundWordTransformerWrapper(nn.Module):
                 512  # Velocity
             ]
 
-        self.Encoder = VAETransformerEncoder(4, 8, 512, 2048, 0.1, 'relu')
+        self.Encoder = VAETransformerEncoder(1, 8, 512, 2048, 0.1, 'relu')
+        
+        self.spatial_transformer = Transformer(
+            dim = 1024,
+            layers = 1,
+            dim_head = 64,
+            heads = 8,
+            attn_dropout = 0.1,
+            ff_dropout = 0.1,
+            ff_mult = 4
+        )
 
         self.emb_sizes = emb_sizes
 
@@ -310,21 +401,13 @@ class CompoundWordTransformerWrapper(nn.Module):
         devi=embs.shape
 
         depth_pos = self.depth_pos_emb(torch.arange(devi[2], device = device))
-        
-        tokens_with_depth_pos = embs + depth_pos
-        
+        tokens_with_depth_pos = embs + depth_pos  
         depth_tokens = rearrange(embs, '... n d -> (...) n d')
-        
         depth_tokens = self.Encoder(depth_tokens)
-
         out= rearrange(depth_tokens, '(b s) d f -> b s d f', b = devi[0])
-        
         p = out.shape
-        
         out=out.view(p[0], p[1], -1)
-
         emb_linear = self.in_linear(out)
-        
         x = emb_linear + self.pos_emb(emb_linear)
         x = self.emb_dropout(x)
         x = self.project_emb(x)
@@ -333,7 +416,17 @@ class CompoundWordTransformerWrapper(nn.Module):
             x.squeeze(0)
 
         x, intermediates = self.attn_layers(x, mask=mask, return_hiddens=True, **kwargs)
-        
         x = self.norm(x)
+        
+        spatial_tokens = rearrange(x, 'b s f -> b s 1 f')
+        
+        tokens_with_depth_pos = F.pad(tokens_with_depth_pos, (0, 0, 0, 0, 0, 1), value = 0.)
+        print(tokens_with_depth_pos.shape)
+        depth_tokens = torch.cat((spatial_tokens, tokens_with_depth_pos), dim = -2)
+        depth_tokens = rearrange(depth_tokens, '... n d -> (...) n d')
+        depth_tokens = self.spatial_transformer(depth_tokens)
+        depth_tokens = rearrange(depth_tokens, '(b s) d f -> b s d f', b = 6)
+        depth_tokens = depth_tokens[:, :, :-1,:]
+        print(depth_tokens.shape)
 
         return x, self.proj_type(x)
