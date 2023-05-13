@@ -251,7 +251,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         self.norm = nn.LayerNorm(dim)
 
-        self.in_linear = nn.Linear(4608, emb_dim)
+        self.in_linear = nn.Linear(4096, emb_dim)
 
         self.init_()
 
@@ -420,7 +420,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         p = out.shape
         out=out.view(p[0], p[1], -1)
         print(out.shape)
+        out= out[:,:-1,:-512]
         emb_linear = self.in_linear(out)
+        
         x = emb_linear + self.pos_emb(emb_linear)
         x = self.emb_dropout(x)
         x = self.project_emb(x)
