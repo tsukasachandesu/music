@@ -224,7 +224,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.word_emb_duration = CompoundTransformerEmbeddings(self.num_tokens[6], self.emb_sizes[6])
         self.word_emb_velocity = CompoundTransformerEmbeddings(self.num_tokens[7], self.emb_sizes[7])
         
-        self.proj_type11 = nn.Linear(512, self.num_tokens[0])
+        self.proj_type1 = nn.Linear(512, self.num_tokens[0])
         self.proj_barbeat1 = nn.Linear(512, self.num_tokens[1])
         self.proj_tempo1 = nn.Sequential(
             nn.Linear(512, self.num_tokens[2])
