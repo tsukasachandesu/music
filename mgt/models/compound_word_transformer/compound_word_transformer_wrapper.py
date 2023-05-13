@@ -290,6 +290,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         hh  = rearrange(embs, 'b s d f -> b s (d f)')
 
         hh = self.in_linear1(hh)
+        hhh = hh
         
         pad_size = (17 - hh.shape[1] % 17) % 17
         hh= pad(hh, (0, 0, 0, pad_size))
@@ -307,7 +308,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         h = h.reshape(hh.shape[0], hh.shape[1], -1) 
 
-        hh = torch.cat([hh,h], dim=-1)
+        hh = torch.cat([hhh,h], dim=-1)
 
         emb_linear = self.in_linear2(hh)
         
