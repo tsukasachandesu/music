@@ -155,8 +155,8 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         if emb_sizes is None:
             emb_sizes = [
-                32,  # Type
-                96,  # Bar / Beat
+                512,  # Type
+                512,  # Bar / Beat
                 512,  # Tempo
                 512,  # Instrument
                 512,  # Note Name
@@ -166,7 +166,16 @@ class CompoundWordTransformerWrapper(nn.Module):
             ]
             
         self.spatial_transformer = Transformer(
-            dim = 1024,
+            dim = 512,
+            layers = 2,
+            dim_head = 64,
+            heads = 8,
+            attn_dropout = 0.1,
+            ff_dropout = 0.1,
+            ff_mult = 4
+        )
+        self.depth_transformer = Transformer(
+            dim = 512,
             layers = 2,
             dim_head = 64,
             heads = 8,
@@ -175,9 +184,13 @@ class CompoundWordTransformerWrapper(nn.Module):
             ff_mult = 4
         )
             
-        
-        self.spatial_start_token = nn.Parameter(torch.randn(1024))
-        self.spatial_pos_emb = nn.Embedding(256 + 1, 1024)
+        self.max_spatial_seq_len = 255
+        self.depth_seq_len = 8
+
+        self.spatial_start_token = nn.Parameter(torch.randn(512)
+
+        self.spatial_pos_emb = nn.Embedding(255 + 1, 512) 
+        self.depth_pos_emb = nn.Embedding(8, 512)
 
         self.emb_sizes = emb_sizes
 
@@ -359,14 +372,14 @@ class CompoundWordTransformerWrapper(nn.Module):
             **kwargs
     ):
         # embeddings
-        emb_type = self.word_emb_type(x[..., 0])
-        emb_barbeat = self.word_emb_barbeat(x[..., 1])
-        emb_tempo = self.word_emb_tempo(x[..., 2])
-        emb_instrument = self.word_emb_instrument(x[..., 3])
-        emb_note_name = self.word_emb_note_name(x[..., 4])
-        emb_octave = self.word_emb_octave(x[..., 5])
-        emb_duration = self.word_emb_duration(x[..., 6])
-        emb_velocity = self.word_emb_velocity(x[..., 7])
+        emb_type = self.word_emb_type(x[..., 0]).unsqueeze(2) 
+        emb_barbeat = self.word_emb_barbeat(x[..., 1]).unsqueeze(2) 
+        emb_tempo = self.word_emb_tempo(x[..., 2]).unsqueeze(2) 
+        emb_instrument = self.word_emb_instrument(x[..., 3]).unsqueeze(2) 
+        emb_note_name = self.word_emb_note_name(x[..., 4]).unsqueeze(2) 
+        emb_octave = self.word_emb_octave(x[..., 5]).unsqueeze(2) 
+        emb_duration = self.word_emb_duration(x[..., 6]).unsqueeze(2) 
+        emb_velocity = self.word_emb_velocity(x[..., 7]).unsqueeze(2) 
         
         embs = torch.cat(
             [
@@ -378,14 +391,25 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_octave,
                 emb_duration,
                 emb_velocity
-            ], dim=-1)
+            ], dim=2)
+                                                
+        device=embs.device
+        spatial_pos = self.spatial_pos_emb(torch.arange(255, device = device))
+        depth_pos = self.depth_pos_emb(torch.arange(8, device = device))
+        tokens_with_depth_pos = embs + depth_pos
+        spatial_tokens = reduce(tokens_with_depth_pos, 'b s d f -> b s f', 'sum') + spatial_pos
+        spatial_tokens = torch.cat((
+            repeat(self.spatial_start_token, 'f -> b 1 f', b = b),
+            spatial_tokens
+        ), dim = -2)  
+        spatial_tokens = rearrange(spatial_tokens, 'b s f -> b s 1 f')
+        tokens_with_depth_pos = F.pad(tokens_with_depth_pos, (0, 0, 0, 0, 0, 1), value = 0.)
+        depth_tokens = torch.cat((spatial_tokens, tokens_with_depth_pos), dim = -2)
+        depth_tokens = rearrange(depth_tokens, '... n d -> (...) n d')
+        depth_tokens = self.depth_transformer(depth_tokens)
+
         
-        print(embs.shape)
-  
-        shap = embs.shape
-        shapp = embs.device
-        
-        emb_linear = self.in_linear1(embs)
+        emb_linear = self.in_linear(embs)
 
         x = emb_linear + self.pos_emb(emb_linear)
         x = self.emb_dropout(x)
