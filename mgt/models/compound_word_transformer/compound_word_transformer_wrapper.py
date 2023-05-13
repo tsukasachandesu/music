@@ -331,7 +331,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         x, intermediates = self.attn_layers(x, mask=mask, return_hiddens=True, **kwargs)
         print(x.shape)
-        print(intermediates["hiddens"])
+        print(intermediates.hiddens)
         
         x = self.norm(x)
 
