@@ -167,16 +167,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             
         self.spatial_transformer = Transformer(
             dim = 512,
-            layers = 2,
-            dim_head = 64,
-            heads = 8,
-            attn_dropout = 0.1,
-            ff_dropout = 0.1,
-            ff_mult = 4
-        )
-        self.depth_transformer = Transformer(
-            dim = 512,
-            layers = 2,
+            layers = 4,
             dim_head = 64,
             heads = 8,
             attn_dropout = 0.1,
@@ -425,6 +416,8 @@ class CompoundWordTransformerWrapper(nn.Module):
             x.squeeze(0)
 
         x, intermediates = self.attn_layers(x, mask=mask, return_hiddens=True, **kwargs)
+        print(x.size)
+        print(intermediates.size)
         x = self.norm(x)
 
         return x, self.proj_type(x)
