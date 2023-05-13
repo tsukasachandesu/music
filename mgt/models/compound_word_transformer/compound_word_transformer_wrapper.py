@@ -419,7 +419,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         out= rearrange(depth_tokens, '(b s) d f -> b s d f', b = 6)
         p = out.shape
         out=out.view(p[0], p[1], -1)
-        print(out.shape)
+
         out= out[:,:-1,:-512]
         emb_linear = self.in_linear(out)
         
