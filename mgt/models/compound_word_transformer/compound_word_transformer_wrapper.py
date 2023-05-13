@@ -281,9 +281,12 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_velocity
             ], dim=-1)
         print(embs.shape)
+  
         shap = embs.shape
         shapp = embs.device
         spatial_pos = self.spatial_pos_emb(torch.arange(shap[1], device = shapp))
+        print(spatial_pos.shape)
+        print(spatial_pos)
         spatial_tokens = embs + spatial_pos
         print(spatial_tokens.shape)
         spatial_tokens = torch.cat((
