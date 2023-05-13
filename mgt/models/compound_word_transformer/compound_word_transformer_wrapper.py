@@ -405,9 +405,10 @@ class CompoundWordTransformerWrapper(nn.Module):
         print(depth_tokens.shape)
         
         depth_tokens = torch.cat((
-            repeat(self.spatial_start_token, 'f -> b 1 f', b = devi[0]),
+            repeat(self.spatial_start_token, 'f -> b 1 f', b = devi[0]*devi[1]),
             depth_tokens
         ), dim = -2)  
+        print(depth_tokens.shape)
   
         depth_tokens = self.spatial_transformer(depth_tokens)
 
