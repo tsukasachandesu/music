@@ -399,7 +399,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         tokens_with_depth_pos = embs + depth_pos
         spatial_tokens = reduce(tokens_with_depth_pos, 'b s d f -> b s f', 'sum') + spatial_pos
         spatial_tokens = torch.cat((
-            repeat(self.spatial_start_token, 'f -> b 1 f', b = b),
+            repeat(self.spatial_start_token, 'f -> b 1 f', b = 6),
             spatial_tokens
         ), dim = -2)  
         spatial_tokens = rearrange(spatial_tokens, 'b s f -> b s 1 f')
