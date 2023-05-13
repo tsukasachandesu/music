@@ -190,7 +190,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.spatial_start_token = nn.Parameter(torch.randn(512))
 
         self.spatial_pos_emb = nn.Embedding(255 + 1, 512) 
-        self.depth_pos_emb = nn.Embedding(7, 512)
+        self.depth_pos_emb = nn.Embedding(8, 512)
 
         self.emb_sizes = emb_sizes
 
