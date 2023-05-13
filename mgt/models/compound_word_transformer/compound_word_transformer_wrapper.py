@@ -287,7 +287,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         spatial_tokens = embs + spatial_pos
         print(spatial_tokens.shape)
         spatial_tokens = torch.cat((
-            repeat(self.spatial_start_token, 'f -> b 1 f', b = b),
+            repeat(self.spatial_start_token, 'f -> b 1 f', b = shape[0]),
             spatial_tokens
         ), dim = -2) 
         print(spatial_tokens.shape)
