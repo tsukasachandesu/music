@@ -195,7 +195,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             ff_mult = 4
         )
         
-        self.Encoder = VAETransformerEncoder(1, 8, 1024, 4096, 0.1, 'relu')
+        self.Encoder = VAETransformerEncoder(1, 8, 512, 2048, 0.1, 'relu')
             
         self.max_spatial_seq_len = 255
         self.depth_seq_len = 8
