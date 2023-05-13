@@ -290,15 +290,17 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         pad_size = (17 - hh.shape[1] % 17) % 17
         hh= pad(hh, (0, 0, 0, pad_size))
-        new_b = hh.shape[0] * (hh_pad.shape[1] // 17)
+        new_b = hh.shape[0] * (hh.shape[1] // 17)
         new_s = 17    
         h = hh.reshape(new_b, new_s, -1) 
+        print(h.shape)
 
         h = h + self.pos_emb(h)
         
         h=h[:,:1,:]
 
         h = h.repeat_interleave(17, dim=1)
+        print(h.shape)
         
         h = h.reshape(hh.shape[0], hh.shape[1], -1) 
 
