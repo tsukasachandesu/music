@@ -417,8 +417,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         depth_tokens = self.depth_transformer(depth_tokens)
         print(depth_tokens.shape, "depth_tokens")
         out= rearrange(depth_tokens, '(b s) d f -> b s d f', b = 6)
-        hidden = torch.cat((out[:, :,0], out[:, :,1],out[:, :,2],out[:,:, 3],out[:,:, 4].out[:,:, 5],out[:,:,6],out[:,:, 7]), dim=-1)
-        emb_linear = self.in_linear(hidden)
+        p = p.shape
+        out=out.view(p[0], p[1], -1)
+        emb_linear = self.in_linear(out)
         x = emb_linear + self.pos_emb(emb_linear)
         x = self.emb_dropout(x)
         x = self.project_emb(x)
