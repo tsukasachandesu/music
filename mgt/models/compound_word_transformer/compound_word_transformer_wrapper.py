@@ -289,9 +289,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         print(embs.shape)
         
         hh  = rearrange(embs, 'b s d f -> b s (d f)')
-        hh = self.in_linear1(h)
+        hh = self.in_linear1(hh)
         print(hh.shape)
-        h = rearrange(hh, 'b s f -> b s f', s=17)
+        h = rearrange(hh, 'b s f -> ... s f', s=17)
         print(h.shape)
         h = h + self.pos_emb(h)
         print(h.shape)
