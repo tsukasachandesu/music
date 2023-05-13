@@ -195,7 +195,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             ff_mult = 4
         )
         
-        self.VAETransformerEncoder = VAETransformerEncoder(1, 8, 1024, 4096, 0.1, 'relu')
+        self.Encoder = VAETransformerEncoder(1, 8, 1024, 4096, 0.1, 'relu')
             
         self.max_spatial_seq_len = 255
         self.depth_seq_len = 8
@@ -416,7 +416,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         depth_tokens = rearrange(embs, '... n d -> (...) n d')
         print(depth_tokens.shape)
         
-        depth_tokens = VAETransformerEncoder(depth_tokens)
+        depth_tokens = self.Encoder(depth_tokens)
         print(depth_tokens.shape)
 
         out= rearrange(depth_tokens, '(b s) d f -> b s d f', b = devi[0])
