@@ -278,8 +278,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         self.compound_word_embedding_size = np.sum(emb_sizes)
 
-        self.pos_emb = AbsolutePositionalEmbedding(512, 255)
-        self.pos_emb1 = AbsolutePositionalEmbedding(512, 8) 
+
         
 
         self.emb_dropout = nn.Dropout(emb_dropout)
@@ -291,6 +290,8 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         self.in_linear = nn.Linear(4096, emb_dim)
         self.in_linear1 = nn.Linear(4096, 1024)
+        self.pos_emb = AbsolutePositionalEmbedding(512, 255)
+        self.pos_emb1 = AbsolutePositionalEmbedding(512, 255) 
 
         self.init_()
 
