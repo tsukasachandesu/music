@@ -384,18 +384,11 @@ class CompoundWordTransformerWrapper(nn.Module):
   
         shap = embs.shape
         shapp = embs.device
-        spatial_pos = self.spatial_pos_emb(torch.arange(shap[1], device = shapp))
-        print(spatial_pos.shape)
-        print(spatial_pos)
-        emb_linear = self.in_linear(embs)
-        spatial_tokens = emb_linear + self.pos_emb(emb_linear)
-        spatial_tokens = torch.cat((
-            repeat(self.spatial_start_token, 'f -> b 1 f', b = shap[0]),
-            spatial_tokens
-        ), dim = -2)
-        spatial_tokens=self.spatial_transformer(spatial_tokens)
+        
+        emb_linear = self.in_linear1(embs)
 
-        x = self.emb_dropout(spatial_tokens)
+        x = emb_linear + self.pos_emb(emb_linear)
+        x = self.emb_dropout(x)
         x = self.project_emb(x)
 
         if not self.training:
