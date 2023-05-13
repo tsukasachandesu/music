@@ -259,12 +259,16 @@ class CompoundWordTransformerWrapper(nn.Module):
                        h,
                        target
                        ):
+        print(h.shape)
+        print(target.shape)
         tf_skip_type = self.word_emb_type(target[..., 0])
 
         y_concat_type = torch.cat([h, tf_skip_type], dim=-1)
         y_ = self.project_concat_type(y_concat_type)
+        print(y_.shape)
 
         proj_barbeat = self.proj_barbeat(y_)
+        print(proj_barbeat.shape)
         proj_tempo = self.proj_tempo(y_)
         proj_instrument = self.proj_instrument(y_)
         proj_note_name = self.proj_note_name(y_)
