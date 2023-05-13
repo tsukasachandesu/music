@@ -287,6 +287,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         hh  = rearrange(embs, 'b s d f -> b s (d f)')
 
         hh = self.in_linear1(hh)
+        print(hh.shape)
 
         new_b = hh.shape[0] * (hh.shape[1] // 17)
         new_s = 17
