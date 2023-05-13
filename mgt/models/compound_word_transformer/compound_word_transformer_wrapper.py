@@ -32,9 +32,7 @@ class VAETransformerEncoder(nn.Module):
 
   def forward(self, x, padding_mask=None):
     out = self.tr_encoder(x, src_key_padding_mask=padding_mask)
-    hidden_out = out[0, :, :]
-
-    return hidden_out
+    return out
 
 def weighted_sampling(probs):
     probs /= sum(probs)
