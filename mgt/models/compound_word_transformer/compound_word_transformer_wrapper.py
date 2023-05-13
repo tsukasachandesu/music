@@ -324,7 +324,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         type_word_t = torch.from_numpy(np.array([cur_word_type])).long().to(get_device()).unsqueeze(0)
 
-        tf_skip_type = self.word_emb_type1(type_word_t)
+        tf_skip_type = self.word_emb_type(type_word_t)
 
         # concat
         y_concat_type = torch.cat([h, tf_skip_type], dim=-1)
@@ -393,7 +393,7 @@ class CompoundWordTransformerWrapper(nn.Module):
                        target
                        ):
 
-        tf_skip_type = self.word_emb_type1(target[..., 0])
+        tf_skip_type = self.word_emb_type(target[..., 0])
 
         y_concat_type = torch.cat([h, tf_skip_type], dim=-1)
         y_ = self.project_concat_type1(y_concat_type)
