@@ -4,9 +4,11 @@
 # -- temperature -- #
 import numpy as np
 import torch
-from torch import nn
+from torch import nn, einsum
+from einops_exts import rearrange_with_anon_dims
+from einops import rearrange, reduce, repeat
 from x_transformers.x_transformers import AttentionLayers, default, AbsolutePositionalEmbedding, always
-
+import torch.nn.functional as F
 from mgt.models.compound_word_transformer.compound_transformer_embeddings import CompoundTransformerEmbeddings
 from mgt.models.utils import get_device
 
@@ -34,18 +36,12 @@ class VAETransformerEncoder(nn.Module):
 
     return hidden_out
 
-def softmax_with_temperature(logits, temperature):
-    probs = np.exp(logits / temperature) / np.sum(np.exp(logits / temperature))
-    return probs
-
-
 def weighted_sampling(probs):
     probs /= sum(probs)
     sorted_probs = np.sort(probs)[::-1]
     sorted_index = np.argsort(probs)[::-1]
     word = np.random.choice(sorted_index, size=1, p=sorted_probs)[0]
     return word
-
 
 # -- nucleus -- #
 def nucleus(probs, probability_treshold):
@@ -63,7 +59,6 @@ def nucleus(probs, probability_treshold):
     candi_probs /= sum(candi_probs)
     word = np.random.choice(candi_index, size=1, p=candi_probs)[0]
     return word
-
 
 def sampling(logit, probability_treshold=None, temperature=1.0):
     logit = logit.squeeze().cpu().detach().numpy()
