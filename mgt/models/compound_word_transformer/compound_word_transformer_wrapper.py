@@ -394,19 +394,28 @@ class CompoundWordTransformerWrapper(nn.Module):
             ], dim=2)
                                                 
         device=embs.device
+        print(embs.shape, "emb")
         spatial_pos = self.spatial_pos_emb(torch.arange(255, device = device))
         depth_pos = self.depth_pos_emb(torch.arange(8, device = device))
         tokens_with_depth_pos = embs + depth_pos
+        print(tokens_with_depth_pos.shape, "tokens_with_depth_pos")
         spatial_tokens = reduce(tokens_with_depth_pos, 'b s d f -> b s f', 'sum') + spatial_pos
+        print(spatial_tokens.shape, "spatial_tokens")
         spatial_tokens = torch.cat((
             repeat(self.spatial_start_token, 'f -> b 1 f', b = 6),
             spatial_tokens
         ), dim = -2)  
+        print(spatial_tokens.shape, "spatial_tokens")
         spatial_tokens = rearrange(spatial_tokens, 'b s f -> b s 1 f')
+        print(spatial_tokens.shape, "spatial_tokens")
         tokens_with_depth_pos = F.pad(tokens_with_depth_pos, (0, 0, 0, 0, 0, 1), value = 0.)
+        print(tokens_with_depth_pos.shape, "stokens_with_depth_pos")
         depth_tokens = torch.cat((spatial_tokens, tokens_with_depth_pos), dim = -2)
+        print(depth_tokens.shape, "depth_tokens")
         depth_tokens = rearrange(depth_tokens, '... n d -> (...) n d')
+        print(depth_tokens.shape, "depth_tokens")
         depth_tokens = self.depth_transformer(depth_tokens)
+        print(depth_tokens.shape, "depth_tokens")
 
         
         emb_linear = self.in_linear(embs)
