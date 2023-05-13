@@ -298,7 +298,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         new_s = 17    
         print(hhh.shape)
         h = hh.reshape(new_b, new_s, -1) 
-        print(h.shape)
+
 
         h = h + self.pos_emb(h)
         
@@ -309,7 +309,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         h = h.reshape(hh.shape[0], hh.shape[1], -1) 
         print(h.shape)
 
-        hh = torch.cat([hh,h], dim=-1)
+        hh = torch.cat([hhh,h], dim=-1)
 
         emb_linear = self.in_linear2(hh)
         
