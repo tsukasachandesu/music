@@ -282,33 +282,28 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_octave,
                 emb_duration,
                 emb_velocity
-            ], dim=2)
-                         
-        print(embs.shape)
+            ], dim=2)            
         
         hh  = rearrange(embs, 'b s d f -> b s (d f)')
-        print(hh.shape)
+
         hh = self.in_linear1(hh)
-        print(hh.shape)
+
         new_b = hh.shape[0] * (hh.shape[1] // 17)
         new_s = 17
-        h = hh.reshape(new_b, new_s, 1024) 
+        
+        h = hh.reshape(new_b, new_s, -1) 
 
-        print(h.shape)
         h = h + self.pos_emb(h)
-        print(h.shape)
-        h = self.encoder(h)
-        print(h.shape)
+        
         h=h[:,:1,:]
-        print(h.shape)
+
         h = h.repeat_interleave(17, dim=1)
-        h = h.reshape(hh.shape[0], hh.shape[1], 1024) 
-        print(h.shape)
+        
+        h = h.reshape(hh.shape[0], hh.shape[1], -1) 
+
         hh = torch.cat([hh,h], dim=-1)
-        print(embs.shape)
+
         emb_linear = self.in_linear2(hh)
-        
-        
         
         x = h + self.pos_emb(h)
         x = self.emb_dropout(x)
