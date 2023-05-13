@@ -11,6 +11,29 @@ from mgt.models.compound_word_transformer.compound_transformer_embeddings import
 from mgt.models.utils import get_device
 
 
+class VAETransformerEncoder(nn.Module):
+  def __init__(self, n_layer, n_head, d_model, d_ff, dropout=0.1, activation='relu'):
+    super(VAETransformerEncoder, self).__init__()
+    self.n_layer = n_layer
+    self.n_head = n_head
+    self.d_model = d_model
+    self.d_ff = d_ff
+    self.dropout = dropout
+    self.activation = activation
+
+    self.tr_encoder_layer = nn.TransformerEncoderLayer(
+      d_model, n_head, d_ff, dropout, activation
+    )
+    self.tr_encoder = nn.TransformerEncoder(
+      self.tr_encoder_layer, n_layer
+    )
+
+  def forward(self, x, padding_mask=None):
+    out = self.tr_encoder(x, src_key_padding_mask=padding_mask)
+    hidden_out = out[0, :, :]
+
+    return hidden_out
+
 def softmax_with_temperature(logits, temperature):
     probs = np.exp(logits / temperature) / np.sum(np.exp(logits / temperature))
     return probs
@@ -70,9 +93,9 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         if emb_sizes is None:
             emb_sizes = [
-                32,  # Type
-                96,  # Bar / Beat
-                128,  # Tempo
+                512,  # Type
+                512,  # Bar / Beat
+                512,  # Tempo
                 512,  # Instrument
                 512,  # Note Name
                 128,  # Octave
@@ -121,6 +144,12 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.norm = nn.LayerNorm(dim)
 
         self.in_linear = nn.Linear(np.sum(self.emb_sizes), emb_dim)
+        self.in_linear1 = nn.Linear(4063, emb_dim)
+        self.in_linear2 = nn.Linear(2048, 1024)
+        
+        self.encoder = VAETransformerEncoder(
+            3, 8, 1024, 2048, 0.1, 'relu'
+        )
 
         self.init_()
 
@@ -241,15 +270,15 @@ class CompoundWordTransformerWrapper(nn.Module):
             **kwargs
     ):
         # embeddings
-        emb_type = self.word_emb_type(x[..., 0])
-        emb_barbeat = self.word_emb_barbeat(x[..., 1])
-        emb_tempo = self.word_emb_tempo(x[..., 2])
-        emb_instrument = self.word_emb_instrument(x[..., 3])
-        emb_note_name = self.word_emb_note_name(x[..., 4])
-        emb_octave = self.word_emb_octave(x[..., 5])
-        emb_duration = self.word_emb_duration(x[..., 6])
-        emb_velocity = self.word_emb_velocity(x[..., 7])
-
+        emb_type = self.word_emb_type(x[..., 0]).unsqueeze(2) 
+        emb_barbeat = self.word_emb_barbeat(x[..., 1]).unsqueeze(2) 
+        emb_tempo = self.word_emb_tempo(x[..., 2]).unsqueeze(2) 
+        emb_instrument = self.word_emb_instrument(x[..., 3]).unsqueeze(2) 
+        emb_note_name = self.word_emb_note_name(x[..., 4]).unsqueeze(2) 
+        emb_octave = self.word_emb_octave(x[..., 5]).unsqueeze(2) 
+        emb_duration = self.word_emb_duration(x[..., 6]).unsqueeze(2) 
+        emb_velocity = self.word_emb_velocity(x[..., 7]).unsqueeze(2) 
+        
         embs = torch.cat(
             [
                 emb_type,
@@ -260,10 +289,19 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_octave,
                 emb_duration,
                 emb_velocity
-            ], dim=-1)
+            ], dim=2)
+                         
 
-        emb_linear = self.in_linear(embs)
-
+        emb_linear = self.in_linear1(embs)
+        
+        h = rearrange(emb_linear, 'b d f -> b s d f', d = 17)
+        h = rearrange(h, 'b s d f -> (b s) d f')
+        h = h + self.pos_emb(h)
+        h = self.encoder(h)
+        h = h.repeat_interleave(15)
+        embs = torch.cat([embs,h], dim=-1)
+        emb_linear = self.in_linear2(embs)
+        
         x = emb_linear + self.pos_emb(emb_linear)
         x = self.emb_dropout(x)
         x = self.project_emb(x)
