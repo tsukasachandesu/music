@@ -12,6 +12,26 @@ import torch.nn.functional as F
 from mgt.models.compound_word_transformer.compound_transformer_embeddings import CompoundTransformerEmbeddings
 from mgt.models.utils import get_device
 
+class VAETransformerEncoder(nn.Module):
+  def __init__(self, n_layer=4, n_head=8, d_model=1024, dropout=0.1, activation='relu'):
+    super(VAETransformerEncoder, self).__init__()
+    self.n_layer = n_layer
+    self.n_head = n_head
+    self.d_model = d_model
+    self.dropout = dropout
+    self.activation = activation
+
+    self.tr_encoder_layer = nn.TransformerEncoderLayer(
+      d_model, n_head, d_ff, dropout, activation
+    )
+    self.tr_encoder = nn.TransformerEncoder(
+      self.tr_encoder_layer, n_layer
+    )
+
+  def forward(self, x, padding_mask=None):
+    out = self.tr_encoder(x, src_key_padding_mask=padding_mask)
+    return out
+
 def FeedForward(*, dim, mult = 4, dropout = 0.):
     return nn.Sequential(
         nn.LayerNorm(dim),
@@ -174,6 +194,8 @@ class CompoundWordTransformerWrapper(nn.Module):
             ff_dropout = 0.1,
             ff_mult = 4
         )
+        
+        self.VAETransformerEncoder = VAETransformerEncoder()
             
         self.max_spatial_seq_len = 255
         self.depth_seq_len = 8
@@ -393,18 +415,15 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         depth_tokens = rearrange(embs, '... n d -> (...) n d')
         
-        depth_tokens = torch.cat((
-            repeat(self.spatial_start_token, 'f -> b 1 f', b = devi[0]*devi[1]),
-            depth_tokens
-        ), dim = -2)  
-  
-        depth_tokens = self.spatial_transformer(depth_tokens)
+        depth_tokens = VAETransformerEncoder(depth_tokens)
+        print(depth_tokens.shape)
 
         out= rearrange(depth_tokens, '(b s) d f -> b s d f', b = devi[0])
+        
         p = out.shape
+        
         out=out.view(p[0], p[1], -1)
 
-        out= out[:,:,:-512]
 
         emb_linear = self.in_linear(out)
         
