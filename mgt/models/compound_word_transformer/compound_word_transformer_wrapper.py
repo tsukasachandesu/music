@@ -159,6 +159,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.norm = nn.LayerNorm(dim)
 
         self.in_linear = nn.Linear(4096, emb_dim)
+        
+        self.depth_pos_emb = nn.Embedding(8, 512)
 
         self.init_()
 
