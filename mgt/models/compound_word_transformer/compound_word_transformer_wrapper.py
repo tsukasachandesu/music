@@ -385,6 +385,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             spatial_tokens
         ), dim = -2)
         spatial_tokens=self.spatial_transformer(spatial_tokens)
+        print(spatial_tokens.shape)
         
         emb_linear = self.in_linear(embs)
 
