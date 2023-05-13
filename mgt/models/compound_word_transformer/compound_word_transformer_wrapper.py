@@ -12,6 +12,14 @@ import torch.nn.functional as F
 from mgt.models.compound_word_transformer.compound_transformer_embeddings import CompoundTransformerEmbeddings
 from mgt.models.utils import get_device
 
+def FeedForward(*, dim, mult = 4, dropout = 0.):
+    return nn.Sequential(
+        nn.LayerNorm(dim),
+        nn.Linear(dim, dim * mult),
+        nn.GELU(),
+        nn.Dropout(dropout),
+        nn.Linear(dim * mult, dim)
+    )
 class Attention(nn.Module):
     def __init__(
         self,
