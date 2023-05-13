@@ -190,7 +190,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.spatial_start_token = nn.Parameter(torch.randn(512))
 
         self.spatial_pos_emb = nn.Embedding(255 + 1, 512) 
-        self.depth_pos_emb = nn.Embedding(8, 512)
+        self.depth_pos_emb = nn.Embedding(7, 512)
 
         self.emb_sizes = emb_sizes
 
@@ -416,10 +416,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         print(depth_tokens.shape, "depth_tokens")
         depth_tokens = self.depth_transformer(depth_tokens)
         print(depth_tokens.shape, "depth_tokens")
-
-        
-        emb_linear = self.in_linear(embs)
-
+        out= rearrange(depth_tokens, '(b s) d f -> b s d f', b = 6)
+        hidden = torch.cat((out[:, :,0], out[:, :,1],out[:, :,2],out[:,:, 3],out[:,:, 4].out[:,:, 5],out[:,:,6],out[:,:, 7]), dim=-1)
+        emb_linear = self.in_linear(hidden)
         x = emb_linear + self.pos_emb(emb_linear)
         x = self.emb_dropout(x)
         x = self.project_emb(x)
