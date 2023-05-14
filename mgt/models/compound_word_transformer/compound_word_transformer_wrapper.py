@@ -335,7 +335,7 @@ class CompoundWordTransformerWrapper(nn.Module):
           mu, logvar = self.encoder(h, None)
         h = self.reparameterize(mu, logvar)
 
-        h = h.repeat_interleave(17, dim=1)
+        h = h.repeat_interleave(51, dim=1)
         h = h.reshape(hh.shape[0], hh.shape[1], -1) 
         
         x = hhh + self.pos_emb(hhh)
