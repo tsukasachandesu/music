@@ -149,7 +149,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.in_linear3 = nn.Linear(2048, 1024)
         
         self.encoder = VAETransformerEncoder(
-            3, 8, 1024, 2048, 0.1, 'relu'
+            6, 8, 1024, 2048, 0.1, 'relu'
         )
 
         self.init_()
@@ -319,17 +319,17 @@ class CompoundWordTransformerWrapper(nn.Module):
         hh = self.in_linear1(hh)
         hhh = hh
         
-        pad_size = (17 - hh.shape[1] % 17) % 17
+        pad_size = (51 - hh.shape[1] % 51) % 51
         hh= pad(hh, (0, 0, 0, pad_size))
-        new_b = hh.shape[0] * (hh.shape[1] // 17)
-        new_s = 17    
+        new_b = hh.shape[0] * (hh.shape[1] // 51)
+        new_s = 51  
         h = hh.reshape(new_b, new_s, -1) 
 
         h = h + self.pos_emb(h)
         
-        if (hh.shape[1] % 17) != 0:
+        if (hh.shape[1] % 51) != 0:
           mask = torch.zeros((h.shape[0], h.shape[1], h.shape[2]), dtype=torch.bool)
-          mask[-1, hh.shape[1] % 17:, :] = True  
+          mask[-1, hh.shape[1] % 51:, :] = True  
           mu, logvar = self.encoder(h, mask)
         else:
           mu, logvar = self.encoder(h, None)
