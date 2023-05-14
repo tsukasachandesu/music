@@ -66,9 +66,14 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         xi = x[:, :-1, :]
         target = x[:, 1:, :]
 
-        h, proj_type = self.net.forward_hidden(xi, **kwargs)
+        h, proj_type, mu, logvar = self.net.forward_hidden(xi, **kwargs)
         proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, proj_velocity = self.net.forward_output(
             h, target)
+        kl_raw = -0.5 * (1 + logvar - mu ** 2 - logvar.exp()).mean(dim=0)
+        kl_before_free_bits = kl_raw.mean()
+        kl_after_free_bits = kl_raw.clamp(min=0.25)
+        kldiv_loss = kl_after_free_bits.mean()
+
         # Filter padding indices
         type_loss = calculate_loss(proj_type, target[..., 0], type_mask(target))
         barbeat_loss = calculate_loss(proj_barbeat, target[..., 1], type_mask(target))
@@ -79,4 +84,4 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         duration_loss = calculate_loss(proj_duration, target[..., 6], type_mask(target))
         velocity_loss = calculate_loss(proj_velocity, target[..., 7], type_mask(target))
 
-        return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss, velocity_loss
+        return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss, velocity_loss, kldiv_loss
