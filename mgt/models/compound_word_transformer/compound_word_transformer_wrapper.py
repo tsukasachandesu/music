@@ -312,19 +312,15 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         h = h.repeat_interleave(17, dim=1)
         h = h.reshape(hh.shape[0], hh.shape[1], -1) 
-
-        hh = torch.cat([hhh,h[:,:hhh.shape[1],:]], dim=-1)
-
-        emb_linear = self.in_linear2(hh)
         
-        x = h + self.pos_emb(h)
+        x = hhh + self.pos_emb(hhh)
         x = self.emb_dropout(x)
         x = self.project_emb(x)
 
         if not self.training:
             x.squeeze(0)
 
-        x, intermediates = self.attn_layers(x, mask=mask, return_hiddens=True, **kwargs)
+        x, intermediates = self.attn_layers(x, h[:,:hhh.shape[1],:], mask=mask, return_hiddens=True, **kwargs)
         x = self.norm(x)
 
         return x, self.proj_type(x)
