@@ -327,6 +327,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         x, intermediates = self.attn_layers(x, mask=mask, return_hiddens=True, **kwargs)
         x = self.norm(x)
         x = torch.cat([x,h[:,:hhh.shape[1],:]], dim=-1)
-        x = self.in_linear3(hh)
+        x = self.in_linear3(x)
 
         return x, self.proj_type(x)
