@@ -300,9 +300,15 @@ class CompoundWordTransformerWrapper(nn.Module):
         h = hh.reshape(new_b, new_s, -1) 
 
         h = h + self.pos_emb(h)
-        h = self.encode(h)
         
-        h=h[:,:1,:]
+        if (hh.shape[1] % 17) != 0:
+          mask = torch.zeros((h.shape[0], h.shape[1], h.shape[2]), dtype=torch.bool)
+          mask[-1, hh.shape[1] % 17:, :] = True  
+          h = self.encode(h, mask)
+        else:
+          h = self.encode(h, None)
+        
+        h = h[:,:1,:]
 
         h = h.repeat_interleave(17, dim=1)
         
