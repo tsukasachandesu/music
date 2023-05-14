@@ -142,6 +142,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.in_linear = nn.Linear(np.sum(self.emb_sizes), emb_dim)
         self.in_linear1 = nn.Linear(4096, emb_dim)
         self.in_linear2 = nn.Linear(2048, 1024)
+        self.in_linear3 = nn.Linear(2048, 1024)
         
         self.encoder = VAETransformerEncoder(
             3, 8, 1024, 2048, 0.1, 'relu'
@@ -311,8 +312,6 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         h = h.repeat_interleave(17, dim=1)
         h = h.reshape(hh.shape[0], hh.shape[1], -1) 
-        print(hhh.shape)
-        print(h.shape)
 
         hh = torch.cat([hhh,h[:,:hhh.shape[1],:]], dim=-1)
 
@@ -327,5 +326,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         x, intermediates = self.attn_layers(x, mask=mask, return_hiddens=True, **kwargs)
         x = self.norm(x)
+        x = torch.cat([x,h[:,:hhh.shape[1],:]], dim=-1)
+        x = self.in_linear3(hh)
 
         return x, self.proj_type(x)
