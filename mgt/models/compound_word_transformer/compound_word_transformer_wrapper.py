@@ -29,10 +29,14 @@ class VAETransformerEncoder(nn.Module):
     self.tr_encoder = nn.TransformerEncoder(
       self.tr_encoder_layer, n_layer
     )
+    self.fc_mu = nn.Linear(d_model, d_model)
+    self.fc_logvar = nn.Linear(d_model, d_model)
 
   def forward(self, x, padding_mask=None):
     out = self.tr_encoder(x, src_key_padding_mask=padding_mask)
-    return out
+    mu = self.fc_mu(out[:,:1,:])
+    logvar = self.fc_logvar(out[:,:1,:])
+    return mu, logvar
 
 def softmax_with_temperature(logits, temperature):
     probs = np.exp(logits / temperature) / np.sum(np.exp(logits / temperature))
@@ -159,6 +163,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         nn.init.normal_(self.word_emb_octave.weight(), std=0.02)
         nn.init.normal_(self.word_emb_duration.weight(), std=0.02)
         nn.init.normal_(self.word_emb_velocity.weight(), std=0.02)
+  
+
+    
 
     def forward_output_sampling(self, h, y_type, selection_temperatures=None, selection_probability_tresholds=None):
         # sample type
@@ -259,6 +266,25 @@ class CompoundWordTransformerWrapper(nn.Module):
         proj_velocity = self.proj_velocity(y_)
 
         return proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, proj_velocity
+    
+    def reparameterize(self, mu, logvar, use_sampling=True, sampling_var=1.):
+      std = torch.exp(0.5 * logvar).to(mu.device)
+      if use_sampling:
+        eps = torch.randn_like(std).to(mu.device) * sampling_var
+      else:
+        eps = torch.zeros_like(std).to(mu.device)
+
+      return eps * std + mu
+
+    def get_sampled_latent(self, inp, padding_mask=None, use_sampling=False, sampling_var=0.):
+      token_emb = self.token_emb(inp)
+      enc_inp = self.emb_dropout(token_emb) + self.pe(inp.size(0))
+
+      _, mu, logvar = self.encoder(enc_inp, padding_mask=padding_mask)
+      mu, logvar = mu.reshape(-1, mu.size(-1)), logvar.reshape(-1, mu.size(-1))
+      vae_latent = self.reparameterize(mu, logvar, use_sampling=use_sampling, sampling_var=sampling_var)
+
+      return vae_latent
 
     def forward_hidden(
             self,
@@ -304,11 +330,10 @@ class CompoundWordTransformerWrapper(nn.Module):
         if (hh.shape[1] % 17) != 0:
           mask = torch.zeros((h.shape[0], h.shape[1], h.shape[2]), dtype=torch.bool)
           mask[-1, hh.shape[1] % 17:, :] = True  
-          h = self.encoder(h, mask)
+          mu, logvar = self.encoder(h, mask)
         else:
-          h = self.encoder(h, None)
-        
-        h = h[:,:1,:]
+          mu, logvar = self.encoder(h, None)
+        h = self.reparameterize(mu, logvar)
 
         h = h.repeat_interleave(17, dim=1)
         h = h.reshape(hh.shape[0], hh.shape[1], -1) 
