@@ -296,7 +296,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         hh= pad(hh, (0, 0, 0, pad_size))
         new_b = hh.shape[0] * (hh.shape[1] // 17)
         new_s = 17    
-        print(hhh.shape)
         h = hh.reshape(new_b, new_s, -1) 
 
         h = h + self.pos_emb(h)
@@ -311,8 +310,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         h = h[:,:1,:]
 
         h = h.repeat_interleave(17, dim=1)
-        
         h = h.reshape(hh.shape[0], hh.shape[1], -1) 
+        print(hhh.shape)
         print(h.shape)
 
         hh = torch.cat([hhh,h[:,:hhh.shape[1],:]], dim=-1)
