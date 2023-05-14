@@ -299,8 +299,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         print(hhh.shape)
         h = hh.reshape(new_b, new_s, -1) 
 
-
         h = h + self.pos_emb(h)
+        h = self.encode(h)
         
         h=h[:,:1,:]
 
