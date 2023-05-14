@@ -58,7 +58,7 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
             # forward
             last_token = final_res[-self.max_seq_len:]
             input_ = torch.tensor(np.array([last_token])).long().to(get_device())
-            h, y_type = self.net.forward_hidden(input_)
+            h, y_type, mu, logvar = self.net.forward_hidden(input_)
 
         return final_res
 
