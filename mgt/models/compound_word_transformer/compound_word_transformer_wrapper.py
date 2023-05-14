@@ -304,9 +304,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         if (hh.shape[1] % 17) != 0:
           mask = torch.zeros((h.shape[0], h.shape[1], h.shape[2]), dtype=torch.bool)
           mask[-1, hh.shape[1] % 17:, :] = True  
-          h = self.encode(h, mask)
+          h = self.encoder(h, mask)
         else:
-          h = self.encode(h, None)
+          h = self.encoder(h, None)
         
         h = h[:,:1,:]
 
