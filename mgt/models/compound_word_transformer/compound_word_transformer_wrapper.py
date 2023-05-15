@@ -92,27 +92,6 @@ class Transformer(nn.Module):
 
         return self.norm(x)
 
-
-class VAETransformerEncoder(nn.Module):
-  def __init__(self, n_layer, n_head, d_model, d_ff, dropout, activation):
-    super(VAETransformerEncoder, self).__init__()
-    self.n_layer = n_layer
-    self.n_head = n_head
-    self.d_model = d_model
-    self.dropout = dropout
-    self.activation = activation
-
-    self.tr_encoder_layer = nn.TransformerEncoderLayer(
-      d_model, n_head, d_ff, dropout, activation
-    )
-    self.tr_encoder = nn.TransformerEncoder(
-      self.tr_encoder_layer, n_layer
-    )
-
-  def forward(self, x, padding_mask=None):
-    out = self.tr_encoder(x, src_key_padding_mask=padding_mask)
-    return out
-
 def softmax_with_temperature(logits, temperature):
     probs = np.exp(logits / temperature) / np.sum(np.exp(logits / temperature))
     return probs
@@ -177,12 +156,10 @@ class CompoundWordTransformerWrapper(nn.Module):
                 512,  # Duration
                 512  # Velocity
             ]
-        
-        self.depth_pos_emb = nn.Embedding(8, 512)
-        
+                
         self.spatial_transformer = Transformer(
             dim = 512,
-            layers = 8,
+            layers = 12,
             dim_head = 64,
             heads = 8,
             attn_dropout = 0.1,
@@ -192,18 +169,15 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         self.spatial_start_token = nn.Parameter(torch.randn(512))
 
-        self.spatial_pos_emb = nn.Embedding(256, 512) 
-
         self.depth_transformer = Transformer(
             dim = 512,
-            layers = 8,
+            layers = 12,
             dim_head = 64,
             heads = 8,
             attn_dropout = 0.1,
             ff_dropout = 0.1,
             ff_mult = 4
         )
-
 
         self.emb_sizes = emb_sizes
 
@@ -221,32 +195,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.word_emb_octave = CompoundTransformerEmbeddings(self.num_tokens[5], self.emb_sizes[5])
         self.word_emb_duration = CompoundTransformerEmbeddings(self.num_tokens[6], self.emb_sizes[6])
         self.word_emb_velocity = CompoundTransformerEmbeddings(self.num_tokens[7], self.emb_sizes[7])
-        
-        self.proj_type1 = nn.Linear(4096, self.num_tokens[0])
-        self.proj_barbeat1 = nn.Linear(4096, self.num_tokens[1])
-        self.proj_tempo1 = nn.Sequential(
-            nn.Linear(4096, self.num_tokens[2])
-        )
-        self.proj_instrument1 =  nn.Sequential(
-            nn.Linear(4096, self.num_tokens[3])
-        )
-        self.proj_note_name1 = nn.Sequential(
-            nn.Linear(4096, self.num_tokens[4])
-        )
-        self.proj_octave1 = nn.Sequential(
-            nn.Linear(4096, self.num_tokens[5])
-        )
          
-        self.proj_duration1 = nn.Sequential(
-            nn.Linear(4096, self.num_tokens[6])
-        )
-        
-        self.proj_velocity1 = nn.Sequential(
-            nn.Linear(4096, self.num_tokens[7])
-        )
-        
-        self.project_concat_type1 = nn.Linear(4096 + self.emb_sizes[0], 4096)
-        
         # individual output
         self.proj_type = nn.Linear(dim, self.num_tokens[0])
         self.proj_barbeat = nn.Linear(dim, self.num_tokens[1])
@@ -276,9 +225,6 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         self.compound_word_embedding_size = np.sum(emb_sizes)
 
-
-        
-
         self.emb_dropout = nn.Dropout(emb_dropout)
 
         self.project_emb = nn.Linear(emb_dim, dim) if emb_dim != dim else nn.Identity()
@@ -287,7 +233,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.norm = nn.LayerNorm(dim)
 
         self.in_linear = nn.Linear(4096, emb_dim)
-        self.in_linear1 = nn.Linear(4096, 1024)
+
         self.pos_emb = AbsolutePositionalEmbedding(512, 256)
         self.pos_emb1 = AbsolutePositionalEmbedding(512, 8) 
 
