@@ -234,7 +234,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         self.norm = nn.LayerNorm(dim)
 
-        self.in_linear = nn.Linear(4096, emb_dim)
+        self.in_linear = nn.Linear(4096, 512)
 
         self.pos_emb = AbsolutePositionalEmbedding(512, 256)
         self.pos_emb1 = AbsolutePositionalEmbedding(512, 8) 
@@ -391,7 +391,10 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         # spatial tokens is tokens with depth pos reduced along depth dimension + spatial positions
 
-        spatial_tokens = reduce(tokens_with_depth_pos, 'b s d f -> b s f', 'sum') 
+        spatial_tokens = rearrange(tokens_with_depth_pos, 'b s (d f) -> b s f')
+        spatial_tokens = self.in_linear(spatial_tokens)
+        
+        
         spatial_tokens = spatial_tokens + self.pos_emb(spatial_tokens)
         
         spatial_tokens = torch.cat((
