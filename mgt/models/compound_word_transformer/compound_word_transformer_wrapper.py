@@ -390,8 +390,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         tokens_with_depth_pos = rearrange(tokens_with_depth_pos, '(b s) d f -> b s d f', b = devi[0])
 
         # spatial tokens is tokens with depth pos reduced along depth dimension + spatial positions
-
-        spatial_tokens = rearrange(tokens_with_depth_pos, 'b s (d f) -> b s f')
+        p = tokens_with_depth_pos.shape
+        spatial_tokens = tokens_with_depth_pos.view(p[0], p[1], -1)
         spatial_tokens = self.in_linear(spatial_tokens)
         
         
