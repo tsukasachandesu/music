@@ -197,28 +197,30 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.word_emb_velocity = CompoundTransformerEmbeddings(self.num_tokens[7], self.emb_sizes[7])
          
         # individual output
-        self.proj_type = nn.Linear(dim, self.num_tokens[0])
-        self.proj_barbeat = nn.Linear(dim, self.num_tokens[1])
-        self.proj_tempo = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[2])
+        self.proj_type1 = nn.Linear(4096, self.num_tokens[0])
+        self.proj_barbeat1 = nn.Linear(4096, self.num_tokens[1])
+        self.proj_tempo1 = nn.Sequential(
+            nn.Linear(4096, self.num_tokens[2])
         )
-        self.proj_instrument =  nn.Sequential(
-            nn.Linear(dim, self.num_tokens[3])
+        self.proj_instrument1 =  nn.Sequential(
+            nn.Linear(4096, self.num_tokens[3])
         )
-        self.proj_note_name = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[4])
+        self.proj_note_name1 = nn.Sequential(
+            nn.Linear(4096, self.num_tokens[4])
         )
-        self.proj_octave = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[5])
+        self.proj_octave1 = nn.Sequential(
+            nn.Linear(4096, self.num_tokens[5])
         )
-         
-        self.proj_duration = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[6])
+
+        self.proj_duration1 = nn.Sequential(
+            nn.Linear(4096, self.num_tokens[6])
         )
-        
-        self.proj_velocity = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[7])
+
+        self.proj_velocity1 = nn.Sequential(
+            nn.Linear(4096, self.num_tokens[7])
         )
+
+        self.project_concat_type1 = nn.Linear(4096 + self.emb_sizes[0], 4096)
         
         # in_features is equal to dimension plus dimensions of the type embedding
         self.project_concat_type = nn.Linear(dim + self.emb_sizes[0], dim)
