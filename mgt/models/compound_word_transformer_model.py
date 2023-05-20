@@ -4,41 +4,21 @@ import time
 
 import numpy as np
 import torch
-from x_transformers import Decoder
-
+from MEGABYTE_pytorch import MEGABYTE
 from mgt.models import utils
-from mgt.models.compound_word_transformer.compound_word_autoregressive_wrapper import CompoundWordAutoregressiveWrapper
+
 from mgt.models.compound_word_transformer.compound_word_transformer_utils import COMPOUND_WORD_BAR, get_batch
-from mgt.models.compound_word_transformer.compound_word_transformer_wrapper import CompoundWordTransformerWrapper
 from mgt.models.utils import get_device
 
 
 defaults = {
-    'num_tokens': [
-        4,    # Type
-        17,   # Bar / Beat
-        6912,  # Tempo
-        6912,  # Instrument
-        6912,   # Note name
-        6912,    # Octave
-        6912,   # Duration
-        6912    # Velocity
-    ],
-    'emb_sizes': [
-        512,   # Type
-        512,   # Bar / Beat
-        512,  # Tempo
-        512,  # Instrument
-        512,  # Note Name
-        512,  # Octave
-        512,  # Duration
-        512   # Velocity
-    ],
-    'max_sequence_length': 512,
+    'num_tokens': 6912+16+4,
+    'emb_sizes': 512,
+    'max_seq_len': 512,
     'learning_rate': 1e-4,
     'dropout': 0.1,
-    'dim': 1024,
-    'depth': 12,
+    'dim': 512,
+    'depth': (6, 2),
     'heads': 8
 }
 
@@ -48,7 +28,7 @@ class CompoundWordTransformerModel(object):
     def __init__(self,
                  num_tokens=defaults['num_tokens'],
                  emb_sizes=defaults['emb_sizes'],
-                 max_sequence_length=defaults['max_sequence_length'],
+                 max_seq_len=defaults['max_seq_len'],
                  learning_rate=defaults['learning_rate'],
                  dropout=defaults['dropout'],
                  dim=defaults['dim'],
@@ -58,7 +38,7 @@ class CompoundWordTransformerModel(object):
         self.num_tokens = num_tokens
         self.emb_sizes = emb_sizes
         self.learning_rate = learning_rate
-        self.max_sequence_length = max_sequence_length
+        self.max_seq_len  = max_seq_len
         self.dropout = dropout
         self.dim = dim
         self.depth = depth
@@ -91,12 +71,10 @@ class CompoundWordTransformerModel(object):
                     batch = get_batch(
                         x_train,
                         batch_size=batch_size,
-                        max_sequence_length=self.max_sequence_length)
+                        max_sequence_length=self.max_seq_len)
 
                     torch_batch = torch.tensor(np.array(batch)).long().to(utils.get_device())
-
-                    losses = self.model.train_step(torch_batch)
-                    loss = sum(losses) / len(losses)
+                    loss = model(torch_batch, return_loss = True)
                     loss.backward()
 
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), 0.5)
@@ -134,19 +112,14 @@ class CompoundWordTransformerModel(object):
         return sample
 
     def create_model(self):
-        model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
-            num_tokens=self.num_tokens,
-            emb_sizes=self.emb_sizes,
-            max_seq_len=self.max_sequence_length,
-            attn_layers=Decoder(
-                dim=self.dim,
-                depth=self.depth,
-                heads=self.heads,
-                attn_dropout=self.dropout,  # dropout post-attention
-                ff_dropout=self.dropout,  # feedforward dropout
-                rotary_pos_emb=True
-            )
-        )).to(get_device())
+        
+        model = MEGABYTE(
+            num_tokens = 6912 + 16 + 4,
+            dim = 512,
+            depth = (6, 2),
+            max_seq_len = (1024, 8),
+            flash_attn = False
+        ).to(get_device())
 
         return model
 
