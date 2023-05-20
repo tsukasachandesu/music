@@ -134,9 +134,9 @@ class CompoundWordDataManager(DataManager):
           if i[0] == 3 + 6912 + 16:
             for j in range(6):
               if i[j+2]:
-                b.append( [i[0] + 6912 + 16] + [i[1]] + [0,0] + dic1.get(i[j+2])  +[31] )
+                b.append( [i[0]] + [i[1]] + [0,0] + dic1.get(i[j+2])  +[31] )
           else:
-            b.append( [i[0] + 6912 + 16]+[i[1]] + [0,0,0,0,0,0])
+            b.append( [i[0] ]+[i[1]] + [0,0,0,0,0,0])
         bb  = []
         for i in b:
             ii = [0,0,0,0,0,0,0,0]
