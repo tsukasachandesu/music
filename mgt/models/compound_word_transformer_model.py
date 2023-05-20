@@ -111,7 +111,7 @@ class CompoundWordTransformerModel(object):
             prompt = [COMPOUND_WORD_BAR]  # Bar
 
         self.model.eval()
-        sample = self.model.generate(output_length=output_length, prompt=prompt)
+        sample = self.model.generate(prime=prompt)
         return sample
 
     def create_model(self):
