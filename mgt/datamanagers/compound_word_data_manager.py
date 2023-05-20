@@ -92,16 +92,15 @@ class CompoundWordDataManager(DataManager):
                         n =[0,0,0,0,0,0,0,0]
                         r = 2
                         for j in i:
-                            n[0] = j[0]
-                            n[1] = j[1]
+                            n[0] = j[0] + 6912 + 16
+                            n[1] = j[1] + 6912
                             n[r] = j[2]
                             if r >= 7:
                                 break
                             r = r + 1
                         p.append(n)
-                    if p[-1] == [2, 0, 0, 0, 0, 0, 0, 0]:
+                    if p[-1] == [2 + 6912 + 16, 0, 0, 0, 0, 0, 0, 0]:
                         del p[-1]
-                    p.append([1, 0, 0, 0, 0, 0, 0, 0])
 
                     print(f'Extracted {len(p)} compound words.')
 
@@ -125,16 +124,21 @@ class CompoundWordDataManager(DataManager):
                     c = c + 1
         q = []
         for i in data:
-            if i[0] == 3:
-                q.append([2,i[1],0,0,0,0,0,0])
+            if i[0] == 3+6912+16:
+                q.append([2+6912+16,i[1]+6912,0,0,0,0,0,0])
             q.append(i)  
         b = []
         for i in q:
-          if i[0] == 3:
+          if i[0] == 3+6912+16:
             for j in range(6):
               if i[j+2]:
-                b.append( [i[0]]+[i[1]] + [0,0] + dic1.get(i[j+2])  +[31] )
+                b.append( [i[0]+6912+16]+[i[1]+6912] + [0,0] + dic1.get(i[j+2])  +[31] )
           else:
-            b.append( [i[0]]+[i[1]] + [0,0,0,0,0,0])
-        remi = self.compound_word_mapper.map_to_remi(b)
+            b.append( [i[0]+6912+16]+[i[1]+6912] + [0,0,0,0,0,0])
+        bb  = []
+        for i in b:
+            i[0] = i[0] - 6912 -16
+            i[1]  = i[1] -6912
+            bb.append(i)
+        remi = self.compound_word_mapper.map_to_remi(bb)
         return MidiToolkitWrapper(self.to_midi_mapper.to_midi(remi))
