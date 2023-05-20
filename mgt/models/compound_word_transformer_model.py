@@ -74,7 +74,7 @@ class CompoundWordTransformerModel(object):
                     batch = get_batch(
                         x_train,
                         batch_size=batch_size,
-                        max_seq_len=self.max_seq_len)
+                        max_sequence_length=self.max_seq_len)
 
                     torch_batch = torch.tensor(np.array(batch)).long().to(utils.get_device())
                     loss = self.model(torch_batch, return_loss = True)
