@@ -126,21 +126,21 @@ class CompoundWordDataManager(DataManager):
                     c = c + 1
         q = []
         for i in data:
-            if i[0] == 3+6912+16:
-                q.append([2+6912+16,i[1]+6912,0,0,0,0,0,0])
+            if i[0] == 3 + 6912 + 16:
+                q.append([2 + 6912 + 16,i[1] + 6912,0,0,0,0,0,0])
             q.append(i)  
         b = []
         for i in q:
-          if i[0] == 3+6912+16:
+          if i[0] == 3 + 6912 + 16:
             for j in range(6):
               if i[j+2]:
-                b.append( [i[0]+6912+16]+[i[1]+6912] + [0,0] + dic1.get(i[j+2])  +[31] )
+                b.append( [i[0] + 6912 + 16] + [i[1] + 6912] + [0,0] + dic1.get(i[j+2])  +[31] )
           else:
-            b.append( [i[0]+6912+16]+[i[1]+6912] + [0,0,0,0,0,0])
+            b.append( [i[0] + 6912 + 16]+[i[1] + 6912] + [0,0,0,0,0,0])
         bb  = []
         for i in b:
-            i[0] = i[0] - 6912 -16
-            i[1]  = i[1] -6912
+            i[0] = (i[0] - 6928)
+            i[1] = (i[1] - 6912)
             bb.append(i)
         print(bb)
         remi = self.compound_word_mapper.map_to_remi(bb)
