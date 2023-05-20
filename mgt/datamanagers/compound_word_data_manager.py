@@ -139,9 +139,17 @@ class CompoundWordDataManager(DataManager):
             b.append( [i[0] + 6912 + 16]+[i[1] + 6912] + [0,0,0,0,0,0])
         bb  = []
         for i in b:
-            i[0] = (i[0] - 6928)
-            i[1] = (i[1] - 6912)
-            bb.append(i)
+            ii = [0,0,0,0,0,0,0,0]
+            ii[0] = (i[0] - 6928)
+            ii[1] = (i[1] - 6912)
+            ii[2] =  i[2]
+            ii[3] =  i[3]
+            ii[4] =  i[4]
+            ii[5] =  i[5]
+            ii[6] =  i[6]
+            ii[7] =  i[7]
+            ii[8] =  i[8]
+            bb.append(ii)
         print(bb)
         remi = self.compound_word_mapper.map_to_remi(bb)
         return MidiToolkitWrapper(self.to_midi_mapper.to_midi(remi))
