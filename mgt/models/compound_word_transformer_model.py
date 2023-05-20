@@ -71,10 +71,10 @@ class CompoundWordTransformerModel(object):
                     batch = get_batch(
                         x_train,
                         batch_size=batch_size,
-                        max_sequence_length=self.max_seq_len)
+                        max_seq_len=self.max_seq_len)
 
                     torch_batch = torch.tensor(np.array(batch)).long().to(utils.get_device())
-                    loss = model(torch_batch, return_loss = True)
+                    loss = self.model(torch_batch, return_loss = True)
                     loss.backward()
 
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), 0.5)
@@ -131,7 +131,7 @@ class CompoundWordTransformerModel(object):
         torch.save({
             'num_tokens': self.num_tokens,
             'emb_sizes': self.emb_sizes,
-            'max_sequence_length': self.max_sequence_length,
+            'max_seq_len': self.max_seq_len,
             'learning_rate': self.learning_rate,
             'dropout': self.dropout,
             'dim': self.dim,
@@ -147,7 +147,7 @@ class CompoundWordTransformerModel(object):
         model = CompoundWordTransformerModel(
             num_tokens=utils.get_or_default(checkpoint, 'num_tokens', defaults),
             emb_sizes=utils.get_or_default(checkpoint, 'emb_sizes', defaults),
-            max_sequence_length=utils.get_or_default(checkpoint, 'max_sequence_length', defaults),
+            max_seq_len=utils.get_or_default(checkpoint, 'max_seq_len', defaults),
             learning_rate=utils.get_or_default(checkpoint, 'learning_rate', defaults),
             dropout=utils.get_or_default(checkpoint, 'dropout', defaults),
             dim=utils.get_or_default(checkpoint, 'dim', defaults),
