@@ -54,6 +54,7 @@ class CompoundWordDataManager(DataManager):
 
                     compound_words = self.compound_word_mapper.map_to_compound(data, self.dictionary)
                     compound_data = self.compound_word_mapper.map_compound_words_to_data(compound_words)
+                    print(compound_data )
                     a = [[i[0], i[1], dic.get((i[4], i[5], i[6]))] for i in compound_data]
                     d = []
                     for i in a:
@@ -141,5 +142,6 @@ class CompoundWordDataManager(DataManager):
             i[0] = i[0] - 6912 -16
             i[1]  = i[1] -6912
             bb.append(i)
+        print(bb)
         remi = self.compound_word_mapper.map_to_remi(bb)
         return MidiToolkitWrapper(self.to_midi_mapper.to_midi(remi))
