@@ -148,7 +148,7 @@ class CompoundWordDataManager(DataManager):
             ii[5] =  i[5]
             ii[6] =  i[6]
             ii[7] =  i[7]
-            ii[8] =  i[8]
+   
             bb.append(ii)
         print(bb)
         remi = self.compound_word_mapper.map_to_remi(bb)
