@@ -262,25 +262,25 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.word_emb_duration = CompoundTransformerEmbeddings(self.num_tokens[6], self.emb_sizes[6])
         self.word_emb_velocity = CompoundTransformerEmbeddings(self.num_tokens[7], self.emb_sizes[7])
          
-        self.proj_type1 = nn.Linear(4096, self.num_tokens[0])
-        self.proj_barbeat1 = nn.Linear(4096, self.num_tokens[1])
+        self.proj_type1 = nn.Linear(512, self.num_tokens[0])
+        self.proj_barbeat1 = nn.Linear(512, self.num_tokens[1])
         self.proj_tempo1 = nn.Sequential(
-            nn.Linear(4096, self.num_tokens[2])
+            nn.Linear(512, self.num_tokens[2])
         )
         self.proj_instrument1 =  nn.Sequential(
-            nn.Linear(4096, self.num_tokens[3])
+            nn.Linear(512, self.num_tokens[3])
         )
         self.proj_note_name1 = nn.Sequential(
-            nn.Linear(4096, self.num_tokens[4])
+            nn.Linear(512, self.num_tokens[4])
         )
         self.proj_octave1 = nn.Sequential(
-            nn.Linear(4096, self.num_tokens[5])
+            nn.Linear(512, self.num_tokens[5])
         )
         self.proj_duration1 = nn.Sequential(
-            nn.Linear(4096, self.num_tokens[6])
+            nn.Linear(512, self.num_tokens[6])
         )
         self.proj_velocity1 = nn.Sequential(
-            nn.Linear(4096, self.num_tokens[7])
+            nn.Linear(512, self.num_tokens[7])
         )
         self.project_concat_type1 = nn.Linear(4096 + self.emb_sizes[0], 4096)
         
@@ -461,7 +461,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             attended = unpack_one(attended, ps, '* n d')
             start_tokens = rearrange(attended[..., :-1, :], '... n d -> ... n 1 d')
             
-        print(attended.shape)
+        shp = attended[..., 1:, :]
 
-        return attended
+        return shp, self.proj_type1(shp[:,:,0,:]), self.proj_barbeat1(shp[:,:,1,:]), self.proj_tempo1(shp[:,:,2,:]), self.proj_instrument1(shp[:,:,3,:]), self.proj_note_name1(shp[:,:,4,:]), self.proj_octave1(shp[:,:,5,:]), self.proj_duration1(shp[:,:,6,:]), self.proj_velocity1(shp[:,:,7,:])
             
