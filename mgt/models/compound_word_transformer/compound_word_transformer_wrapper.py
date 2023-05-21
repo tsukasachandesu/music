@@ -481,7 +481,5 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         x = rearrange(depth_tokens, '(b s) d f -> b s d f', b = devi[0])
         x = x[:, :-1,:-1,:]
-        p = x.shape
-        z = x.view(p[0], p[1], -1)
 
-        return z, self.proj_type1(x[:,:,0,:]), self.proj_barbeat1(x[:,:,1,:]), self.proj_tempo1(x[:,:,2,:]), self.proj_instrument1(x[:,:,3,:]), self.proj_note_name1(x[:,:,4,:]), self.proj_octave1(x[:,:,5,:]), self.proj_duration1(x[:,:,6,:]), self.proj_velocity1(x[:,:,7,:])
+        return x, self.proj_type1(x[:,:,0,:]), self.proj_barbeat1(x[:,:,1,:]), self.proj_tempo1(x[:,:,2,:]), self.proj_instrument1(x[:,:,3,:]), self.proj_note_name1(x[:,:,4,:]), self.proj_octave1(x[:,:,5,:]), self.proj_duration1(x[:,:,6,:]), self.proj_velocity1(x[:,:,7,:])
