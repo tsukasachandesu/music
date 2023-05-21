@@ -307,9 +307,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.proj_duration1 = nn.Linear(4096, self.num_tokens[6])
         self.proj_velocity1 = nn.Linear(4096, self.num_tokens[7])
         self.project_concat_type1 = nn.Linear(4096 + self.emb_sizes[0], 4096)
-        
-        # in_features is equal to dimension plus dimensions of the type embedding
-        self.project_concat_type = nn.Linear(dim + self.emb_sizes[0], dim)
 
         self.compound_word_embedding_size = np.sum(emb_sizes)
 
