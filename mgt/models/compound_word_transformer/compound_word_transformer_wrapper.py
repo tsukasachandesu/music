@@ -283,7 +283,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         self.emb_sizes = emb_sizes
 
-        dim = attn_layers.dim
+        dim = 512
         emb_dim = default(emb_dim, dim)
 
         self.num_tokens = num_tokens
