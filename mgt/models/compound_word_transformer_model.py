@@ -116,7 +116,8 @@ class CompoundWordTransformerModel(object):
             dim = 512,
             depth = (6, 2),
             max_seq_len = (1024, 8),
-            flash_attn = False
+            flash_attn = False,
+            pad_id = 6929
         ).to(get_device())
 
         return model
