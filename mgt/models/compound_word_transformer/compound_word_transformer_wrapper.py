@@ -94,60 +94,51 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         # individual output
         self.proj_type = nn.Sequential(
-            nn.LayerNorm(dim),
-            nn.Linear(dim, dim * 4),
+            nn.Linear(dim, dim * 3),
             nn.GELU(),
-            nn.Linear(dim * 4, self.num_tokens[0])
+            nn.Linear(dim * 3, self.num_tokens[0])
         )
         
         self.proj_barbeat = nn.Sequential(
-            nn.LayerNorm(dim),
-            nn.Linear(dim, dim * 4),
+            nn.Linear(dim, dim * 3),
             nn.GELU(),
-            nn.Linear(dim * 4, self.num_tokens[1])
+            nn.Linear(dim * 3, self.num_tokens[1])
         )
         
         self.proj_tempo = nn.Sequential(
-            nn.LayerNorm(dim),
-            nn.Linear(dim, dim * 4),
+            nn.Linear(dim, dim * 3),
             nn.GELU(),
-            nn.Linear(dim * 4, self.num_tokens[2])
+            nn.Linear(dim * 3, self.num_tokens[2])
         )
         
         self.proj_instrument = nn.Sequential(
-            
-            nn.LayerNorm(dim),
-            nn.Linear(dim, dim * 4),
+            nn.Linear(dim, dim * 3),
             nn.GELU(),
-            nn.Linear(dim * 4, self.num_tokens[3])
+            nn.Linear(dim * 3, self.num_tokens[3])
         )
         
         self.proj_note_name = nn.Sequential(
-            nn.LayerNorm(dim),
-            nn.Linear(dim, dim * 4),
+            nn.Linear(dim, dim * 3),
             nn.GELU(),
-            nn.Linear(dim * 4, self.num_tokens[4])
+            nn.Linear(dim * 3, self.num_tokens[4])
         )
         
         self.proj_octave = nn.Sequential(
-            nn.LayerNorm(dim),
-            nn.Linear(dim, dim * 4),
+            nn.Linear(dim, dim * 3),
             nn.GELU(),
-            nn.Linear(dim * 4, self.num_tokens[5])
+            nn.Linear(dim * 3, self.num_tokens[5])
         )
         
         self.proj_duration = nn.Sequential(
-            nn.LayerNorm(dim),
-            nn.Linear(dim, dim * 4),
+            nn.Linear(dim, dim * 3),
             nn.GELU(),
-            nn.Linear(dim * 4, self.num_tokens[6])
+            nn.Linear(dim * 3, self.num_tokens[6])
         )
         
         self.proj_velocity = nn.Sequential(
-            nn.LayerNorm(dim),
-            nn.Linear(dim, dim * 4),
+            nn.Linear(dim, dim * 3),
             nn.GELU(),
-            nn.Linear(dim * 4, self.num_tokens[7])
+            nn.Linear(dim * 3, self.num_tokens[7])
         )
         
         # in_features is equal to dimension plus dimensions of the type embedding
