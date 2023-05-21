@@ -294,7 +294,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.start_tokens = nn.Parameter(torch.randn(dim))
 
         self.max_seq_len1 = (255, 8)
-        self.pos_embs = nn.ModuleList([nn.Embedding(seq_len, dim) for seq_len in max_seq_len])
+        self.pos_embs = nn.ModuleList([nn.Embedding(seq_len, dim) for seq_len in max_seq_len1])
 
         self.patch_embedders = nn.ModuleList([nn.Sequential(
             Rearrange('... r d -> ... (r d)'),
