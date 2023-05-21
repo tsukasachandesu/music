@@ -108,7 +108,7 @@ class CompoundWordTransformerModel(object):
         print(f"Generating a new song with {output_length} characters.")
 
         if prompt is None:
-            prompt = [COMPOUND_WORD_BAR]  # Bar
+            prompt = [[COMPOUND_WORD_BAR]]
 
         self.model.eval()
         sample = self.model.generate(prime=prompt)
