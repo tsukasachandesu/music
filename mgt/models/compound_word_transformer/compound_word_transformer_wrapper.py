@@ -276,9 +276,8 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_duration,
                 emb_velocity
             ], dim=-1)
-        embs = self.norm1(embs)
+        
         emb_linear = self.in_linear1(embs)
-        emb_linear = self.norm2(emb_linear)
 
         x = emb_linear + self.pos_emb(emb_linear)
         x = self.emb_dropout(x)
