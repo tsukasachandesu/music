@@ -464,5 +464,5 @@ class CompoundWordTransformerWrapper(nn.Module):
             
         shp = attended[..., 1:, :]
 
-        return shp, self.proj_type1(shp[:,:,0,:]), self.proj_barbeat1(shp[:,:,1,:]), self.proj_tempo1(shp[:,:,2,:]), self.proj_instrument1(shp[:,:,3,:]), self.proj_note_name1(shp[:,:,4,:]), self.proj_octave1(shp[:,:,5,:]), self.proj_duration1(shp[:,:,6,:]), self.proj_velocity1(shp[:,:,7,:])
+        return shp[:,-1:,:,:].squeeze(1), self.proj_type1(shp[:,:,0,:]), self.proj_barbeat1(shp[:,:,1,:]), self.proj_tempo1(shp[:,:,2,:]), self.proj_instrument1(shp[:,:,3,:]), self.proj_note_name1(shp[:,:,4,:]), self.proj_octave1(shp[:,:,5,:]), self.proj_duration1(shp[:,:,6,:]), self.proj_velocity1(shp[:,:,7,:])
             
