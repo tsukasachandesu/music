@@ -260,7 +260,7 @@ class CompoundWordTransformerWrapper(nn.Module):
                 
         self.spatial_transformer = Transformer(
             dim = 512,
-            layers = 10,
+            layers = 12,
             dim_head = 64,
             heads = 8,
             attn_dropout = 0.1,
@@ -272,7 +272,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         self.depth_transformer = Transformer(
             dim = 512,
-            layers = 10,
+            layers = 12,
             dim_head = 64,
             heads = 8,
             attn_dropout = 0.1,
