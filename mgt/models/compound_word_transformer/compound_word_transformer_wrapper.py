@@ -332,15 +332,15 @@ class CompoundWordTransformerWrapper(nn.Module):
             selection_temperatures = {}
  
         # project other
-        y_  =  h
-        proj_type = self.proj_type1(y_)
-        proj_barbeat = self.proj_barbeat1(y_)
-        proj_tempo = self.proj_tempo1(y_)
-        proj_instrument = self.proj_instrument1(y_)
-        proj_note_name = self.proj_note_name1(y_)
-        proj_octave = self.proj_octave1(y_)
-        proj_duration = self.proj_duration1(y_)
-        proj_velocity = self.proj_velocity1(y_)
+        shp  =  h
+        proj_type = self.proj_type1(shp[:,:,0,:])
+        proj_barbeat = self.proj_barbeat1(shp[:,:,0,:])
+        proj_tempo = self.proj_tempo1(shp[:,:,0,:])
+        proj_instrument = self.proj_instrument1(shp[:,:,0,:])
+        proj_note_name = self.proj_note_name1(shp[:,:,0,:])
+        proj_octave = self.proj_octave1(shp[:,:,0,:])
+        proj_duration = self.proj_duration1(shp[:,:,0,:])
+        proj_velocity = self.proj_velocity1(shp[:,:,0,:])
 
         # sampling gen_cond
         cur_word_type = sampling(
