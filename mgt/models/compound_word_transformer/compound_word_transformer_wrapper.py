@@ -497,7 +497,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         p = tokens_with_depth_pos.shape
         spatial_tokens = tokens_with_depth_pos.view(p[0], p[1], -1)
         spatial_tokens = self.patch_embedders(spatial_tokens)
-
         spatial_tokens = spatial_tokens + self.pos_emb(spatial_tokens)
         
         spatial_tokens = torch.cat((
@@ -506,19 +505,13 @@ class CompoundWordTransformerWrapper(nn.Module):
         ), dim = -2)        
 
         spatial_tokens = self.spatial_transformer(spatial_tokens)
-
         spatial_tokens = rearrange(spatial_tokens, 'b s f -> b s 1 f')
 
         # spatial tokens become the start tokens of the depth dimension
 
-        print(tokens_with_depth_pos.shape)
         tokens_with_depth_pos = F.pad(tokens_with_depth_pos, (0, 0, 0, 0, 0, 1), value = 0.)
-        print(tokens_with_depth_pos.shape)
-
         depth_tokens = torch.cat((spatial_tokens, tokens_with_depth_pos), dim = -2)
-        print(depth_tokens.shape)
         depth_tokens = rearrange(depth_tokens, '... n d -> (...) n d')
-
         depth_tokens = self.depth_transformer(depth_tokens)
 
         x = rearrange(depth_tokens, '(b s) d f -> b s d f', b = devi[0])
