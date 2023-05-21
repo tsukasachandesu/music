@@ -355,30 +355,17 @@ class CompoundWordTransformerWrapper(nn.Module):
         nn.init.normal_(self.word_emb_duration.weight(), std=0.02)
         nn.init.normal_(self.word_emb_velocity.weight(), std=0.02)
 
-    def forward_output_sampling(self, h, y_type, selection_temperatures=None, selection_probability_tresholds=None):
+    def forward_output_sampling(self, h, selection_temperatures=None, selection_probability_tresholds=None):
         # sample type
         if selection_probability_tresholds is None:
             selection_probability_tresholds = {}
 
         if selection_temperatures is None:
             selection_temperatures = {}
-
-        y_type_logit = y_type[0, :]
-        cur_word_type = sampling(
-            y_type_logit,
-            probability_treshold=selection_probability_tresholds.get(0, None),
-            temperature=selection_temperatures.get(0, 1.0)
-        )
-
-        type_word_t = torch.from_numpy(np.array([cur_word_type])).long().to(get_device()).unsqueeze(0)
-
-        tf_skip_type = self.word_emb_type(type_word_t)
-
-        # concat
-        y_concat_type = torch.cat([h, tf_skip_type], dim=-1)
-        y_ = self.project_concat_type1(y_concat_type)
-
+ 
         # project other
+        y_  =  h
+        proj_type = self.proj_type1(y_)
         proj_barbeat = self.proj_barbeat1(y_)
         proj_tempo = self.proj_tempo1(y_)
         proj_instrument = self.proj_instrument1(y_)
@@ -388,6 +375,11 @@ class CompoundWordTransformerWrapper(nn.Module):
         proj_velocity = self.proj_velocity1(y_)
 
         # sampling gen_cond
+        cur_word_type = sampling(
+            proj_type,
+            probability_treshold=selection_probability_tresholds.get(0, None),
+            temperature=selection_temperatures.get(0, 1.0))
+        
         cur_word_barbeat = sampling(
             proj_barbeat,
             probability_treshold=selection_probability_tresholds.get(1, None),
