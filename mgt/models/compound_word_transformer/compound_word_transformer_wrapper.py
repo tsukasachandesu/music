@@ -289,7 +289,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.emb_dropout = nn.Dropout(emb_dropout)
         self.project_emb = nn.Linear(emb_dim, dim) if emb_dim != dim else nn.Identity()
        
-        depth = (8, 8)
+        depth = (6, 6)
         self.stages = len(depth)
         self.start_tokens = nn.Parameter(torch.randn(dim))
 
@@ -333,7 +333,6 @@ class CompoundWordTransformerWrapper(nn.Module):
  
         # project other
         shp  =  h
-        print(shp)
         proj_type = self.proj_type1(shp[:,0,:])
         proj_barbeat = self.proj_barbeat1(shp[:,1,:])
         proj_tempo = self.proj_tempo1(shp[:,2,:])
@@ -343,14 +342,11 @@ class CompoundWordTransformerWrapper(nn.Module):
         proj_duration = self.proj_duration1(shp[:,6,:])
         proj_velocity = self.proj_velocity1(shp[:,7,:])
         
-        print(proj_type)
-
         # sampling gen_cond
         cur_word_type = sampling(
             proj_type,
             probability_treshold=selection_probability_tresholds.get(0, None),
             temperature=selection_temperatures.get(0, 1.0))
-        print(cur_word_type)
         
         cur_word_barbeat = sampling(
             proj_barbeat,
@@ -375,17 +371,17 @@ class CompoundWordTransformerWrapper(nn.Module):
         cur_word_octave = sampling(
             proj_octave,
             probability_treshold=selection_probability_tresholds.get(4, None),
-            temperature=selection_temperatures.get(4, 1.0))
+            temperature=selection_temperatures.get(5, 1.0))
 
         cur_word_duration = sampling(
             proj_duration,
             probability_treshold=selection_probability_tresholds.get(5, None),
-            temperature=selection_temperatures.get(5, 1.0))
+            temperature=selection_temperatures.get(6, 1.0))
 
         cur_word_velocity = sampling(
             proj_velocity,
             probability_treshold=selection_probability_tresholds.get(6, None),
-            temperature=selection_temperatures.get(6, 1.0))
+            temperature=selection_temperatures.get(7, 1.0))
 
         # collect
         next_arr = np.array([
@@ -398,6 +394,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             cur_word_duration,
             cur_word_velocity
         ])
+        print(next_arr)
         return next_arr
 
     def forward_hidden(
