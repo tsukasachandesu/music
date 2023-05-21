@@ -298,33 +298,28 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.word_emb_velocity = CompoundTransformerEmbeddings(self.num_tokens[7], self.emb_sizes[7])
          
         # individual output
-        self.proj_type1 = nn.Linear(4096, self.num_tokens[0])
-        self.proj_barbeat1 = nn.Linear(4096, self.num_tokens[1])
+        self.proj_type1 = nn.Linear(512, self.num_tokens[0])
+        self.proj_barbeat1 = nn.Linear(512, self.num_tokens[1])
         self.proj_tempo1 = nn.Sequential(
-            nn.Linear(4096, self.num_tokens[2])
+            nn.Linear(512, self.num_tokens[2])
         )
         self.proj_instrument1 =  nn.Sequential(
-            nn.Linear(4096, self.num_tokens[3])
+            nn.Linear(512, self.num_tokens[3])
         )
         self.proj_note_name1 = nn.Sequential(
-            nn.Linear(4096, self.num_tokens[4])
+            nn.Linear(512, self.num_tokens[4])
         )
         self.proj_octave1 = nn.Sequential(
-            nn.Linear(4096, self.num_tokens[5])
+            nn.Linear(512, self.num_tokens[5])
         )
 
         self.proj_duration1 = nn.Sequential(
-            nn.Linear(4096, self.num_tokens[6])
+            nn.Linear(512, self.num_tokens[6])
         )
 
         self.proj_velocity1 = nn.Sequential(
-            nn.Linear(4096, self.num_tokens[7])
+            nn.Linear(512, self.num_tokens[7])
         )
-
-        self.project_concat_type1 = nn.Linear(4096 + self.emb_sizes[0], 4096)
-        
-        # in_features is equal to dimension plus dimensions of the type embedding
-        self.project_concat_type = nn.Linear(dim + self.emb_sizes[0], dim)
 
         self.compound_word_embedding_size = np.sum(emb_sizes)
 
@@ -487,6 +482,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         x = rearrange(depth_tokens, '(b s) d f -> b s d f', b = devi[0])
         x = x[:, :-1,:-1,:]
         p = x.shape
-        x = x.view(p[0], p[1], -1)
+        z = x.view(p[0], p[1], -1)
 
-        return x, self.proj_type1(x), self.proj_barbeat1(x), self.proj_tempo1(x), self.proj_instrument1(x), self.proj_note_name1(x), self.proj_octave1(x), self.proj_duration1(x), self.proj_velocity1(x)
+        return z, self.proj_type1(x[:,:,0,:]), self.proj_barbeat1(x[:,:,1,:]), self.proj_tempo1(x[:,:,2,:]), self.proj_instrument1(x[:,:,3,:]), self.proj_note_name1(x[:,:,4,:]), self.proj_octave1(x[:,:,5,:]), self.proj_duration1(x[:,:,6,:]), self.proj_velocity1(x[:,:,7,:])
