@@ -519,4 +519,4 @@ class CompoundWordTransformerWrapper(nn.Module):
         p = x.shape
         x = x.view(p[0], p[1], -1)
 
-        return self.proj_type1(x), self.proj_barbeat1(x). self.proj_tempo1(x), self.proj_instrument1(x), self.proj_note_name1(x), self.proj_octave1(x), self.proj_duration1(x), self.proj_velocity1(x)
+        return self.proj_type1(x), self.proj_barbeat1(x), self.proj_tempo1(x), self.proj_instrument1(x), self.proj_note_name1(x), self.proj_octave1(x), self.proj_duration1(x), self.proj_velocity1(x)
