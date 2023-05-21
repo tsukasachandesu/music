@@ -289,7 +289,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.emb_dropout = nn.Dropout(emb_dropout)
         self.project_emb = nn.Linear(emb_dim, dim) if emb_dim != dim else nn.Identity()
        
-        depth = (6, 4)
+        depth = (8, 8)
         self.stages = len(depth)
         self.start_tokens = nn.Parameter(torch.randn(dim))
 
@@ -405,8 +405,6 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         b, *prec_dims, device = *x.shape, x.device
         
-        print(prec_dims)
-        
         emb_type = self.word_emb_type(x[..., 0]).unsqueeze(2) 
         emb_barbeat = self.word_emb_barbeat(x[..., 1]).unsqueeze(2) 
         emb_tempo = self.word_emb_tempo(x[..., 2]).unsqueeze(2) 
@@ -430,7 +428,6 @@ class CompoundWordTransformerWrapper(nn.Module):
                                                
         tokens_at_stages = []
         reduced_tokens = embs
-        print(reduced_tokens.shape)
         
         for ind, pos_emb, patch_emb in zip(range(len(prec_dims)), reversed(self.pos_embs), reversed((*self.patch_embedders, None))):
             is_first = ind == 0
