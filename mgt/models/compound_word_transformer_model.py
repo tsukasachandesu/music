@@ -109,7 +109,7 @@ class CompoundWordTransformerModel(object):
 
         if prompt is None:
 
-            initial = torch.tensor(np.array([[COMPOUND_WORD_BAR]])).long().to(utils.get_device())
+            initial = torch.tensor(np.array([6930,0,0,0,0,0,0,0])).long().to(utils.get_device())
             print(initial)
 
         self.model.eval()
