@@ -107,6 +107,7 @@ class CompoundWordTransformerModel(object):
     def generate(self, output_length=100, prompt=None):
         print(f"Generating a new song with {output_length} characters.")
         sample = self.model.generate()
+        sample = sample.cpu().detach().numpy()[0]
         return sample
 
     def create_model(self):
