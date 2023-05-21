@@ -12,6 +12,8 @@ import torch.nn.functional as F
 from mgt.models.compound_word_transformer.compound_transformer_embeddings import CompoundTransformerEmbeddings
 from mgt.models.utils import get_device
 
+from mgt.models.compound_word_transformer.encoder import Attend
+
 # token shift, from Peng et al of RWKV
 
 def token_shift(t):
