@@ -48,7 +48,7 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         for _ in range(output_length):
             # sample others
             next_arr = self.net.forward_output_sampling(
-                h[:, -1:, :],
+                h[:,-1:,:, :],
                 selection_temperatures=selection_temperatures,
                 selection_probability_tresholds=selection_probability_tresholds)
 
