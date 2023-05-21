@@ -241,7 +241,6 @@ class CompoundWordTransformerWrapper(nn.Module):
             nn.LayerNorm(512)
         ) 
 
-
         self.pos_emb = AbsolutePositionalEmbedding(512, 256)
         self.pos_emb1 = AbsolutePositionalEmbedding(512, 8) 
 
@@ -312,18 +311,18 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         cur_word_octave = sampling(
             proj_octave,
-            probability_treshold=selection_probability_tresholds.get(4, None),
-            temperature=selection_temperatures.get(4, 1.0))
-
-        cur_word_duration = sampling(
-            proj_duration,
             probability_treshold=selection_probability_tresholds.get(5, None),
             temperature=selection_temperatures.get(5, 1.0))
 
-        cur_word_velocity = sampling(
-            proj_velocity,
+        cur_word_duration = sampling(
+            proj_duration,
             probability_treshold=selection_probability_tresholds.get(6, None),
             temperature=selection_temperatures.get(6, 1.0))
+
+        cur_word_velocity = sampling(
+            proj_velocity,
+            probability_treshold=selection_probability_tresholds.get(7, None),
+            temperature=selection_temperatures.get(7, 1.0))
 
         # collect
         next_arr = np.array([
@@ -344,13 +343,10 @@ class CompoundWordTransformerWrapper(nn.Module):
                        ):
 
         tf_skip_type = self.word_emb_type(target[..., 0])
-
         y_concat_type = torch.cat([h, tf_skip_type], dim=-1)
         y_ = self.project_concat_type1(y_concat_type)
 
-
         proj_barbeat = self.proj_barbeat1(y_)
-
         proj_tempo = self.proj_tempo1(y_)
         proj_instrument = self.proj_instrument1(y_)
         proj_note_name = self.proj_note_name1(y_)
@@ -399,8 +395,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         p = tokens_with_depth_pos.shape
         spatial_tokens = tokens_with_depth_pos.view(p[0], p[1], -1)
         spatial_tokens = self.patch_embedders(spatial_tokens)
-        
-        
         
         spatial_tokens = spatial_tokens + self.pos_emb(spatial_tokens)
         
