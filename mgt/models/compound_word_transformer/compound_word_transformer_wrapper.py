@@ -316,7 +316,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             nn.LayerNorm(512)
         ) 
 
-        self.pos_emb = AbsolutePositionalEmbedding(512, 512)
+        self.pos_emb = AbsolutePositionalEmbedding(512, 756)
         self.pos_emb1 = AbsolutePositionalEmbedding(512, 8) 
 
         self.init_()
