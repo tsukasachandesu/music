@@ -106,14 +106,7 @@ class CompoundWordTransformerModel(object):
 
     def generate(self, output_length=100, prompt=None):
         print(f"Generating a new song with {output_length} characters.")
-
-        if prompt is None:
-
-            initial = torch.tensor(np.array([6930,0,0,0,0,0,0,0])).long().to(utils.get_device())
-            print(initial)
-
-        self.model.eval()
-        sample = self.model.generate(prime=initial)
+        sample = self.model.generate()
         return sample
 
     def create_model(self):
