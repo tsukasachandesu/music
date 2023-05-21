@@ -93,11 +93,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.word_emb_velocity = CompoundTransformerEmbeddings(self.num_tokens[7], self.emb_sizes[7])
         
 
-        self.bi = nn.LSTM(512, 512, batch_first=True, bidirectional=True)
         self.emb1 = nn.Embedding(6912, 512)
         self.li = nn.Linear(1024, 512)
-
-
+        
         # individual output
         self.proj_type = nn.Linear(dim, self.num_tokens[0])
         self.proj_barbeat = nn.Linear(dim, self.num_tokens[1])
@@ -271,20 +269,16 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_duration = self.word_emb_duration(x[..., 6])
         emb_velocity = self.word_emb_velocity(x[..., 7])
 
-        y = x[:,:,2:]
-        z = y.shape
-        y = y.reshape(-1, z[-1])
-        y = self.emb1(y)
-        out, _ = self.bi(y)    
-        
-        hidden = torch.cat((out[:, -1], out[:, 0], out[:, 1],out[:, 2],out[:, 3],out[:, 4]), dim=-1)
-        y = hidden.reshape([z[0], z[1], 6144])
-
         embs = torch.cat(
             [
                 emb_type,
                 emb_barbeat,
-                y
+                emb_tempo,
+                emb_instrument,
+                emb_note_name,
+                emb_octave,
+                emb_duration,
+                emb_velocity
             ], dim=-1)
 
         emb_linear = self.in_linear1(embs)
