@@ -1,7 +1,6 @@
-################################################################################
-# Sampling
-################################################################################
-# -- temperature -- #
+import math
+import functools
+
 import numpy as np
 import torch
 from torch import nn, einsum
