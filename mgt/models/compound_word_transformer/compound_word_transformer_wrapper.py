@@ -333,14 +333,14 @@ class CompoundWordTransformerWrapper(nn.Module):
  
         # project other
         shp  =  h
-        proj_type = self.proj_type1(shp[:,:,0,:])
-        proj_barbeat = self.proj_barbeat1(shp[:,:,0,:])
-        proj_tempo = self.proj_tempo1(shp[:,:,0,:])
-        proj_instrument = self.proj_instrument1(shp[:,:,0,:])
-        proj_note_name = self.proj_note_name1(shp[:,:,0,:])
-        proj_octave = self.proj_octave1(shp[:,:,0,:])
-        proj_duration = self.proj_duration1(shp[:,:,0,:])
-        proj_velocity = self.proj_velocity1(shp[:,:,0,:])
+        proj_type = self.proj_type1(shp[:,0,:])
+        proj_barbeat = self.proj_barbeat1(shp[:,1,:])
+        proj_tempo = self.proj_tempo1(shp[:,2,:])
+        proj_instrument = self.proj_instrument1(shp[:,3,:])
+        proj_note_name = self.proj_note_name1(shp[:,4,:])
+        proj_octave = self.proj_octave1(shp[:,5,:])
+        proj_duration = self.proj_duration1(shp[:,6,:])
+        proj_velocity = self.proj_velocity1(shp[:,7,:])
 
         # sampling gen_cond
         cur_word_type = sampling(
