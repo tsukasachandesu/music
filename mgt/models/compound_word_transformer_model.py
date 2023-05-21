@@ -37,7 +37,7 @@ defaults = {
     'max_sequence_length': 512,
     'learning_rate': 1e-4,
     'dropout': 0.1,
-    'dim': 1024,
+    'dim': 512,
     'depth': 12,
     'heads': 8
 }
@@ -142,9 +142,12 @@ class CompoundWordTransformerModel(object):
                 dim=self.dim,
                 depth=self.depth,
                 heads=self.heads,
+                ff_glu = True,
+                ff_swish = True,
+                rotary_xpos = True,
+                shift_tokens = 1,
                 attn_dropout=self.dropout,  # dropout post-attention
                 ff_dropout=self.dropout,  # feedforward dropout
-                rotary_pos_emb=True
             )
         )).to(get_device())
 
