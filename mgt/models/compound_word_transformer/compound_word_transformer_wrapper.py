@@ -328,11 +328,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         self.compound_word_embedding_size = np.sum(emb_sizes)
 
-        self.emb_dropout = nn.Dropout(emb_dropout)
-
         self.project_emb = nn.Linear(emb_dim, dim) if emb_dim != dim else nn.Identity()
-        
-        self.norm = nn.LayerNorm(dim)
 
         self.patch_embedders = nn.Sequential(
             nn.LayerNorm(8 * 512),
@@ -410,18 +406,18 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         cur_word_octave = sampling(
             proj_octave,
-            probability_treshold=selection_probability_tresholds.get(4, None),
-            temperature=selection_temperatures.get(4, 1.0))
-
-        cur_word_duration = sampling(
-            proj_duration,
             probability_treshold=selection_probability_tresholds.get(5, None),
             temperature=selection_temperatures.get(5, 1.0))
 
-        cur_word_velocity = sampling(
-            proj_velocity,
+        cur_word_duration = sampling(
+            proj_duration,
             probability_treshold=selection_probability_tresholds.get(6, None),
             temperature=selection_temperatures.get(6, 1.0))
+
+        cur_word_velocity = sampling(
+            proj_velocity,
+            probability_treshold=selection_probability_tresholds.get(7, None),
+            temperature=selection_temperatures.get(7, 1.0))
 
         # collect
         next_arr = np.array([
