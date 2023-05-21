@@ -14,6 +14,27 @@ from mgt.models.utils import get_device
 from mgt.models.compound_word_transformer.encoder import Attend
 from einops.layers.torch import Rearrange
 
+def exists(val):
+    return val is not None
+
+def default(val, d):
+    return val if exists(val) else d
+
+def pack_one(t, pattern):
+    return pack([t], pattern)
+
+def unpack_one(t, ps, pattern):
+    return unpack(t, ps, pattern)[0]
+
+def remainder_to_mult(num, mult):
+    return (mult - num % mult) % mult
+
+def cast_tuple(t, length = 1):
+    return t if isinstance(t, tuple) else ((t,) * length)
+
+def reduce_mult(nums):
+    return functools.reduce(lambda x, y: x * y, nums, 1)
+
 # token shift, from Peng et al of RWKV
 
 def token_shift(t):
