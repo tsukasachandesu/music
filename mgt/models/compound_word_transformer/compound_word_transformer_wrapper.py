@@ -245,43 +245,8 @@ class CompoundWordTransformerWrapper(nn.Module):
             emb_sizes=None
     ):
         super().__init__()
-
-        if emb_sizes is None:
-            emb_sizes = [
-                512,  # Type
-                512,  # Bar / Beat
-                512,  # Tempo
-                512,  # Instrument
-                512,  # Note Name
-                512,  # Octave
-                512,  # Duration
-                512  # Velocity
-            ]
                 
-        self.spatial_transformer = Transformer(
-            dim = 512,
-            layers = 12,
-            dim_head = 64,
-            heads = 8,
-            attn_dropout = 0.1,
-            ff_dropout = 0.1,
-            ff_mult = 4
-        )
-        
-        self.spatial_start_token = nn.Parameter(torch.randn(512))
-
-        self.depth_transformer = Transformer(
-            dim = 512,
-            layers = 12,
-            dim_head = 64,
-            heads = 8,
-            attn_dropout = 0.1,
-            ff_dropout = 0.1,
-            ff_mult = 4
-        )
-
         self.emb_sizes = emb_sizes
-
         dim = 512
         emb_dim = default(emb_dim, dim)
 
@@ -297,7 +262,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.word_emb_duration = CompoundTransformerEmbeddings(self.num_tokens[6], self.emb_sizes[6])
         self.word_emb_velocity = CompoundTransformerEmbeddings(self.num_tokens[7], self.emb_sizes[7])
          
-        # individual output
         self.proj_type1 = nn.Linear(4096, self.num_tokens[0])
         self.proj_barbeat1 = nn.Linear(4096, self.num_tokens[1])
         self.proj_tempo1 = nn.Sequential(
@@ -312,36 +276,40 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.proj_octave1 = nn.Sequential(
             nn.Linear(4096, self.num_tokens[5])
         )
-
         self.proj_duration1 = nn.Sequential(
             nn.Linear(4096, self.num_tokens[6])
         )
-
         self.proj_velocity1 = nn.Sequential(
             nn.Linear(4096, self.num_tokens[7])
         )
-
         self.project_concat_type1 = nn.Linear(4096 + self.emb_sizes[0], 4096)
         
-        # in_features is equal to dimension plus dimensions of the type embedding
         self.project_concat_type = nn.Linear(dim + self.emb_sizes[0], dim)
-
         self.compound_word_embedding_size = np.sum(emb_sizes)
-
         self.emb_dropout = nn.Dropout(emb_dropout)
-
         self.project_emb = nn.Linear(emb_dim, dim) if emb_dim != dim else nn.Identity()
-        
-        self.norm = nn.LayerNorm(dim)
+       
+        depth = (6, 4)
+        self.stages = len(depth)
+        self.start_tokens = nn.Parameter(torch.randn(dim))
 
-        self.patch_embedders = nn.Sequential(
-            nn.LayerNorm(8 * 512),
-            nn.Linear(8 * 512, 512),
-            nn.LayerNorm(512)
-        ) 
+        self.max_seq_len1 = (255, 8)
+        self.pos_embs = nn.ModuleList([nn.Embedding(seq_len, dim) for seq_len in max_seq_len])
 
-        self.pos_emb = AbsolutePositionalEmbedding(512, 256)
-        self.pos_emb1 = AbsolutePositionalEmbedding(512, 8) 
+        self.patch_embedders = nn.ModuleList([nn.Sequential(
+            Rearrange('... r d -> ... (r d)'),
+            nn.LayerNorm(seq_len * dim),
+            nn.Linear(seq_len * dim, dim),
+            nn.LayerNorm(dim)
+        ) for seq_len in self.max_seq_len1[1:]])
+
+        self.transformers = nn.ModuleList([])
+
+        for stage_depth in depth:
+            self.transformers.append(Transformer(
+                dim = dim,
+                layers = stage_depth
+            ))
 
         self.init_()
 
@@ -434,7 +402,9 @@ class CompoundWordTransformerWrapper(nn.Module):
             mask=None,
             **kwargs
     ):
-        # embeddings
+
+        b, *prec_dims, device = *x.shape, x.device
+        
         emb_type = self.word_emb_type(x[..., 0]).unsqueeze(2) 
         emb_barbeat = self.word_emb_barbeat(x[..., 1]).unsqueeze(2) 
         emb_tempo = self.word_emb_tempo(x[..., 2]).unsqueeze(2) 
@@ -455,38 +425,39 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_duration,
                 emb_velocity
             ], dim=2)
-                                                
-        device=embs.device
-        devi=embs.shape
-        
-        embs = rearrange(embs, 'b s d f -> (b s) d f')
-        tokens_with_depth_pos = embs + self.pos_emb1(embs)
-        tokens_with_depth_pos = rearrange(tokens_with_depth_pos, '(b s) d f -> b s d f', b = devi[0])
+                                               
+        tokens_at_stages = []
+        reduced_tokens = embs
+        for ind, pos_emb, patch_emb in zip(range(len(prec_dims)), reversed(self.pos_embs), reversed((*self.patch_embedders, None))):
+            is_first = ind == 0
 
-        # spatial tokens is tokens with depth pos reduced along depth dimension + spatial positions
-        p = tokens_with_depth_pos.shape
-        spatial_tokens = tokens_with_depth_pos.view(p[0], p[1], -1)
-        spatial_tokens = self.patch_embedders(spatial_tokens)
-        spatial_tokens = spatial_tokens + self.pos_emb(spatial_tokens)
-        
-        spatial_tokens = torch.cat((
-            repeat(self.spatial_start_token, 'f -> b 1 f', b = devi[0]),
-            spatial_tokens
-        ), dim = -2)        
+            if not is_first:
+                reduced_tokens = patch_emb(reduced_tokens)
 
-        spatial_tokens = self.spatial_transformer(spatial_tokens)
-        spatial_tokens = rearrange(spatial_tokens, 'b s f -> b s 1 f')
+            positions = pos_emb(torch.arange(reduced_tokens.shape[-2], device = device))
+            tokens_with_position = reduced_tokens + positions
+            tokens_at_stages.insert(0, tokens_with_position)
 
-        # spatial tokens become the start tokens of the depth dimension
+        # get start tokens and append to the coarsest stage
 
-        tokens_with_depth_pos = F.pad(tokens_with_depth_pos, (0, 0, 0, 0, 0, 1), value = 0.)
-        depth_tokens = torch.cat((spatial_tokens, tokens_with_depth_pos), dim = -2)
-        depth_tokens = rearrange(depth_tokens, '... n d -> (...) n d')
-        depth_tokens = self.depth_transformer(depth_tokens)
+        start_tokens = repeat(self.start_tokens, 'f -> b 1 f', b = b)
 
-        x = rearrange(depth_tokens, '(b s) d f -> b s d f', b = devi[0])
-        x = x[:, :-1,:-1,:]
-        p = x.shape
-        x = x.view(p[0], p[1], -1)
+        # spatial tokens is tokens with depth pos reduced along depth dimension + spatial positions        
 
-        return x, self.proj_type1(x), self.proj_barbeat1(x), self.proj_tempo1(x), self.proj_instrument1(x), self.proj_note_name1(x), self.proj_octave1(x), self.proj_duration1(x), self.proj_velocity1(x)
+        for ind, (stage_tokens, transformer) in enumerate(zip(tokens_at_stages, self.transformers)):
+            is_last = ind == (self.stages - 1)
+
+            stage_tokens = torch.cat((
+                start_tokens,
+                stage_tokens,
+            ), dim = -2)
+
+            stage_tokens, ps = pack_one(stage_tokens, '* n d')
+            attended = transformer(stage_tokens)
+            attended = unpack_one(attended, ps, '* n d')
+
+            start_tokens = rearrange(attended[..., :-1, :], '... n d -> ... n 1 d')
+        print(attended.shape)
+
+        return attended
+            
