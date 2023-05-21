@@ -405,6 +405,8 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         b, *prec_dims, device = *x.shape, x.device
         
+        print(prec_dims)
+        
         emb_type = self.word_emb_type(x[..., 0]).unsqueeze(2) 
         emb_barbeat = self.word_emb_barbeat(x[..., 1]).unsqueeze(2) 
         emb_tempo = self.word_emb_tempo(x[..., 2]).unsqueeze(2) 
@@ -428,6 +430,8 @@ class CompoundWordTransformerWrapper(nn.Module):
                                                
         tokens_at_stages = []
         reduced_tokens = embs
+        print(reduced_tokens.shape)
+        
         for ind, pos_emb, patch_emb in zip(range(len(prec_dims)), reversed(self.pos_embs), reversed((*self.patch_embedders, None))):
             is_first = ind == 0
 
@@ -455,8 +459,8 @@ class CompoundWordTransformerWrapper(nn.Module):
             stage_tokens, ps = pack_one(stage_tokens, '* n d')
             attended = transformer(stage_tokens)
             attended = unpack_one(attended, ps, '* n d')
-
             start_tokens = rearrange(attended[..., :-1, :], '... n d -> ... n 1 d')
+            
         print(attended.shape)
 
         return attended
