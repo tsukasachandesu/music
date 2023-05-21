@@ -511,12 +511,12 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         # spatial tokens become the start tokens of the depth dimension
 
-
+        print(tokens_with_depth_pos.shape)
         tokens_with_depth_pos = F.pad(tokens_with_depth_pos, (0, 0, 0, 0, 0, 1), value = 0.)
         print(tokens_with_depth_pos.shape)
-        print(tokens_with_depth_pos[0])
-        depth_tokens = torch.cat((spatial_tokens, tokens_with_depth_pos), dim = -2)
 
+        depth_tokens = torch.cat((spatial_tokens, tokens_with_depth_pos), dim = -2)
+        print(depth_tokens.shape)
         depth_tokens = rearrange(depth_tokens, '... n d -> (...) n d')
 
         depth_tokens = self.depth_transformer(depth_tokens)
