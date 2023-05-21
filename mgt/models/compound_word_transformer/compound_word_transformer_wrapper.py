@@ -92,10 +92,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.word_emb_duration = CompoundTransformerEmbeddings(self.num_tokens[6], self.emb_sizes[6])
         self.word_emb_velocity = CompoundTransformerEmbeddings(self.num_tokens[7], self.emb_sizes[7])
         
-
-        self.emb1 = nn.Embedding(6912, 512)
-        self.li = nn.Linear(1024, 512)
-        
         # individual output
         self.proj_type = nn.Linear(dim, self.num_tokens[0])
         self.proj_barbeat = nn.Linear(dim, self.num_tokens[1])
@@ -137,8 +133,7 @@ class CompoundWordTransformerWrapper(nn.Module):
                 use_pos_emb and not attn_layers.has_pos_emb) else always(0)
         
         self.norm = nn.LayerNorm(dim)
-
-        self.in_linear = nn.Linear(np.sum(self.emb_sizes), emb_dim)
+        
         self.in_linear1 = nn.Linear(6272, emb_dim)
 
         self.init_()
@@ -280,8 +275,9 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_duration,
                 emb_velocity
             ], dim=-1)
-
+        embs = self.norm(embs)
         emb_linear = self.in_linear1(embs)
+        emb_linear = self.norm(emb_linear)
 
         x = emb_linear + self.pos_emb(emb_linear)
         x = self.emb_dropout(x)
