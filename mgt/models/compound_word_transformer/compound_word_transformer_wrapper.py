@@ -227,7 +227,6 @@ class CompoundWordTransformerWrapper(nn.Module):
             emb_sizes=None
     ):
         super().__init__()
-        assert isinstance(attn_layers, AttentionLayers), 'attention layers must be one of Encoder or Decoder'
 
         if emb_sizes is None:
             emb_sizes = [
