@@ -314,17 +314,14 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.emb_dropout = nn.Dropout(emb_dropout)
 
         self.project_emb = nn.Linear(emb_dim, dim) if emb_dim != dim else nn.Identity()
-        self.attn_layers = attn_layers
         
         self.norm = nn.LayerNorm(dim)
 
-        self.in_linear = nn.Linear(4096, 512)
         self.patch_embedders = nn.Sequential(
             nn.LayerNorm(8 * 512),
             nn.Linear(8 * 512, 512),
             nn.LayerNorm(512)
         ) 
-
 
         self.pos_emb = AbsolutePositionalEmbedding(512, 256)
         self.pos_emb1 = AbsolutePositionalEmbedding(512, 8) 
@@ -483,9 +480,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         p = tokens_with_depth_pos.shape
         spatial_tokens = tokens_with_depth_pos.view(p[0], p[1], -1)
         spatial_tokens = self.patch_embedders(spatial_tokens)
-        
-        
-        
+
         spatial_tokens = spatial_tokens + self.pos_emb(spatial_tokens)
         
         spatial_tokens = torch.cat((
