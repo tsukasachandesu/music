@@ -133,6 +133,8 @@ class CompoundWordTransformerWrapper(nn.Module):
                 use_pos_emb and not attn_layers.has_pos_emb) else always(0)
         
         self.norm = nn.LayerNorm(dim)
+        self.norm1 = nn.LayerNorm(6272)
+        self.norm2= nn.LayerNorm(512)
         
         self.in_linear1 = nn.Linear(6272, emb_dim)
 
@@ -275,9 +277,9 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_duration,
                 emb_velocity
             ], dim=-1)
-        embs = self.norm(embs)
+        embs = self.norm1(embs)
         emb_linear = self.in_linear1(embs)
-        emb_linear = self.norm(emb_linear)
+        emb_linear = self.norm2(emb_linear)
 
         x = emb_linear + self.pos_emb(emb_linear)
         x = self.emb_dropout(x)
