@@ -6,13 +6,14 @@ import numpy as np
 import torch
 from torch import nn, einsum
 from einops_exts import rearrange_with_anon_dims
-from einops import rearrange, reduce, repeat
+from einops import rearrange, reduce, repeat, pack, unpack
 from x_transformers.x_transformers import AttentionLayers, default, AbsolutePositionalEmbedding, always
 import torch.nn.functional as F
 from mgt.models.compound_word_transformer.compound_transformer_embeddings import CompoundTransformerEmbeddings
 from mgt.models.utils import get_device
 
 from mgt.models.compound_word_transformer.encoder import Attend
+from einops.layers.torch import Rearrange
 
 # token shift, from Peng et al of RWKV
 
