@@ -310,8 +310,6 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         self.compound_word_embedding_size = np.sum(emb_sizes)
 
-        self.project_emb = nn.Linear(emb_dim, dim) if emb_dim != dim else nn.Identity()
-
         self.patch_embedders = nn.Sequential(
             nn.LayerNorm(8 * 512),
             nn.Linear(8 * 512, 512),
