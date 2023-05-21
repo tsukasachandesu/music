@@ -210,18 +210,18 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         cur_word_octave = sampling(
             proj_octave,
-            probability_treshold=selection_probability_tresholds.get(4, None),
-            temperature=selection_temperatures.get(4, 1.0))
-
-        cur_word_duration = sampling(
-            proj_duration,
             probability_treshold=selection_probability_tresholds.get(5, None),
             temperature=selection_temperatures.get(5, 1.0))
 
-        cur_word_velocity = sampling(
-            proj_velocity,
+        cur_word_duration = sampling(
+            proj_duration,
             probability_treshold=selection_probability_tresholds.get(6, None),
             temperature=selection_temperatures.get(6, 1.0))
+
+        cur_word_velocity = sampling(
+            proj_velocity,
+            probability_treshold=selection_probability_tresholds.get(7, None),
+            temperature=selection_temperatures.get(7, 1.0))
 
         # collect
         next_arr = np.array([
@@ -275,7 +275,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         z = y.shape
         y = y.reshape(-1, z[-1])
         y = self.emb1(y)
-        out,_ = self.bi(y)    
+        out, _ = self.bi(y)    
         
         hidden = torch.cat((out[:, -1], out[:, 0], out[:, 1],out[:, 2],out[:, 3],out[:, 4]), dim=-1)
         y = hidden.reshape([z[0], z[1], 6144])
