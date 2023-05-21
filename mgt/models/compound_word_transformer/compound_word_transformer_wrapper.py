@@ -522,7 +522,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         depth_tokens = self.depth_transformer(depth_tokens)
 
         x = rearrange(depth_tokens, '(b s) d f -> b s d f', b = devi[0])
-        x = x[:,:-1,:-1,:]
+        x = x[:, 1:,:-1,:]
         p = x.shape
         x = x.view(p[0], p[1], -1)
 
