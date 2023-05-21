@@ -132,11 +132,10 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.pos_emb1 = AbsolutePositionalEmbedding(512, 6) if (
                 use_pos_emb and not attn_layers.has_pos_emb) else always(0)
         
-        self.norm = nn.LayerNorm(dim)
-        self.norm1 = nn.LayerNorm(6272)
+        self.norm = nn.LayerNorm(512)
+        self.norm1 = nn.LayerNorm(3200)
         self.norm2= nn.LayerNorm(512)
-        
-        self.in_linear1 = nn.Linear(6272, emb_dim)
+        self.in_linear1 = nn.Linear(3200, 512)
 
         self.init_()
 
