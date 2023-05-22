@@ -260,7 +260,7 @@ class CompoundWordTransformerWrapper(nn.Module):
                 
         self.spatial_transformer = Transformer(
             dim = 512,
-            layers = 12,
+            layers = 13,
             dim_head = 64,
             heads = 8,
             attn_dropout = 0.1,
@@ -272,7 +272,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         self.depth_transformer = Transformer(
             dim = 512,
-            layers = 12,
+            layers = 13,
             dim_head = 64,
             heads = 8,
             attn_dropout = 0.1,
@@ -311,9 +311,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.compound_word_embedding_size = np.sum(emb_sizes)
 
         self.patch_embedders = nn.Sequential(
-            nn.LayerNorm(8 * 512),
-            nn.Linear(8 * 512, 512),
-            nn.LayerNorm(512)
+            nn.Linear(8 * 512, 512)
         ) 
 
         self.pos_emb = AbsolutePositionalEmbedding(512, 756)
