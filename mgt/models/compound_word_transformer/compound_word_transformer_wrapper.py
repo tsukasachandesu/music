@@ -94,51 +94,35 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         # individual output
         self.proj_type = nn.Sequential(
-            nn.Linear(dim, dim * 3),
-            nn.GELU(),
-            nn.Linear(dim * 3, self.num_tokens[0])
+            nn.Linear(dim, self.num_tokens[0])
         )
         
         self.proj_barbeat = nn.Sequential(
-            nn.Linear(dim, dim * 3),
-            nn.GELU(),
-            nn.Linear(dim * 3, self.num_tokens[1])
+            nn.Linear(dim, self.num_tokens[1])
         )
         
         self.proj_tempo = nn.Sequential(
-            nn.Linear(dim, dim * 3),
-            nn.GELU(),
-            nn.Linear(dim * 3, self.num_tokens[2])
+            nn.Linear(dim, self.num_tokens[2])
         )
         
         self.proj_instrument = nn.Sequential(
-            nn.Linear(dim, dim * 3),
-            nn.GELU(),
-            nn.Linear(dim * 3, self.num_tokens[3])
+            nn.Linear(dim, self.num_tokens[3])
         )
         
         self.proj_note_name = nn.Sequential(
-            nn.Linear(dim, dim * 3),
-            nn.GELU(),
-            nn.Linear(dim * 3, self.num_tokens[4])
+            nn.Linear(dim, self.num_tokens[4])
         )
         
         self.proj_octave = nn.Sequential(
-            nn.Linear(dim, dim * 3),
-            nn.GELU(),
-            nn.Linear(dim * 3, self.num_tokens[5])
+            nn.Linear(dim, self.num_tokens[5])
         )
         
         self.proj_duration = nn.Sequential(
-            nn.Linear(dim, dim * 3),
-            nn.GELU(),
-            nn.Linear(dim * 3, self.num_tokens[6])
+            nn.Linear(dim, self.num_tokens[6])
         )
         
         self.proj_velocity = nn.Sequential(
-            nn.Linear(dim, dim * 3),
-            nn.GELU(),
-            nn.Linear(dim * 3, self.num_tokens[7])
+            nn.Linear(dim, self.num_tokens[7])
         )
         
         # in_features is equal to dimension plus dimensions of the type embedding
@@ -158,8 +142,6 @@ class CompoundWordTransformerWrapper(nn.Module):
                 use_pos_emb and not attn_layers.has_pos_emb) else always(0)
         
         self.norm = nn.LayerNorm(512)
-        self.norm1 = nn.LayerNorm(3200)
-        self.norm2= nn.LayerNorm(512)
         self.in_linear1 = nn.Linear(3200, 512)
 
         self.init_()
