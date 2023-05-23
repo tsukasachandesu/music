@@ -34,11 +34,11 @@ defaults = {
         512,  # Duration
         512   # Velocity
     ],
-    'max_sequence_length': 756,
+    'max_sequence_length': 1024,
     'learning_rate': 1e-4,
     'dropout': 0.1,
     'dim': 512,
-    'depth': 16,
+    'depth': 24,
     'heads': 8
 }
 
@@ -73,7 +73,7 @@ class CompoundWordTransformerModel(object):
     def train(self,
               x_train,
               epochs,
-              batch_size=12,
+              batch_size=6,
               stop_loss=None,
               batches_per_epoch=100,
               report_per_x_batches=20,
