@@ -13,7 +13,7 @@ from mgt.models.compound_word_transformer.compound_word_transformer_utils import
 from mgt.models.compound_word_transformer.compound_word_transformer_wrapper import CompoundWordTransformerWrapper
 from mgt.models.utils import get_device
 from mgt.datamanagers.compound_word_data_manager import CompoundWordDataManager
-
+from mgt.datamanagers.data_helper import DataHelper
 
 import random
 import tqdm
