@@ -1,7 +1,7 @@
+from __future__ import annotations
 import pickle
 import deepspeed
 
-from __future__ import annotations
 import time
 import numpy as np
 import torch
@@ -27,6 +27,41 @@ from torch.utils.data import DataLoader, Dataset
 import argparse
 
 datamanager = CompoundWordDataManager()
+
+from typing import List
+import random
+
+COMPOUND_WORD_PADDING = [0, 0, 0, 0, 0, 0, 0, 0]
+COMPOUND_WORD_BAR = [2, 0, 0, 0, 0, 0, 0, 0]
+
+def pad(array: np.ndarray, max_sequence_length: int, padding_compound_word: np.ndarray = None) -> np.ndarray:
+    if padding_compound_word is None:
+        padding_compound_word = COMPOUND_WORD_PADDING
+    if len(array) >= max_sequence_length:
+        return array[:max_sequence_length]
+    else:
+        number_of_padding_elements_to_add = max_sequence_length - len(array)
+        padding = np.tile(padding_compound_word, (number_of_padding_elements_to_add, 1))
+        return np.vstack((array, padding))
+
+class Dataset(Dataset):
+    def __init__(self, data, max_length=1024):
+        self.data = data
+        self.max_length = max_length
+        
+    def __len__(self):
+        return 500
+
+    def __getitem__(self, idx):
+        song_index = random.randint(0, len(self.data) - 1)
+        if len(self.data[song_index]) <= self.max_length:
+          padded_song = pad(self.data[song_index], self.max_length)
+          a = padded_song
+        else:
+          starting_index = random.randint(0, len(self.data[song_index]) - self.max_length)
+          a = self.data[song_index][starting_index: starting_index + self.max_length]
+            
+        return torch.tensor(a).long()
 
 def add_argument():
     parser=argparse.ArgumentParser(description='enwik8')
@@ -101,7 +136,7 @@ model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
     ))).cuda()
 
 # setup deepspeed
-data_train = DataHelper.load('/content/drive/MyDrive/b.dat')
+data_train = DataHelper.load('/content/drive/MyDrive/1data')
 train_dataset = get_batch(data_train.data, batch_size=4, max_sequence_length=defaults["max_sequence_length"])
 
 cmd_args = add_argument()
