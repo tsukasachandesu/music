@@ -7,14 +7,6 @@ import numpy as np
 import torch
 from x_transformers import Decoder
 
-from mgt.models import utils
-from mgt.models.compound_word_transformer.compound_word_autoregressive_wrapper import CompoundWordAutoregressiveWrapper
-from mgt.models.compound_word_transformer.compound_word_transformer_utils import COMPOUND_WORD_BAR, get_batch
-from mgt.models.compound_word_transformer.compound_word_transformer_wrapper import CompoundWordTransformerWrapper
-from mgt.models.utils import get_device
-from mgt.datamanagers.compound_word_data_manager import CompoundWordDataManager
-from mgt.datamanagers.data_helper import DataHelper
-
 import random
 import tqdm
 import gzip
@@ -26,10 +18,19 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset
 import argparse
 
-datamanager = CompoundWordDataManager()
-
 from typing import List
 import random
+
+from mgt.models import utils
+from mgt.models.compound_word_transformer.compound_word_autoregressive_wrapper import CompoundWordAutoregressiveWrapper
+from mgt.models.compound_word_transformer.compound_word_transformer_utils import COMPOUND_WORD_BAR, get_batch
+from mgt.models.compound_word_transformer.compound_word_transformer_wrapper import CompoundWordTransformerWrapper
+from mgt.models.utils import get_device
+from mgt.datamanagers.compound_word_data_manager import CompoundWordDataManager
+from mgt.datamanagers.data_helper import DataHelper
+
+datamanager = CompoundWordDataManager()
+
 
 COMPOUND_WORD_PADDING = [0, 0, 0, 0, 0, 0, 0, 0]
 COMPOUND_WORD_BAR = [2, 0, 0, 0, 0, 0, 0, 0]
