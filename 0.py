@@ -37,7 +37,7 @@ def add_argument():
                         help='whether use exponential moving average')
     parser.add_argument('-b', '--batch_size', default=4, type=int,
                         help='mini-batch size (default: 32)')
-    parser.add_argument('-e', '--epochs', default=30, type=int,
+    parser.add_argument('-e', '--epochs', default=3, type=int,
                         help='number of total epochs (default: 30)')
     parser.add_argument('--local_rank', type=int, default=-1,
                        help='local rank passed from distributed launcher')
@@ -48,7 +48,7 @@ def add_argument():
 
 # constants
 
-EPOCHS = 5
+EPOCHS = 4
 GRADIENT_ACCUMULATE_EVERY = 0
 GENERATE_EVERY = 1800
 GENERATE_LENGTH = 1024
@@ -121,5 +121,6 @@ for _ in range(EPOCHS):
         model_engine.step()
         print(loss.item())
 
-model.eval()          
-model_engine.save_checkpoint("/content/3")
+model.eval()    
+if yes:
+    model_engine.save_checkpoint("/content/3")
