@@ -16,8 +16,7 @@ from mgt.models.utils import get_device
 import random
 import tqdm
 import gzip
-import numpy as np
-import torch
+
 import torch.optim as optim
 from einops import rearrange
 from torch import einsum, nn
