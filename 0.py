@@ -7,6 +7,14 @@ import numpy as np
 import torch
 from x_transformers import Decoder
 
+from mgt.models import utils
+from mgt.models.compound_word_transformer.compound_word_autoregressive_wrapper import CompoundWordAutoregressiveWrapper
+from mgt.models.compound_word_transformer.compound_word_transformer_utils import COMPOUND_WORD_BAR, get_batch
+from mgt.models.compound_word_transformer.compound_word_transformer_wrapper import CompoundWordTransformerWrapper
+from mgt.models.utils import get_device
+from mgt.datamanagers.compound_word_data_manager import CompoundWordDataManager
+from mgt.datamanagers.data_helper import DataHelper
+
 import random
 import tqdm
 import gzip
@@ -18,15 +26,10 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset
 import argparse
 
+datamanager = CompoundWordDataManager()
+
 from typing import List
 import random
-
-from mgt.models import utils
-from mgt.models.compound_word_transformer.compound_word_autoregressive_wrapper import CompoundWordAutoregressiveWrapper
-from mgt.models.compound_word_transformer.compound_word_transformer_utils import COMPOUND_WORD_BAR, get_batch
-from mgt.models.compound_word_transformer.compound_word_transformer_wrapper import CompoundWordTransformerWrapper
-from mgt.models.utils import get_device
-from mgt.datamanagers.data_helper import DataHelper
 
 COMPOUND_WORD_PADDING = [0, 0, 0, 0, 0, 0, 0, 0]
 COMPOUND_WORD_BAR = [2, 0, 0, 0, 0, 0, 0, 0]
@@ -67,9 +70,9 @@ def add_argument():
                         help='use CPU in case there\'s no GPU support')
     parser.add_argument('--use_ema', default=False, action='store_true',
                         help='whether use exponential moving average')
-    parser.add_argument('-b', '--batch_size', default=4, type=int,
+    parser.add_argument('-b', '--batch_size', default=2, type=int,
                         help='mini-batch size (default: 32)')
-    parser.add_argument('-e', '--epochs', default=3, type=int,
+    parser.add_argument('-e', '--epochs', default=4, type=int,
                         help='number of total epochs (default: 30)')
     parser.add_argument('--local_rank', type=int, default=-1,
                        help='local rank passed from distributed launcher')
@@ -81,7 +84,7 @@ def add_argument():
 # constants
 
 EPOCHS = 4
-GRADIENT_ACCUMULATE_EVERY = 0
+GRADIENT_ACCUMULATE_EVERY = 1
 GENERATE_EVERY = 1800
 GENERATE_LENGTH = 1024
 yes = None
