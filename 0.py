@@ -158,3 +158,12 @@ for _ in range(EPOCHS):
 model.eval()    
 if yes:
     model_engine.save_checkpoint("/content/3")
+
+
+prompt = [COMPOUND_WORD_BAR] 
+sample = model.generate(output_length=1024, prompt=prompt)
+datamanager = CompoundWordDataManager()
+midi = datamanager.to_midi(sample)
+midi.save("1.midi")
+
+
