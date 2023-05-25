@@ -1,11 +1,17 @@
 import pickle
 import deepspeed
 
-from recurrent_memory_transformer_pytorch import RecurrentMemoryTransformer, RecurrentMemoryTransformerWrapper
+from __future__ import annotations
+import time
+import numpy as np
+import torch
+from x_transformers import Decoder
 
-from mgt.datamanagers.remi_data_manager import RemiDataManager
-from mgt.datamanagers.data_helper import DataHelper
-from mgt.datamanagers.remi.efficient_remi_config import EfficientRemiConfig
+from mgt.models import utils
+from mgt.models.compound_word_transformer.compound_word_autoregressive_wrapper import CompoundWordAutoregressiveWrapper
+from mgt.models.compound_word_transformer.compound_word_transformer_utils import COMPOUND_WORD_BAR, get_batch
+from mgt.models.compound_word_transformer.compound_word_transformer_wrapper import CompoundWordTransformerWrapper
+from mgt.models.utils import get_device
 
 import random
 import tqdm
