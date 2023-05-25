@@ -26,11 +26,7 @@ from mgt.models.compound_word_transformer.compound_word_autoregressive_wrapper i
 from mgt.models.compound_word_transformer.compound_word_transformer_utils import COMPOUND_WORD_BAR, get_batch
 from mgt.models.compound_word_transformer.compound_word_transformer_wrapper import CompoundWordTransformerWrapper
 from mgt.models.utils import get_device
-from mgt.datamanagers.compound_word_data_manager import CompoundWordDataManager
 from mgt.datamanagers.data_helper import DataHelper
-
-datamanager = CompoundWordDataManager()
-
 
 COMPOUND_WORD_PADDING = [0, 0, 0, 0, 0, 0, 0, 0]
 COMPOUND_WORD_BAR = [2, 0, 0, 0, 0, 0, 0, 0]
@@ -51,7 +47,7 @@ class Dataset(Dataset):
         self.max_length = max_length
         
     def __len__(self):
-        return 500
+        return 512
 
     def __getitem__(self, idx):
         song_index = random.randint(0, len(self.data) - 1)
@@ -138,7 +134,7 @@ model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
 
 # setup deepspeed
 data_train = DataHelper.load('/content/drive/MyDrive/1data')
-train_dataset = get_batch(data_train.data, batch_size=4, max_sequence_length=defaults["max_sequence_length"])
+train_dataset = Dataset(data_train.data)
 
 cmd_args = add_argument()
 model_engine, optimizer, trainloader, _ = deepspeed.initialize(args=cmd_args, model=model, model_parameters=model.parameters(), training_data=train_dataset)
@@ -148,7 +144,6 @@ if yes:
 for _ in range(EPOCHS):
     for i, data in enumerate(trainloader):
         model_engine.train()
-        data = torch.tensor(np.array(data)).long().cuda()
         data = data.to(model_engine.local_rank)
         loss = model_engine.train_step(data)
         loss = sum(loss) / len(loss)
