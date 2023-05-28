@@ -1,5 +1,5 @@
 {
-    "train_batch_size": 6,
+    "train_batch_size": 12,
     "gradient_accumulation_steps": 3,
     "steps_per_print": 2000,
     "max_grad_norm": 0.5,
@@ -15,7 +15,7 @@
       }
     },
     "fp16": {
-      "enabled": true,
+      "enabled": false,
       "loss_scale": 0,
       "loss_scale_window": 1000,
       "hysteresis": 2,
@@ -32,3 +32,4 @@
     "zero_optimization": true,
     "wall_clock_breakdown": false
   }
+
