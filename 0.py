@@ -88,6 +88,7 @@ GRADIENT_ACCUMULATE_EVERY = 3
 GENERATE_EVERY = 1800
 GENERATE_LENGTH = 1024
 yes = None
+yes1 = ""
 
 # instantiate GPT-like decoder model
 
@@ -142,7 +143,7 @@ train_dataset = Dataset(data_train.data)
 cmd_args = add_argument()
 model_engine, optimizer, trainloader, _ = deepspeed.initialize(args=cmd_args, model=model, model_parameters=model.parameters(), training_data=train_dataset)
 if yes:
-    _, client_sd = model_engine.load_checkpoint("/content/3")
+    _, client_sd = model_engine.load_checkpoint("/")
 
 for _ in range(EPOCHS):
     for i, data in enumerate(trainloader):
@@ -156,8 +157,8 @@ for _ in range(EPOCHS):
         print(loss.item())
 
 model.eval()    
-if yes:
-    model_engine.save_checkpoint("/content/3")
+if yes1:
+    model_engine.save_checkpoint("/")
 
 
 prompt = [COMPOUND_WORD_BAR] 
