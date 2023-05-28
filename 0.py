@@ -70,7 +70,7 @@ def add_argument():
                         help='use CPU in case there\'s no GPU support')
     parser.add_argument('--use_ema', default=False, action='store_true',
                         help='whether use exponential moving average')
-    parser.add_argument('-b', '--batch_size', default=4, type=int,
+    parser.add_argument('-b', '--batch_size', default=12, type=int,
                         help='mini-batch size (default: 32)')
     parser.add_argument('-e', '--epochs', default=4, type=int,
                         help='number of total epochs (default: 30)')
@@ -83,12 +83,12 @@ def add_argument():
 
 # constants
 
-EPOCHS = 6
+EPOCHS = 2
 GRADIENT_ACCUMULATE_EVERY = 3
 GENERATE_EVERY = 1800
 GENERATE_LENGTH = 1024
-yes = None
-yes1 = ""
+yes = "a"
+yes1 = "a"
 
 # instantiate GPT-like decoder model
 
@@ -137,7 +137,7 @@ model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
     ))).cuda()
 
 # setup deepspeed
-data_train = DataHelper.load('/content/drive/MyDrive/1data')
+data_train = DataHelper.load('/content/drive/MyDrive/test_dataset')
 train_dataset = Dataset(data_train.data)
 
 cmd_args = add_argument()
@@ -162,9 +162,11 @@ if yes1:
 
 
 prompt = [COMPOUND_WORD_BAR] 
-sample = model.generate(output_length=1024, prompt=prompt)
+sample = model.generate(output_length=256, prompt=prompt)
 datamanager = CompoundWordDataManager()
 midi = datamanager.to_midi(sample)
 midi.save("1.midi")
+
+
 
 
