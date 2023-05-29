@@ -10,6 +10,9 @@ from x_transformers.x_transformers import AttentionLayers, default, AbsolutePosi
 from mgt.models.compound_word_transformer.compound_transformer_embeddings import CompoundTransformerEmbeddings
 from mgt.models.utils import get_device
 
+from einops_exts import rearrange_with_anon_dims
+from einops import rearrange, reduce, repeat
+
 def softmax_with_temperature(logits, temperature):
     probs = np.exp(logits / temperature) / np.sum(np.exp(logits / temperature))
     return probs
@@ -166,6 +169,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.norm = nn.LayerNorm(512)
         self.in_linear1 = nn.Linear(32+96+512, 512)
         self.encoder = VAETransformerEncoder(6, 8, 512)
+        self.spatial_start_token = nn.Parameter(torch.randn(dim))
 
         self.init_()
 
@@ -307,6 +311,11 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_barbeat,
                 y
             ], dim=-1)
+        
+        spatial_tokens = torch.cat((
+            repeat(self.spatial_start_token, 'f -> b 1 f', b = b),
+            spatial_tokens
+        ), dim = -2)       
 
         emb_linear = self.in_linear1(embs)
         x = emb_linear + self.pos_emb(emb_linear)
