@@ -52,11 +52,12 @@ def sampling(logit, probability_treshold=None, temperature=1.0):
     return cur_word
 
 class VAETransformerEncoder(nn.Module):
-  def __init__(self, n_layer, n_head, d_model, dropout=0.1, activation='relu'):
+  def __init__(self, n_layer, n_head, d_model, d_ff, dropout=0.1, activation='relu'):
     super(VAETransformerEncoder, self).__init__()
     self.n_layer = n_layer
     self.n_head = n_head
     self.d_model = d_model
+    self.d_ff = d_ff
     self.dropout = dropout
     self.activation = activation
 
@@ -69,9 +70,8 @@ class VAETransformerEncoder(nn.Module):
 
   def forward(self, x, padding_mask=None):
     out = self.tr_encoder(x, src_key_padding_mask=padding_mask)
-    hidden_out = out[0, :, :]
 
-    return hidden_out
+    return out
 
 class CompoundWordTransformerWrapper(nn.Module):
     def __init__(
@@ -167,9 +167,12 @@ class CompoundWordTransformerWrapper(nn.Module):
                 use_pos_emb and not attn_layers.has_pos_emb) else always(0)
         
         self.norm = nn.LayerNorm(512)
+        self.emb1 = nn.Embedding(6912, 512)
         self.in_linear1 = nn.Linear(32+96+512, 512)
-        self.encoder = VAETransformerEncoder(6, 8, 512)
-        self.spatial_start_token = nn.Parameter(torch.randn(dim))
+        self.encoder = VAETransformerEncoder(6, 8, 512, 2048)
+
+        self.spatial_start_token = nn.Parameter(torch.randn(512))
+        self.spatial_pos_emb = nn.Embedding(6, 512) # account for a boundary case
 
         self.init_()
 
@@ -302,8 +305,17 @@ class CompoundWordTransformerWrapper(nn.Module):
         y = x[:,:,2:]
         z = y.shape
         y = y.reshape(-1, z[-1])
+
         y = self.emb1(y)
+
+        y = torch.cat((
+            repeat(self.spatial_start_token, 'f -> b 1 f', b = emb_type.shape[0]),
+            y
+        ), dim = -2)      
+
         y = self.encoder(y)
+        y = y[:,0,:]
+        y = y.reshape(emb_type.shape[0],emb_type.shape[1],512)
 
         embs = torch.cat(
             [
@@ -311,11 +323,6 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_barbeat,
                 y
             ], dim=-1)
-        
-        spatial_tokens = torch.cat((
-            repeat(self.spatial_start_token, 'f -> b 1 f', b = b),
-            spatial_tokens
-        ), dim = -2)       
 
         emb_linear = self.in_linear1(embs)
         x = emb_linear + self.pos_emb(emb_linear)
