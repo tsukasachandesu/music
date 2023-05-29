@@ -10,9 +10,6 @@ from x_transformers.x_transformers import AttentionLayers, default, AbsolutePosi
 from mgt.models.compound_word_transformer.compound_transformer_embeddings import CompoundTransformerEmbeddings
 from mgt.models.utils import get_device
 
-from einops_exts import rearrange_with_anon_dims
-from einops import rearrange, reduce, repeat
-
 def softmax_with_temperature(logits, temperature):
     probs = np.exp(logits / temperature) / np.sum(np.exp(logits / temperature))
     return probs
@@ -50,28 +47,6 @@ def sampling(logit, probability_treshold=None, temperature=1.0):
     else:
         cur_word = weighted_sampling(probs)
     return cur_word
-
-class VAETransformerEncoder(nn.Module):
-  def __init__(self, n_layer, n_head, d_model, d_ff, dropout=0.1, activation='relu'):
-    super(VAETransformerEncoder, self).__init__()
-    self.n_layer = n_layer
-    self.n_head = n_head
-    self.d_model = d_model
-    self.d_ff = d_ff
-    self.dropout = dropout
-    self.activation = activation
-
-    self.tr_encoder_layer = nn.TransformerEncoderLayer(
-      d_model, n_head, d_ff, dropout, activation
-    )
-    self.tr_encoder = nn.TransformerEncoder(
-      self.tr_encoder_layer, n_layer
-    )
-
-  def forward(self, x, padding_mask=None):
-    out = self.tr_encoder(x, src_key_padding_mask=padding_mask)
-
-    return out
 
 class CompoundWordTransformerWrapper(nn.Module):
     def __init__(
@@ -169,10 +144,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.norm = nn.LayerNorm(512)
         self.emb1 = nn.Embedding(6912, 512)
         self.in_linear1 = nn.Linear(32+96+512, 512)
-        self.encoder = VAETransformerEncoder(6, 8, 512, 2048)
+        self.in_linear2 = nn.Linear(512*6, 512)
 
-        self.spatial_start_token = nn.Parameter(torch.randn(512))
-        self.spatial_pos_emb = nn.Embedding(6, 512) # account for a boundary case
 
         self.init_()
 
@@ -301,27 +274,23 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_octave = self.word_emb_octave(x[..., 5])
         emb_duration = self.word_emb_duration(x[..., 6])
         emb_velocity = self.word_emb_velocity(x[..., 7])
-
-        y = x[:,:,2:]
-        z = y.shape
-        y = y.reshape(-1, z[-1])
-
-        y = self.emb1(y)
-
-        y = torch.cat((
-            repeat(self.spatial_start_token, 'f -> b 1 f', b = emb_type.shape[0]),
-            y
-        ), dim = -2)      
-
-        y = self.encoder(y)
-        y = y[:,0,:]
-        y = y.reshape(emb_type.shape[0],emb_type.shape[1],512)
+        
+        embs1 = torch.cat(
+            [
+                emb_tempo,
+                emb_instrument,
+                emb_note_name,
+                emb_octave,
+                emb_duration,
+                emb_velocity
+            ], dim=-1)
+        embs1 = self.in_linear2(embs1)
 
         embs = torch.cat(
             [
                 emb_type,
                 emb_barbeat,
-                y
+                embs1
             ], dim=-1)
 
         emb_linear = self.in_linear1(embs)
