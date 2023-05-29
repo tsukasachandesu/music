@@ -48,6 +48,28 @@ def sampling(logit, probability_treshold=None, temperature=1.0):
         cur_word = weighted_sampling(probs)
     return cur_word
 
+class VAETransformerEncoder(nn.Module):
+  def __init__(self, n_layer, n_head, d_model, dropout=0.1, activation='relu'):
+    super(VAETransformerEncoder, self).__init__()
+    self.n_layer = n_layer
+    self.n_head = n_head
+    self.d_model = d_model
+    self.dropout = dropout
+    self.activation = activation
+
+    self.tr_encoder_layer = nn.TransformerEncoderLayer(
+      d_model, n_head, d_ff, dropout, activation
+    )
+    self.tr_encoder = nn.TransformerEncoder(
+      self.tr_encoder_layer, n_layer
+    )
+
+  def forward(self, x, padding_mask=None):
+    out = self.tr_encoder(x, src_key_padding_mask=padding_mask)
+    hidden_out = out[0, :, :]
+
+    return hidden_out
+
 class CompoundWordTransformerWrapper(nn.Module):
     def __init__(
             self,
@@ -142,10 +164,8 @@ class CompoundWordTransformerWrapper(nn.Module):
                 use_pos_emb and not attn_layers.has_pos_emb) else always(0)
         
         self.norm = nn.LayerNorm(512)
-        self.in_linear1 = nn.Linear(32+96+512+512, 512)
-        
-        self.bi = nn.LSTM(512, 512, batch_first=True, bidirectional=True)
-        self.emb1 = nn.Embedding(6912, 512)
+        self.in_linear1 = nn.Linear(32+96+512, 512)
+        self.encoder = VAETransformerEncoder(6, 8, 512)
 
         self.init_()
 
@@ -279,14 +299,13 @@ class CompoundWordTransformerWrapper(nn.Module):
         z = y.shape
         y = y.reshape(-1, z[-1])
         y = self.emb1(y)
-        _, hidden = self.bi(y)
-        hidden = torch.cat((hidden[-2,:,:], hidden[-1,:,:]), dim = 1)
+        y = self.encoder(y)
 
         embs = torch.cat(
             [
                 emb_type,
                 emb_barbeat,
-                hidden
+                y
             ], dim=-1)
 
         emb_linear = self.in_linear1(embs)
