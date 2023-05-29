@@ -65,8 +65,8 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         if emb_sizes is None:
             emb_sizes = [
-                512,  # Type
-                512,  # Bar / Beat
+                32,  # Type
+                96,  # Bar / Beat
                 512,  # Tempo
                 512,  # Instrument
                 512,  # Note Name
@@ -144,8 +144,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.norm = nn.LayerNorm(512)
         self.in_linear1 = nn.Linear(3200, 512)
         
-        self.bilstm = nn.LSTM(512, 1024, batch_first=True, bidirectional=True)
-        self.hidden2tag = nn.Linear(1024 * 2, 512)
+        self.bi = nn.LSTM(512, 512, batch_first=True, bidirectional=True)
+        self.emb1 = nn.Embedding(6912, 512)
+        self.li = nn.Linear(1024, 512)
 
         self.init_()
 
@@ -275,21 +276,23 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_duration = self.word_emb_duration(x[..., 6])
         emb_velocity = self.word_emb_velocity(x[..., 7])
 
+        y = x[:,:,2:]
+        z = y.shape
+        y = y.reshape(-1, z[-1])
+        y = self.emb1(y)
+        out, _ = self.bi(y)    
+        
+        hidden = torch.cat((out[:, -1], out[:, 0], out[:, 1],out[:, 2],out[:, 3],out[:, 4]), dim=-1)
+        y = hidden.reshape([z[0], z[1], 6144])
+
         embs = torch.cat(
             [
                 emb_type,
                 emb_barbeat,
-                emb_tempo,
-                emb_instrument,
-                emb_note_name,
-                emb_octave,
-                emb_duration,
-                emb_velocity
-            ], dim = 1)
-        
-        _, bilstm_hc = self.bilstm(embs)
-        bilstm_out = torch.cat([bilstm_hc[0][0], bilstm_hc[0][1]], dim = -1)
-        emb_linear = self.hidden2tag(bilstm_out)
+                y
+            ], dim=-1)
+
+        emb_linear = self.in_linear1(embs)
 
         x = emb_linear + self.pos_emb(emb_linear)
         
