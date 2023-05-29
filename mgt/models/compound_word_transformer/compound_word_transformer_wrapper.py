@@ -285,7 +285,7 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_octave,
                 emb_duration,
                 emb_velocity
-            ], dim=-1)
+            ], dim=0)
         
         _, bilstm_hc = self.bilstm(embs)
         bilstm_out = torch.cat([bilstm_hc[0][0], bilstm_hc[0][1]], dim=1)
