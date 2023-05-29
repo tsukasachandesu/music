@@ -87,7 +87,7 @@ EPOCHS = 2
 GRADIENT_ACCUMULATE_EVERY = 3
 GENERATE_EVERY = 1800
 GENERATE_LENGTH = 1024
-yes = "a"
+yes = None
 yes1 = "a"
 
 # instantiate GPT-like decoder model
@@ -104,8 +104,8 @@ defaults = {
         6912    # Velocity
     ],
     'emb_sizes': [
-        32,   # Type
-        96,   # Bar / Beat
+        512,   # Type
+        512,   # Bar / Beat
         512,  # Tempo
         512,  # Instrument
         512,  # Note Name
