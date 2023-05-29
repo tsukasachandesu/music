@@ -142,11 +142,10 @@ class CompoundWordTransformerWrapper(nn.Module):
                 use_pos_emb and not attn_layers.has_pos_emb) else always(0)
         
         self.norm = nn.LayerNorm(512)
-        self.in_linear1 = nn.Linear(6272, 512)
+        self.in_linear1 = nn.Linear(32+96+512+512, 512)
         
         self.bi = nn.LSTM(512, 512, batch_first=True, bidirectional=True)
         self.emb1 = nn.Embedding(6912, 512)
-        self.li = nn.Linear(1024, 512)
 
         self.init_()
 
@@ -280,20 +279,17 @@ class CompoundWordTransformerWrapper(nn.Module):
         z = y.shape
         y = y.reshape(-1, z[-1])
         y = self.emb1(y)
-        out, _ = self.bi(y)    
-        
-        hidden = torch.cat((out[:, 0], out[:, 1],out[:, 2],out[:, 3],out[:, 4],out[:, 5]), dim=-1)
-        y = hidden.reshape([z[0], z[1], 6144])
+        _, bilstm_hc = self.bi(y)    
 
         embs = torch.cat(
             [
                 emb_type,
                 emb_barbeat,
-                y
+                bilstm_hc[0][0],
+                bilstm_hc[0][1]
             ], dim=-1)
 
         emb_linear = self.in_linear1(embs)
-
         x = emb_linear + self.pos_emb(emb_linear)
         
         x = self.emb_dropout(x)
