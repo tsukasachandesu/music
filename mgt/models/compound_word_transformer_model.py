@@ -25,8 +25,8 @@ defaults = {
         6912    # Velocity
     ],
     'emb_sizes': [
-        512,   # Type
-        512,   # Bar / Beat
+        32,   # Type
+        96,   # Bar / Beat
         512,  # Tempo
         512,  # Instrument
         512,  # Note Name
