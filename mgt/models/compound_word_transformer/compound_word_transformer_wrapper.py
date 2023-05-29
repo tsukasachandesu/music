@@ -65,8 +65,8 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         if emb_sizes is None:
             emb_sizes = [
-                32,  # Type
-                96,  # Bar / Beat
+                512,  # Type
+                512,  # Bar / Beat
                 512,  # Tempo
                 512,  # Instrument
                 512,  # Note Name
@@ -143,6 +143,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         self.norm = nn.LayerNorm(512)
         self.in_linear1 = nn.Linear(3200, 512)
+        
+        self.bilstm = nn.LSTM(512, 1024, batch_first=True, bidirectional=True)
+        self.hidden2tag = nn.Linear(1024 * 2, 512)
 
         self.init_()
 
@@ -284,9 +287,12 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_velocity
             ], dim=-1)
         
-        emb_linear = self.in_linear1(embs)
+        _, bilstm_hc = self.bilstm(embs)
+        bilstm_out = torch.cat([bilstm_hc[0][0], bilstm_hc[0][1]], dim=1)
+        emb_linear = self.hidden2tag(bilstm_out)
 
         x = emb_linear + self.pos_emb(emb_linear)
+        
         x = self.emb_dropout(x)
         x = self.project_emb(x)
 
