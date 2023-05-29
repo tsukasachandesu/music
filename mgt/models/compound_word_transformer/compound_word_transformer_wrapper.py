@@ -279,14 +279,14 @@ class CompoundWordTransformerWrapper(nn.Module):
         z = y.shape
         y = y.reshape(-1, z[-1])
         y = self.emb1(y)
-        _, bilstm_hc = self.bi(y)    
+        _, hidden = self.bi(y)
+        hidden = torch.cat((hidden[-2,:,:], hidden[-1,:,:]), dim = 1)
 
         embs = torch.cat(
             [
                 emb_type,
                 emb_barbeat,
-                bilstm_hc[0][0],
-                bilstm_hc[0][1]
+                hidden
             ], dim=-1)
 
         emb_linear = self.in_linear1(embs)
