@@ -94,34 +94,42 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         # individual output
         self.proj_type = nn.Sequential(
+            nn.GELU()
             nn.Linear(dim, self.num_tokens[0])
         )
         
         self.proj_barbeat = nn.Sequential(
+            nn.GELU()
             nn.Linear(dim, self.num_tokens[1])
         )
         
         self.proj_tempo = nn.Sequential(
+            nn.GELU()
             nn.Linear(dim, self.num_tokens[2])
         )
         
         self.proj_instrument = nn.Sequential(
+            nn.GELU()
             nn.Linear(dim, self.num_tokens[3])
         )
         
         self.proj_note_name = nn.Sequential(
+            nn.GELU()
             nn.Linear(dim, self.num_tokens[4])
         )
         
         self.proj_octave = nn.Sequential(
+            nn.GELU()
             nn.Linear(dim, self.num_tokens[5])
         )
         
         self.proj_duration = nn.Sequential(
+            nn.GELU()
             nn.Linear(dim, self.num_tokens[6])
         )
         
         self.proj_velocity = nn.Sequential(
+            nn.GELU()
             nn.Linear(dim, self.num_tokens[7])
         )
         
@@ -284,6 +292,7 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_duration,
                 emb_velocity
             ], dim=-1)
+        
         embs1 = self.in_linear2(embs1)
 
         embs = torch.cat(
