@@ -39,7 +39,7 @@ defaults = {
     'dropout': 0.1,
     'dim': 512,
     'depth': 24,
-    'heads': 8
+    'heads': 12
 }
 
 
@@ -145,6 +145,7 @@ class CompoundWordTransformerModel(object):
                 ff_glu = True,
                 ff_swish = True,
                 rotary_xpos = True,
+                use_rmsnorm = True,
                 attn_dropout=self.dropout,  # dropout post-attention
                 ff_dropout=self.dropout,  # feedforward dropout
             )
