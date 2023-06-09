@@ -10,6 +10,9 @@ from x_transformers.x_transformers import AttentionLayers, default, AbsolutePosi
 from mgt.models.compound_word_transformer.compound_transformer_embeddings import CompoundTransformerEmbeddings
 from mgt.models.utils import get_device
 
+from einops_exts import rearrange_with_anon_dims
+from einops import rearrange, reduce, repeat
+
 class Encoder(nn.Module):
   def __init__(self, n_layer=6, n_head=8, d_model=512, d_ff=2048, dropout=0.1, activation='gelu'):
     super(Encoder, self).__init__()
