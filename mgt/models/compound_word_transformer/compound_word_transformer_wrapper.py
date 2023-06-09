@@ -14,7 +14,7 @@ from einops_exts import rearrange_with_anon_dims
 from einops import rearrange, reduce, repeat
 
 class Encoder(nn.Module):
-  def __init__(self, n_layer=6, n_head=8, d_model=512, d_ff=2048, dropout=0.1, activation='gelu'):
+  def __init__(self, n_layer=2, n_head=8, d_model=512, d_ff=2048, dropout=0.1, activation='gelu'):
     super(Encoder, self).__init__()
     self.n_layer = n_layer
     self.n_head = n_head
