@@ -64,7 +64,7 @@ class CompoundWordDataManager(DataManager):
                             cur = cur + 1
                         n = i[1]
                       else:
-                        d.append([3, n, i[5],i[6],i[7]])
+                        d.append([3, n, i[4],i[5],i[6]])
                     print(d)
                     print(cur)
                     measure = [[0]*108 for _ in range(16*(cur+5))]  
@@ -110,7 +110,7 @@ class CompoundWordDataManager(DataManager):
                 b.append(i)
             if i[0] == 3:
                 b.append([2,i[1],0,0,0,0,0,0])
-                b.append(i)
+                b.append(3,0,0,0,i[2],i[3],i[4],31])
          
 
         remi = self.compound_word_mapper.map_to_remi(b)
