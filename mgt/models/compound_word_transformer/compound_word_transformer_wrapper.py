@@ -140,4 +140,4 @@ class CompoundWordTransformerWrapper(nn.Module):
             exec_command2 = 'b.append(self.proj_type' + str(i+1) + '(x))'
             exec(exec_command2)
 
-        return r
+        return b
