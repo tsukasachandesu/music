@@ -1,12 +1,12 @@
 {
     "train_batch_size": 6,
-    "gradient_accumulation_steps": 3,
+    "gradient_accumulation_steps": 2,
     "steps_per_print": 2000,
     "max_grad_norm": 0.5,
     "optimizer": {
       "type": "Adam",
       "params": {
-        "lr": 0.0002,
+        "lr": 0.001,
         "betas": [
           0.8,
           0.999
@@ -25,7 +25,7 @@
       "type": "WarmupLR",
       "params": {
         "warmup_min_lr": 0,
-        "warmup_max_lr": 0.0002,
+        "warmup_max_lr": 0.001,
         "warmup_num_steps": 1000
       }
     },
