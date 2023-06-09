@@ -54,6 +54,13 @@ class CompoundWordDataManager(DataManager):
 
                     compound_words = self.compound_word_mapper.map_to_compound(data, self.dictionary)
                     compound_data = self.compound_word_mapper.map_compound_words_to_data(compound_words)
+                    
+                    cur = 0
+                    for i in compound_data:
+                      if i == [2,0,0,0,0,0,0,0]:
+                        cur = cur + 1
+                    measure = [[0]*6 for _ in range(16*(cur+1))] 
+
                     a = [[i[0], i[1], dic.get((i[4], i[5], i[6]))] for i in compound_data]
                     d = []
                     for i in a:
@@ -102,9 +109,17 @@ class CompoundWordDataManager(DataManager):
                     if p[-1] == [2, 0, 0, 0, 0, 0, 0, 0]:
                         del p[-1]
 
-                    print(f'Extracted {len(p)} compound words.')
+                    cur = -1
+                    for i in p:
+                        if i == [2, 0, 0, 0, 0, 0, 0, 0]:
+                            cur = cur + 1
+                        else:
+                            measure[i[1] + cur*16 -1] = [i[2],i[3],i[4],i[5],i[6],i[7]]
 
-                    training_data.append(p)
+                    print(f'Extracted {len(measure)} compound words.')
+                    print(measure)
+
+                    training_data.append(measure)
                 except Exception as e:
                     print(f"Exception: {e}")
 
