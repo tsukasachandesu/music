@@ -340,7 +340,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             ], dim = -2)
         embs = embs + self.pos_emb1(embs)
         x = self.encoder(embs)
-        x = rearrange(x, '(b d) s f -> b d (s f)',  b = 6)
+        x = rearrange(x, '(b d) s f -> b d (s f)',  b = 4)
 
 
         return x, self.proj_type(x)
