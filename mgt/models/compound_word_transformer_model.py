@@ -21,7 +21,7 @@ defaults = {
         6912,    # Octave
         6912,   # Duration
         6912,
-        18
+        16
     ],
     'emb_sizes': [
         512,  # Tempo
