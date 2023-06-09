@@ -64,7 +64,7 @@ class CompoundWordDataManager(DataManager):
                             cur = cur + 1
                         n = i[1]
                       else:
-                        d.append(i[0], n, i[4],i[5],i[6])
+                        d.append(i[0], n, i[5],i[6],i[7])
                     measure = [[0]*108 for _ in range(16*(bar+5))]  
                     bar = -1
                     for i in d:
