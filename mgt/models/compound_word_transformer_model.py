@@ -20,7 +20,8 @@ defaults = {
         6912,   # Note name
         6912,    # Octave
         6912,   # Duration
-        6912    # Velocity
+        6912,
+        18
     ],
     'emb_sizes': [
         512,  # Tempo
@@ -28,7 +29,8 @@ defaults = {
         512,  # Note Name
         512,  # Octave
         512,  # Duration
-        512   # Velocity
+        512,
+        96
     ],
     'max_sequence_length': 512,
     'learning_rate': 1e-4,
