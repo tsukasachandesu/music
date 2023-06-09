@@ -93,6 +93,7 @@ class CompoundWordDataManager(DataManager):
     def to_midi(self, data) -> MidiWrapper:
         dic = {(i, j): index for index, (i, j) in enumerate((i, j) for i in range(12) for j in range(9))}
         inverse_dic = {v: k for k, v in dic.items()}
+        measure = data
         bar = -1
         a_reconstructed = []
         for beat in range(len(measure)):
