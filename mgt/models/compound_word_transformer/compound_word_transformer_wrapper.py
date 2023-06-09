@@ -94,42 +94,34 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         # individual output
         self.proj_type = nn.Sequential(
-            nn.LayerNorm(512),
             nn.Linear(dim, self.num_tokens[0])
         )
         
         self.proj_barbeat = nn.Sequential(
-            nn.LayerNorm(512),
             nn.Linear(dim, self.num_tokens[1])
         )
         
         self.proj_tempo = nn.Sequential(
-            nn.LayerNorm(512),
             nn.Linear(dim, self.num_tokens[2])
         )
         
         self.proj_instrument = nn.Sequential(
-            nn.LayerNorm(512),
             nn.Linear(dim, self.num_tokens[3])
         )
         
         self.proj_note_name = nn.Sequential(
-            nn.LayerNorm(512),
             nn.Linear(dim, self.num_tokens[4])
         )
         
         self.proj_octave = nn.Sequential(
-            nn.LayerNorm(512),
             nn.Linear(dim, self.num_tokens[5])
         )
         
         self.proj_duration = nn.Sequential(
-            nn.LayerNorm(512),
             nn.Linear(dim, self.num_tokens[6])
         )
         
         self.proj_velocity = nn.Sequential(
-            nn.LayerNorm(512),
             nn.Linear(dim, self.num_tokens[7])
         )
         
@@ -150,9 +142,7 @@ class CompoundWordTransformerWrapper(nn.Module):
                 use_pos_emb and not attn_layers.has_pos_emb) else always(0)
         
         self.norm = nn.LayerNorm(512)
-        self.emb1 = nn.Embedding(6912, 512)
-        self.in_linear1 = nn.Linear(32+96+512, 512)
-        self.in_linear2 = nn.Linear(512*6, 512)
+        self.in_linear1 = nn.Linear(512*8, 512)
 
         self.init_()
 
@@ -284,6 +274,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         embs1 = torch.cat(
             [
+                emb_type,
+                emb_barbeat,
                 emb_tempo,
                 emb_instrument,
                 emb_note_name,
@@ -294,14 +286,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         outputs = self.in_linear2(embs1)
 
-        embs = torch.cat(
-            [
-                emb_type,
-                emb_barbeat,
-                outputs
-            ], dim=-1)
-
-        emb_linear = self.in_linear1(embs)
+        emb_linear = self.in_linear1(outputs)
         x = emb_linear + self.pos_emb(emb_linear)
         
         x = self.emb_dropout(x)
