@@ -56,18 +56,17 @@ class CompoundWordDataManager(DataManager):
                     compound_words = self.compound_word_mapper.map_to_compound(data, self.dictionary)
                     compound_data = self.compound_word_mapper.map_compound_words_to_data(compound_words)
                     d = []
-                    bar = 0
+                    cur = 0
                     for i in compound_data:
                       if i[0] == 2:
                         if i == [2,0,0,0,0,0,0,0]:
-                            
                             d.append([2,0,0,0,0])
                             cur = cur + 1
                         n = i[1]
 
                       else:
                         d.append([i[0], n, i[5],i[6],i[7]])
-                    measure = [[0]*108 for _ in range(16*(bar+5))]  
+                    measure = [[0]*108 for _ in range(16*(cur+5))]  
                     bar = -1
 
                     for i in d:
