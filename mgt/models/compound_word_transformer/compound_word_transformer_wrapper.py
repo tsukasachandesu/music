@@ -70,7 +70,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         self.num_tokens = num_tokens
         self.max_seq_len = max_seq_len
-        self.word_emb_type ＝　CompoundTransformerEmbeddings(64, 96)
+        self.word_emb_type =　CompoundTransformerEmbeddings(64, 96)
         
         for i in range(108):
             exec_command2 = 'self.proj_type' + str(i) + '=' + 'nn.Linear(512, 64)'
