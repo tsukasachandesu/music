@@ -203,20 +203,22 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         type_word_t = torch.from_numpy(np.array([cur_word_type])).long().to(get_device()).unsqueeze(0)
 
-        tf_skip_type = self.word_emb_type(type_word_t)
+        tf_skip_type = self.word_emb_type(type_word_t).squeeze(-2)
 
         # concat
         y_concat_type = torch.cat([h, tf_skip_type], dim=-1)
         y_ = self.project_concat_type(y_concat_type)
 
         # project other
-        proj_barbeat = self.proj_barbeat(y_)
-        proj_tempo = self.proj_tempo(y_)
-        proj_instrument = self.proj_instrument(y_)
-        proj_note_name = self.proj_note_name(y_)
-        proj_octave = self.proj_octave(y_)
-        proj_duration = self.proj_duration(y_)
-        proj_velocity = self.proj_velocity(y_)
+ 
+        
+        proj_barbeat = self.proj_barbeat(y_[:,:,2,:].unsqueeze(2))
+        proj_tempo = self.proj_tempo(y_[:,:,3,:].unsqueeze(2))
+        proj_instrument = self.proj_instrument(y_[:,:,4,:].unsqueeze(2))
+        proj_note_name = self.proj_note_name(y_[:,:,5,:].unsqueeze(2))
+        proj_octave = self.proj_octave(y_[:,:,6,:].unsqueeze(2))
+        proj_duration = self.proj_duration(y_[:,:,7,:].unsqueeze(2))
+        proj_velocity = self.proj_velocity(y_[:,:,8,:].unsqueeze(2))
 
         # sampling gen_cond
         cur_word_barbeat = sampling(
@@ -271,14 +273,12 @@ class CompoundWordTransformerWrapper(nn.Module):
                        h,
                        target
                        ):
-        tf_skip_type = self.word_emb_type(target[..., 0])
+        tf_skip_type = self.word_emb_type(target[..., 0]).squeeze(-2)
 
         y_concat_type = torch.cat([h, tf_skip_type], dim=-1)
         
         y_concat_type = y_concat_type.squeeze(-2)
         
-        y_ = self.project_concat_type(y_concat_type)
-
         proj_barbeat = self.proj_barbeat(y_[:,:,2,:].unsqueeze(2))
         proj_tempo = self.proj_tempo(y_[:,:,3,:].unsqueeze(2))
         proj_instrument = self.proj_instrument(y_[:,:,4,:].unsqueeze(2))
