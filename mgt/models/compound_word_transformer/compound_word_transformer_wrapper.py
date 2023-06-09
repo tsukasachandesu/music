@@ -71,14 +71,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.num_tokens = num_tokens
         self.max_seq_len = max_seq_len
 
-        self.word_emb_type = CompoundTransformerEmbeddings(self.num_tokens[0], self.emb_sizes[0])
-        self.word_emb_barbeat = CompoundTransformerEmbeddings(self.num_tokens[1], self.emb_sizes[1])
-        self.word_emb_tempo = CompoundTransformerEmbeddings(self.num_tokens[2], self.emb_sizes[2])
-        self.word_emb_instrument = CompoundTransformerEmbeddings(self.num_tokens[3], self.emb_sizes[3])
-        self.word_emb_note_name = CompoundTransformerEmbeddings(self.num_tokens[4], self.emb_sizes[4])
-        self.word_emb_octave = CompoundTransformerEmbeddings(self.num_tokens[5], self.emb_sizes[5])
-        self.word_emb_duration = CompoundTransformerEmbeddings(self.num_tokens[6], self.emb_sizes[6])
-        self.word_emb_velocity = CompoundTransformerEmbeddings(self.num_tokens[7], self.emb_sizes[7])
+        self.word_emb_type = CompoundTransformerEmbeddings(64, 96)
         
         # individual output
         self.proj_type = nn.Sequential(
@@ -112,25 +105,24 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.proj_velocity = nn.Sequential(
             nn.Linear(dim, self.num_tokens[7])
         )
-        
-        # in_features is equal to dimension plus dimensions of the type embedding
-        self.project_concat_type = nn.Linear(dim + self.emb_sizes[0], dim)
 
         self.compound_word_embedding_size = np.sum(emb_sizes)
 
         self.pos_emb = AbsolutePositionalEmbedding(self.compound_word_embedding_size, max_seq_len) if (
                 use_pos_emb and not attn_layers.has_pos_emb) else always(0)
+        
         self.emb_dropout = nn.Dropout(emb_dropout)
 
         self.project_emb = nn.Linear(emb_dim, dim) if emb_dim != dim else nn.Identity()
+        
         self.attn_layers = attn_layers
         
-        self.attn_layers1 = attn_layers
         self.pos_emb1 = AbsolutePositionalEmbedding(512, 6) if (
                 use_pos_emb and not attn_layers.has_pos_emb) else always(0)
         
         self.norm = nn.LayerNorm(512)
-        self.in_linear1 = nn.Linear(512*6+96+32, 512)
+        
+        self.in_linear1 = nn.Linear(96*108, 512)
 
         self.init_()
 
@@ -251,29 +243,13 @@ class CompoundWordTransformerWrapper(nn.Module):
             **kwargs
     ):
         # embeddings
-        emb_type = self.word_emb_type(x[..., 0])
-        emb_barbeat = self.word_emb_barbeat(x[..., 1])
-        emb_tempo = self.word_emb_tempo(x[..., 2])
-        emb_instrument = self.word_emb_instrument(x[..., 3])
-        emb_note_name = self.word_emb_note_name(x[..., 4])
-        emb_octave = self.word_emb_octave(x[..., 5])
-        emb_duration = self.word_emb_duration(x[..., 6])
-        emb_velocity = self.word_emb_velocity(x[..., 7])
+        embs1 = self.word_emb_type(x[..., 0])
         
-        embs1 = torch.cat(
-            [
-                emb_type,
-                emb_barbeat,
-                emb_tempo,
-                emb_instrument,
-                emb_note_name,
-                emb_octave,
-                emb_duration,
-                emb_velocity
-            ], dim = -1)
-    
+        for i in range(107):
+            embs1 = torch.cat([embs1,self.word_emb_type(x[..., i+1]), dim = -1])
 
         emb_linear = self.in_linear1(embs1)
+        
         x = emb_linear + self.pos_emb(emb_linear)
         
         x = self.emb_dropout(x)
