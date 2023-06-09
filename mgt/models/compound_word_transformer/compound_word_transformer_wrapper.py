@@ -67,6 +67,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         dim = attn_layers.dim
         emb_dim = default(emb_dim, dim)
+        self.project_emb = nn.Linear(emb_dim, dim) if emb_dim != dim else nn.Identity()
 
         self.num_tokens = num_tokens
         self.max_seq_len = max_seq_len
