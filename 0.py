@@ -31,8 +31,8 @@ datamanager = CompoundWordDataManager()
 from typing import List
 import random
 
-COMPOUND_WORD_PADDING = [0, 0, 0, 0, 0, 0, 0, 0]
-COMPOUND_WORD_BAR = [2, 0, 0, 0, 0, 0, 0, 0]
+COMPOUND_WORD_PADDING = [0]*108
+COMPOUND_WORD_BAR = [0]*108
 
 def pad(array: np.ndarray, max_sequence_length: int, padding_compound_word: np.ndarray = None) -> np.ndarray:
     if padding_compound_word is None:
@@ -93,26 +93,8 @@ yes1 = "a"
 # instantiate GPT-like decoder model
 
 defaults = {
-    'num_tokens': [
-        4,    # Type
-        17,   # Bar / Beat
-        6912,  # Tempo
-        6912,  # Instrument
-        6912,   # Note name
-        6912,    # Octave
-        6912,   # Duration
-        6912    # Velocity
-    ],
-    'emb_sizes': [
-        32,   # Type
-        96,   # Bar / Beat
-        512,  # Tempo
-        512,  # Instrument
-        512,  # Note Name
-        512,  # Octave
-        512,  # Duration
-        512   # Velocity
-    ],
+    'num_tokens': [64]*108,
+    'emb_sizes': [96]*108,
     'max_sequence_length': 1024,
     'learning_rate': 1e-4,
     'dropout': 0.1,
