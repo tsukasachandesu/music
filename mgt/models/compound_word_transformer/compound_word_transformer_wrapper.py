@@ -125,39 +125,39 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         # individual output
         self.proj_type = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[0])
+            nn.Linear(dim*9, self.num_tokens[0])
         )
         
         self.proj_barbeat = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[1])
+            nn.Linear(dim*9, self.num_tokens[1])
         )
         
         self.proj_tempo = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[2])
+            nn.Linear(dim*9, self.num_tokens[2])
         )
         
         self.proj_instrument = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[3])
+            nn.Linear(dim*9, self.num_tokens[3])
         )
         
         self.proj_note_name = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[4])
+            nn.Linear(dim*9, self.num_tokens[4])
         )
         
         self.proj_octave = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[5])
+            nn.Linear(dim*9, self.num_tokens[5])
         )
         
         self.proj_duration = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[6])
+            nn.Linear(dim*9, self.num_tokens[6])
         )
         
         self.proj_velocity = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[7])
+            nn.Linear(dim*9, self.num_tokens[7])
         )
         
         # in_features is equal to dimension plus dimensions of the type embedding
-        self.project_concat_type = nn.Linear(dim + self.emb_sizes[0], dim)
+        self.project_concat_type = nn.Linear(dim*9 + self.emb_sizes[0], dim)
 
         self.compound_word_embedding_size = np.sum(emb_sizes)
 
@@ -203,7 +203,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         type_word_t = torch.from_numpy(np.array([cur_word_type])).long().to(get_device()).unsqueeze(0)
 
-        tf_skip_type = self.word_emb_type(type_word_t).unsqueeze(-2)
+        tf_skip_type = self.word_emb_type(type_word_t)
 
         # concat
         y_concat_type = torch.cat([h, tf_skip_type], dim=-1)
@@ -211,14 +211,13 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         # project other
  
-        
-        proj_barbeat = self.proj_barbeat(y_[:,:,2,:].squeeze(2))
-        proj_tempo = self.proj_tempo(y_[:,:,3,:].squeeze(2))
-        proj_instrument = self.proj_instrument(y_[:,:,4,:].squeeze(2))
-        proj_note_name = self.proj_note_name(y_[:,:,5,:].squeeze(2))
-        proj_octave = self.proj_octave(y_[:,:,6,:].squeeze(2))
-        proj_duration = self.proj_duration(y_[:,:,7,:].squeeze(2))
-        proj_velocity = self.proj_velocity(y_[:,:,8,:].squeeze(2))
+        proj_barbeat = self.proj_barbeat(y_)
+        proj_tempo = self.proj_tempo(y_)
+        proj_instrument = self.proj_instrument(y_)
+        proj_note_name = self.proj_note_name(y_)
+        proj_octave = self.proj_octave(y_)
+        proj_duration = self.proj_duration(y_)
+        proj_velocity = self.proj_velocity(y_)
 
         # sampling gen_cond
         cur_word_barbeat = sampling(
@@ -273,21 +272,18 @@ class CompoundWordTransformerWrapper(nn.Module):
                        h,
                        target
                        ):
-        tf_skip_type = self.word_emb_type(target[..., 0]).unsqueeze(-2)
-        print(tf_skip_type.shape)
-        print(h.shape)
-
+        tf_skip_type = self.word_emb_type(target[..., 0])
+ 
         y_concat_type = torch.cat([h, tf_skip_type], dim=-1)
+        y_ = self.project_concat_type(y_concat_type)
         
-
-        
-        proj_barbeat = self.proj_barbeat(y_[:,:,2,:].squeeze(2))
-        proj_tempo = self.proj_tempo(y_[:,:,3,:].squeeze(2))
-        proj_instrument = self.proj_instrument(y_[:,:,4,:].squeeze(2))
-        proj_note_name = self.proj_note_name(y_[:,:,5,:].squeeze(2))
-        proj_octave = self.proj_octave(y_[:,:,6,:].squeeze(2))
-        proj_duration = self.proj_duration(y_[:,:,7,:].squeeze(2))
-        proj_velocity = self.proj_velocity(y_[:,:,8,:].squeeze(2))
+        proj_barbeat = self.proj_barbeat(y_)
+        proj_tempo = self.proj_tempo(y_)
+        proj_instrument = self.proj_instrument(y_)
+        proj_note_name = self.proj_note_name(y_)
+        proj_octave = self.proj_octave(y_)
+        proj_duration = self.proj_duration(y_)
+        proj_velocity = self.proj_velocity(y_)
 
         return proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, proj_velocity
 
@@ -345,12 +341,8 @@ class CompoundWordTransformerWrapper(nn.Module):
                 rearrange(emb_duration , 'r n d -> (r n) 1 d'),
                 rearrange(emb_velocity , 'r n d -> (r n) 1 d')
             ], dim = -2)
-        print(embs.shape)
-        
+        embs = embs + self.pos_emb1(embs)
         x = self.encoder(embs)
-        x = rearrange(x, '(b d) s f -> b d s f',  b = r)
-        x = x + self.pos_emb1(x)
-        print(x.shape)
-        x1 = x[:,:,1,:]
-        x1 = x1.squeeze(2)
-        return x, self.proj_type(x1)
+        x = rearrange(x, '(b d) s f -> b d (s f)',  b = r)
+
+        return x, self.proj_type(x)
