@@ -10,6 +10,33 @@ from x_transformers.x_transformers import AttentionLayers, default, AbsolutePosi
 from mgt.models.compound_word_transformer.compound_transformer_embeddings import CompoundTransformerEmbeddings
 from mgt.models.utils import get_device
 
+class Encoder(nn.Module):
+  def __init__(self, n_layer=6, n_head=12, d_model=512, d_ff=2048, dropout=0.1, activation='relu'):
+    super(VAETransformerEncoder, self).__init__()
+    self.n_layer = n_layer
+    self.n_head = n_head
+    self.d_model = d_model
+    self.d_ff = d_ff
+    self.dropout = dropout
+    self.activation = activation
+
+    self.tr_encoder_layer = nn.TransformerEncoderLayer(
+      d_model, n_head, d_ff, dropout, activation
+    )
+    self.tr_encoder = nn.TransformerEncoder(
+      self.tr_encoder_layer, n_layer
+    )
+
+  def forward(self, x, padding_mask=None):
+    out = self.tr_encoder(x, src_key_padding_mask=padding_mask)
+    return out
+
+
+
+
+
+
+
 def softmax_with_temperature(logits, temperature):
     probs = np.exp(logits / temperature) / np.sum(np.exp(logits / temperature))
     return probs
@@ -65,8 +92,8 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         if emb_sizes is None:
             emb_sizes = [
-                32,  # Type
-                96,  # Bar / Beat
+                512,  # Type
+                512,  # Bar / Beat
                 512,  # Tempo
                 512,  # Instrument
                 512,  # Note Name
@@ -79,6 +106,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         dim = attn_layers.dim
         emb_dim = default(emb_dim, dim)
+        self.encoder = Encoder()
 
         self.num_tokens = num_tokens
         self.max_seq_len = max_seq_len
@@ -137,12 +165,11 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.project_emb = nn.Linear(emb_dim, dim) if emb_dim != dim else nn.Identity()
         self.attn_layers = attn_layers
         
-        self.attn_layers1 = attn_layers
-        self.pos_emb1 = AbsolutePositionalEmbedding(512, 6) if (
+        self.pos_emb1 = AbsolutePositionalEmbedding(512, 9) if (
                 use_pos_emb and not attn_layers.has_pos_emb) else always(0)
         
         self.norm = nn.LayerNorm(512)
-        self.in_linear1 = nn.Linear(512*6+96+32, 512)
+        self.in_linear1 = nn.Linear(512*8, 512)
 
         self.init_()
 
@@ -246,13 +273,13 @@ class CompoundWordTransformerWrapper(nn.Module):
         y_concat_type = torch.cat([h, tf_skip_type], dim=-1)
         y_ = self.project_concat_type(y_concat_type)
 
-        proj_barbeat = self.proj_barbeat(y_)
-        proj_tempo = self.proj_tempo(y_)
-        proj_instrument = self.proj_instrument(y_)
-        proj_note_name = self.proj_note_name(y_)
-        proj_octave = self.proj_octave(y_)
-        proj_duration = self.proj_duration(y_)
-        proj_velocity = self.proj_velocity(y_)
+        proj_barbeat = self.proj_barbeat(y_[:,:,2,:].unsqueeze(2))
+        proj_tempo = self.proj_tempo(y_[:,:,3,:].unsqueeze(2))
+        proj_instrument = self.proj_instrument(y_[:,:,4,:].unsqueeze(2))
+        proj_note_name = self.proj_note_name(y_[:,:,5,:].unsqueeze(2))
+        proj_octave = self.proj_octave(y_[:,:,6,:].unsqueeze(2))
+        proj_duration = self.proj_duration(y_[:,:,7,:].unsqueeze(2))
+        proj_velocity = self.proj_velocity(y_[:,:,8,:].unsqueeze(2)
 
         return proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, proj_velocity
 
@@ -296,5 +323,23 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         x, intermediates = self.attn_layers(x, mask=mask, return_hiddens=True, **kwargs)
         x = self.norm(x)
-
-        return x, self.proj_type(x)
+       
+        r = x.shape[0]
+        embs = torch.cat(
+            [
+                rearrange(x, '... n d -> (...) 1 d'),
+                rearrange(emb_type , '... n d -> (...) 1 d'),
+                rearrange(emb_barbeat , '... n d -> (...) 1 d'),
+                rearrange(emb_tempo , '... n d -> (...) 1 d'),
+                rearrange(emb_instrument , '... n d -> (...) 1 d'),
+                rearrange(emb_note_name , '... n d -> (...) 1 d'),
+                rearrange(emb_octave , '... n d -> (...) 1 d'),
+                rearrange(emb_duration , '... n d -> (...) 1 d'),
+                rearrange(emb_velocity , '... n d -> (...) 1 d')
+            ], dim = -2)
+        
+        x = self.encoder(embs)
+        x = rearrange(r, '(b d) s f -> b d s f',  b = r)
+        x1 = x[:,:,1,:]
+        x1 = x1.unsqueeze(2)
+        return x, self.proj_type(x1)
