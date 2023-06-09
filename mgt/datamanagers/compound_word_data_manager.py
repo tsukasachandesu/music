@@ -107,7 +107,7 @@ class CompoundWordDataManager(DataManager):
             if i[0] == 2:
                 b.append(i)
             if i[0] == 3:
-                b.append(2,i[1],0,0,0,0,0,0])
+                b.append([2,i[1],0,0,0,0,0,0])
                 b.append(i)
          
 
