@@ -79,9 +79,8 @@ class CompoundWordDataManager(DataManager):
                             measure[st][c] = i[4] 
 
                     print(f'Extracted {len(measure)} compound words.')
-                    print(measure)
-
                     training_data.append(measure)
+                    
                 except Exception as e:
                     print(f"Exception: {e}")
 
