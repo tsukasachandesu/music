@@ -109,12 +109,16 @@ class CompoundWordDataManager(DataManager):
                     if p[-1] == [2, 0, 0, 0, 0, 0, 0, 0]:
                         del p[-1]
 
+                    cur = 0
+                    for i in measure:
+                        i[6] = cur % 16
+                        cur = cur + 1 
                     cur = -1
                     for i in p:
                         if i == [2, 0, 0, 0, 0, 0, 0, 0]:
                             cur = cur + 1
                         else:
-                            measure[i[1] + cur*16 -1] = [i[2],i[3],i[4],i[5],i[6],i[7]]
+                            measure[i[1] + cur*16 -1] = [i[2],i[3],i[4],i[5],i[6],i[7],i[1]-1]
 
                     print(f'Extracted {len(measure)} compound words.')
                     print(measure)
@@ -138,14 +142,16 @@ class CompoundWordDataManager(DataManager):
         bar = -1
         a_reconstructed = []
         for beat in range(len(measure)):
+            r=0
             if beat % 16 == 0:
                 bar += 1
                 a_reconstructed.append([2, 0, 0, 0, 0,0,0,0])
             for note_index, note_value in enumerate(measure[beat]):
+                if note_index >= 6:
+                    break
                 if note_value != 0:
                     current_note = [3, beat - bar * 16 + 1, *inverse_dic[note_value]]
                     a_reconstructed.append(current_note)
-        print(a_reconstructed)
         b = []
         con = 0
         for i in a_reconstructed:
@@ -154,7 +160,6 @@ class CompoundWordDataManager(DataManager):
             if i[0] == 3:
                 b.append([2, i[1], 0, 0, 0,0,0,0])
                 b.append([3,i[1],0,0,i[2],i[3],i[4],31])
-        print(a_reconstructed)
         
         remi = self.compound_word_mapper.map_to_remi(b)
         return MidiToolkitWrapper(self.to_midi_mapper.to_midi(remi))
