@@ -100,6 +100,7 @@ class CompoundWordDataManager(DataManager):
         for beat in range(len(measure)):
             if beat % 16 == 0:
                 bar += 1
+                a_reconstructed.append([2, 0, 0, 0, 0,0,0,0])
             for note_index, note_value in enumerate(measure[beat]):
                 if note_value != 0:
                     current_note = [3, beat - bar * 16 + 1, *inverse_dic[note_index], note_value]
