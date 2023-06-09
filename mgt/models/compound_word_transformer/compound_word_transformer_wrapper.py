@@ -121,7 +121,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         embs1 = self.word_emb_type(x[..., 0])
         
         for i in range(107):
-            embs1 = torch.cat([embs1,self.word_emb_type(x[..., i+1]), dim = -1])
+            embs1 = torch.cat([embs1, self.word_emb_type(x[..., i+1])], dim = -1)
 
         emb_linear = self.in_linear1(embs1)
         
