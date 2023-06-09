@@ -145,7 +145,7 @@ class CompoundWordDataManager(DataManager):
                 if note_value != 0:
                     current_note = [3, beat - bar * 16 + 1, *inverse_dic[note_value]]
                     a_reconstructed.append(current_note)
-                    
+        print(a_reconstructed)
         b = []
         con = 0
         for i in a_reconstructed:
@@ -154,6 +154,7 @@ class CompoundWordDataManager(DataManager):
             if i[0] == 3:
                 b.append([2, i[1], 0, 0, 0,0,0,0])
                 b.append([3,i[1],0,0,i[2],i[3],i[4],31])
+        print(a_reconstructed)
         
         remi = self.compound_word_mapper.map_to_remi(b)
         return MidiToolkitWrapper(self.to_midi_mapper.to_midi(remi))
