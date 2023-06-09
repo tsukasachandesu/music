@@ -64,12 +64,12 @@ class CompoundWordDataManager(DataManager):
                             d.append([2,0,0,0,0])
                             cur = cur + 1
                         n = i[1]
-                        print(n)
+
                       else:
-                        d.append(i[0], n, i[5],i[6],i[7])
+                        d.append([i[0], n, i[5],i[6],i[7]])
                     measure = [[0]*108 for _ in range(16*(bar+5))]  
                     bar = -1
-                    print("itteru")
+
                     for i in d:
                         if i[0] == 2:
                             bar=bar+1
