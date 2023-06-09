@@ -305,18 +305,21 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         embs1 = torch.cat(
             [
-                emb_type,
-                emb_barbeat,
-                emb_tempo,
-                emb_instrument,
-                emb_note_name,
-                emb_octave,
-                emb_duration,
-                emb_velocity
-            ], dim = -1)
-    
-
-        emb_linear = self.in_linear1(embs1)
+                rearrange(emb_type , 'r n d -> (r n) 1 d'),
+                rearrange(emb_barbeat , 'r n d -> (r n) 1 d'),
+                rearrange(emb_tempo , 'r n d -> (r n) 1 d'),
+                rearrange(emb_instrument , 'r n d -> (r n) 1 d'),
+                rearrange(emb_note_name , 'r n d -> (r n) 1 d'),
+                rearrange(emb_octave , 'r n d -> (r n) 1 d'),
+                rearrange(emb_duration , 'r n d -> (r n) 1 d'),
+                rearrange(emb_velocity , 'r n d -> (r n) 1 d')
+            ], dim = -2)
+        embs = embs + self.pos_emb1(embs)
+        x = self.encoder(embs)
+        r = x.shape[0]
+        x = rearrange(x, '(b d) s f -> b d (s f)',  b = r)
+        
+        emb_linear = self.in_linear1(x)
         x = emb_linear + self.pos_emb(emb_linear)
         
         x = self.emb_dropout(x)
