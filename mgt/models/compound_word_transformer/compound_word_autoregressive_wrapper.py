@@ -49,7 +49,6 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
             # sample others
             next_arr = self.net.forward_output_sampling(
                 h[:, -1:, :],
-                y_type[:, -1:, :],
                 selection_temperatures=selection_temperatures,
                 selection_probability_tresholds=selection_probability_tresholds)
 
@@ -58,7 +57,7 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
             # forward
             last_token = final_res[-self.max_seq_len:]
             input_ = torch.tensor(np.array([last_token])).long().to(get_device())
-            h, y_type = self.net.forward_hidden(input_)
+            h = self.net.forward_hidden(input_)
 
         return final_res
 
@@ -66,17 +65,13 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         xi = x[:, :-1, :]
         target = x[:, 1:, :]
 
-        h, proj_type = self.net.forward_hidden(xi, **kwargs)
-        proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, proj_velocity = self.net.forward_output(
-            h, target)
-        # Filter padding indices
+        h = self.net.forward_hidden(xi, **kwargs)
+
         type_loss = calculate_loss(proj_type, target[..., 0], type_mask(target))
         barbeat_loss = calculate_loss(proj_barbeat, target[..., 1], type_mask(target))
         tempo_loss = calculate_loss(proj_tempo, target[..., 2], type_mask(target))
         instrument_loss = calculate_loss(proj_instrument, target[..., 3], type_mask(target))
         note_name_loss = calculate_loss(proj_note_name, target[..., 4], type_mask(target))
         octave_loss = calculate_loss(proj_octave, target[..., 5], type_mask(target))
-        duration_loss = calculate_loss(proj_duration, target[..., 6], type_mask(target))
-        velocity_loss = calculate_loss(proj_velocity, target[..., 7], type_mask(target))
 
-        return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss, velocity_loss
+        return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss
