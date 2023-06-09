@@ -12,6 +12,9 @@ from mgt.models.compound_word_transformer.compound_word_transformer_utils import
 from mgt.models.compound_word_transformer.compound_word_transformer_wrapper import CompoundWordTransformerWrapper
 from mgt.models.utils import get_device
 
+def myloss(losses):
+    loss = sum(losses) / len(losses)
+    return (torch.tensor(0.0, requires_grad=True) if loss ==0 else loss)
 
 defaults = {
     'num_tokens': [64]*108,
@@ -77,8 +80,8 @@ class CompoundWordTransformerModel(object):
 
                     torch_batch = torch.tensor(np.array(batch)).long().to(utils.get_device())
                     losses = self.model.train_step(torch_batch)
-                    loss = sum(losses) / len(losses)
-                    loss.backward()
+                    losses = myloss(losses)
+                    losses.backward()
 
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), 0.5)
                 self.optimizer.step()
@@ -113,6 +116,7 @@ class CompoundWordTransformerModel(object):
         self.model.eval()
         sample = self.model.generate(output_length=output_length, prompt=prompt)
         return sample
+
 
     def create_model(self):
         model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
