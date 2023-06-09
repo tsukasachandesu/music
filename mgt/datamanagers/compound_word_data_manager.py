@@ -45,7 +45,8 @@ class CompoundWordDataManager(DataManager):
 
     def prepare_data(self, midi_paths) -> DataSet:
         training_data = []
-        dic = {(i, j, k): index for index, (i, j, k) in enumerate((i, j, k) for i in range(12) for j in range(9) for k in range(64))}
+        dic = {(i, j): index for index, (i, j) in enumerate((i, j) for i in range(12) for j in range(9))}
+
 
         for path in midi_paths:
             for transposition_step in self.transposition_steps:
@@ -54,57 +55,30 @@ class CompoundWordDataManager(DataManager):
 
                     compound_words = self.compound_word_mapper.map_to_compound(data, self.dictionary)
                     compound_data = self.compound_word_mapper.map_compound_words_to_data(compound_words)
-                    a = [[i[0], i[1], dic.get((i[4], i[5], i[6]))] for i in compound_data]
                     d = []
-                    for i in a:
+                    cur = 0
+                    for i in compound_data:
                       if i[0] == 2:
-                        if i == [2,0,0]:
-                          d.append(i)
-                        b = i[1]
-                      elif i[0] == 3:
-                        c = i[2]
-                        d.append([3,b,c])
+                        if i == [2,0,0,0,0,0,0,0]:
+                            d.append([2,0,0,0,0])
+                            cur = cur + 1
+                        n = i[1]
                       else:
-                        d.append(i)  
-                    cur = 0
+                        d.append(i[0], n, i[4],i[5],i[6])
+                    measure = [[0]*108 for _ in range(16*(bar+5))]  
+                    bar = -1
                     for i in d:
-                        if i == [2, 0, 0]:
-                            cur = cur + 1
-                    p =[[] * 1 for i in range(cur*16+1)]
-                    cur = -1
-                    for i in d:
-                        if i == [2, 0, 0]:
-                            cur = cur + 1
-                        if i[0] == 3:
-                            p[i[1] + cur * 16].append([i[0],i[1],i[2]])
+                        if i[0] == 2:
+                            bar=bar+1
+                        else:
+                            st = bar * 16 + i[1]
+                            c = dic.get((i[2],i[3]))
+                            measure[st][c] = i[4]
+                    
 
-                    pp = []
-                    cur = 0
-                    for i in p:
-                        if cur % 16==0:
-                            pp.append([[2, 0, 0]])
-                        if i:
-                            pp.append(i)
-                        cur = cur + 1
-                    p  = []
+                    print(f'Extracted {len(measure)} compound words.')
 
-                    for i in pp:
-                        n =[0,0,0,0,0,0,0,0]
-                        r = 2
-                        for j in i:
-                            n[0] = j[0]
-                            n[1] = j[1]
-                            n[r] = j[2]
-                            if r >= 7:
-                                break
-                            r = r + 1
-                        p.append(n)
-                    if p[-1] == [2, 0, 0, 0, 0, 0, 0, 0]:
-                        del p[-1]
-
-                    print(f'Extracted {len(p)} compound words.')
-
-                    training_data.append(p)
+                    training_data.append(measure)
                 except Exception as e:
                     print(f"Exception: {e}")
 
@@ -115,25 +89,25 @@ class CompoundWordDataManager(DataManager):
         return list(map(lambda x: self.dictionary.data_to_word(x), remi))
 
     def to_midi(self, data) -> MidiWrapper:
-        dic1 = {}
-        c = 0        
-        for i in range(12):
-            for j in range(9):
-                for k in range(64):
-                    dic1[c] = [i,j,k]
-                    c = c + 1
-        q = []
-        for i in data:
-            if i[0] == 3:
-                q.append([2,i[1],0,0,0,0,0,0])
-            q.append(i)  
+        dic = {(i, j): index for index, (i, j) in enumerate((i, j) for i in range(12) for j in range(9))}
+        inverse_dic = {v: k for k, v in dic.items()}
+        bar = -1
+        a_reconstructed = []
+        for beat in range(len(measure)):
+            if beat % 16 == 0:
+                a_reconstructed.append([2, 0, 0, 0, 0])
+                bar += 1
+            for note_index, note_value in enumerate(measure[beat]):
+                if note_value != 0:
+                    current_note = [3, beat - bar * 16, *inverse_dic[note_index], note_value]
+                    a_reconstructed.append(current_note)
         b = []
-        for i in q:
-          if i[0] == 3:
-            for j in range(6):
-              if i[j+2]:
-                b.append( [i[0]]+[i[1]] + [0,0] + dic1.get(i[j+2])  +[31] )
-          else:
-            b.append( [i[0]]+[i[1]] + [0,0,0,0,0,0])
+        for i in a_reconstructed:
+            if i[0] == 2:
+                b.append(i)
+            if i[0] == 3:
+                b.append(2,i[1],0,0,0,0,0,0])
+                b.append(i)
+
         remi = self.compound_word_mapper.map_to_remi(b)
         return MidiToolkitWrapper(self.to_midi_mapper.to_midi(remi))
