@@ -130,25 +130,30 @@ class CompoundWordDataManager(DataManager):
         return list(map(lambda x: self.dictionary.data_to_word(x), remi))
 
     def to_midi(self, data) -> MidiWrapper:
-        dic1 = {}
-        c = 0        
-        for i in range(12):
-            for j in range(9):
-                for k in range(64):
-                    dic1[c] = [i,j,k]
-                    c = c + 1
-        q = []
-        for i in data:
-            if i[0] == 3:
-                q.append([2,i[1],0,0,0,0,0,0])
-            q.append(i)  
+        dic = {(i, j, k): index for index, (i, j, k) in enumerate((i, j, k) for i in range(12) for j in range(9) for k in range(64))}
+        inverse_dic = {v: k for k, v in dic.items()}
+
+        
+        measure = data
+        bar = -1
+        a_reconstructed = []
+        for beat in range(len(measure)):
+            if beat % 16 == 0:
+                bar += 1
+                a_reconstructed.append([2, 0, 0, 0, 0,0,0,0])
+            for note_index, note_value in enumerate(measure[beat]):
+                if note_value != 0:
+                    current_note = [3, beat - bar * 16 + 1, *inverse_dic[note_value]]
+                    a_reconstructed.append(current_note)
+                    
         b = []
-        for i in q:
-          if i[0] == 3:
-            for j in range(6):
-              if i[j+2]:
-                b.append( [i[0]]+[i[1]] + [0,0] + dic1.get(i[j+2])  +[31] )
-          else:
-            b.append( [i[0]]+[i[1]] + [0,0,0,0,0,0])
+        con = 0
+        for i in a_reconstructed:
+            if i[0] == 2:
+                b.append(i)
+            if i[0] == 3:
+                b.append([2, i[1], 0, 0, 0,0,0,0])
+                b.append([3,i[1],0,0,i[2],i[3],i[4],31])
+        
         remi = self.compound_word_mapper.map_to_remi(b)
         return MidiToolkitWrapper(self.to_midi_mapper.to_midi(remi))
