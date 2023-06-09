@@ -113,10 +113,6 @@ class CompoundWordTransformerWrapper(nn.Module):
             nn.Linear(dim, self.num_tokens[5])
         )
         
-        
-        # in_features is equal to dimension plus dimensions of the type embedding
-        self.project_concat_type = nn.Linear(dim + self.emb_sizes[0], dim)
-
         self.compound_word_embedding_size = np.sum(emb_sizes)
 
         self.pos_emb = AbsolutePositionalEmbedding(self.compound_word_embedding_size, max_seq_len) if (
@@ -126,7 +122,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.project_emb = nn.Linear(emb_dim, dim) if emb_dim != dim else nn.Identity()
         self.attn_layers = attn_layers
         
-        self.attn_layers1 = attn_layers
         self.pos_emb1 = AbsolutePositionalEmbedding(512, 6) if (
                 use_pos_emb and not attn_layers.has_pos_emb) else always(0)
         
@@ -143,7 +138,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         nn.init.normal_(self.word_emb_note_name.weight(), std=0.02)
         nn.init.normal_(self.word_emb_octave.weight(), std=0.02)
 
-    def forward_output_sampling(self, y, selection_temperatures=None, selection_probability_tresholds=None):
+    def forward_output_sampling(self, proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, selection_temperatures=None, selection_probability_tresholds=None):
         # sample type
         if selection_probability_tresholds is None:
             selection_probability_tresholds = {}
@@ -151,16 +146,12 @@ class CompoundWordTransformerWrapper(nn.Module):
         if selection_temperatures is None:
             selection_temperatures = {}
 
-        # project other
-        proj_barbeat = self.proj_barbeat(y_)
-        proj_tempo = self.proj_tempo(y_)
-        proj_instrument = self.proj_instrument(y_)
-        proj_note_name = self.proj_note_name(y_)
-        proj_octave = self.proj_octave(y_)
-        proj_duration = self.proj_duration(y_)
-
-
         # sampling gen_cond
+        cur_word_type = sampling(
+            proj_type,
+            probability_treshold=selection_probability_tresholds.get(1, None),
+            temperature=selection_temperatures.get(0, 1.0))
+        
         cur_word_barbeat = sampling(
             proj_barbeat,
             probability_treshold=selection_probability_tresholds.get(1, None),
@@ -186,21 +177,14 @@ class CompoundWordTransformerWrapper(nn.Module):
             probability_treshold=selection_probability_tresholds.get(5, None),
             temperature=selection_temperatures.get(5, 1.0))
 
-        cur_word_duration = sampling(
-            proj_duration,
-            probability_treshold=selection_probability_tresholds.get(6, None),
-            temperature=selection_temperatures.get(6, 1.0))
-
         # collect
         next_arr = np.array([
-            self.proj_type(x)
+            cur_word_type,
             cur_word_barbeat,
             cur_word_tempo,
             cur_word_instrument,
             cur_word_note_name,
-            cur_word_octave,
-            cur_word_duration,
-            cur_word_velocity
+            cur_word_octave
         ])
         return next_arr
 
