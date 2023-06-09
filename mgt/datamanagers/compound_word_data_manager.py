@@ -65,9 +65,8 @@ class CompoundWordDataManager(DataManager):
                         n = i[1]
                       else:
                         d.append([3, n, i[4],i[5],i[6]])
-                    print(d)
-                    print(cur)
-                    measure = [[0]*108 for _ in range(16*(cur+5))]  
+    
+                    measure = [[0]*108 for _ in range(16*(cur+1))]  
                     bar = -1
 
                     for i in d:
@@ -76,7 +75,7 @@ class CompoundWordDataManager(DataManager):
                         else:
                             st = bar * 16 + i[1]
                             c = dic.get((i[2],i[3]))
-                            measure[st][c] = i[4]                    
+                            measure[st][c] = i[4] 
 
                     print(f'Extracted {len(measure)} compound words.')
                     print(measure)
@@ -110,7 +109,7 @@ class CompoundWordDataManager(DataManager):
                 b.append(i)
             if i[0] == 3:
                 b.append([2,i[1],0,0,0,0,0,0])
-                b.append(3,0,0,0,i[2],i[3],i[4],31])
+                b.append([3,0,0,0,i[2],i[3],i[4],31])
          
 
         remi = self.compound_word_mapper.map_to_remi(b)
