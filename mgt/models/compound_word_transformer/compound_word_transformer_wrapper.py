@@ -217,25 +217,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         ])
         return next_arr
 
-    def forward_output(self,
-                       h,
-                       target
-                       ):
-        tf_skip_type = self.word_emb_type(target[..., 0])
-
-        y_concat_type = torch.cat([h, tf_skip_type], dim=-1)
-        y_ = self.project_concat_type(y_concat_type)
-
-        proj_barbeat = self.proj_barbeat(y_)
-        proj_tempo = self.proj_tempo(y_)
-        proj_instrument = self.proj_instrument(y_)
-        proj_note_name = self.proj_note_name(y_)
-        proj_octave = self.proj_octave(y_)
-        proj_duration = self.proj_duration(y_)
-        proj_velocity = self.proj_velocity(y_)
-
-        return proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, proj_velocity
-
     def forward_hidden(
             self,
             x,
