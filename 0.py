@@ -131,10 +131,8 @@ model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
         heads=defaults["heads"],
         ff_glu = True,
         ff_swish = True,
-        rel_pos_bias = True,
+        rotary_xpos = True,
         use_rmsnorm = True, 
-        scale_residual = True,
-        attn_head_scale = True,
         attn_dropout=defaults["dropout"],  
         ff_dropout=defaults["dropout"],  
     ))).cuda()
