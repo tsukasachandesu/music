@@ -71,21 +71,16 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.num_tokens = num_tokens
         self.max_seq_len = max_seq_len
         self.word_emb_type ＝　CompoundTransformerEmbeddings(64, 96)
+        
         for i in range(108):
             exec_command2 = 'self.proj_type' + str(i) + '=' + 'nn.Linear(512, 64)'
             exec(exec_command2)
 
-        self.compound_word_embedding_size = np.sum(emb_sizes)
-
-        self.pos_emb = AbsolutePositionalEmbedding(self.compound_word_embedding_size, max_seq_len) if (
-                use_pos_emb and not attn_layers.has_pos_emb) else always(0)
+        self.pos_emb = AbsolutePositionalEmbedding(512, max_seq_len) 
         
         self.emb_dropout = nn.Dropout(emb_dropout)
         
         self.attn_layers = attn_layers
-        
-        self.pos_emb1 = AbsolutePositionalEmbedding(512, 6) if (
-                use_pos_emb and not attn_layers.has_pos_emb) else always(0)
         
         self.norm = nn.LayerNorm(512)
         
@@ -95,13 +90,6 @@ class CompoundWordTransformerWrapper(nn.Module):
 
     def init_(self):
         nn.init.normal_(self.word_emb_type.weight(), std=0.02)
-        nn.init.normal_(self.word_emb_barbeat.weight(), std=0.02)
-        nn.init.normal_(self.word_emb_tempo.weight(), std=0.02)
-        nn.init.normal_(self.word_emb_instrument.weight(), std=0.02)
-        nn.init.normal_(self.word_emb_note_name.weight(), std=0.02)
-        nn.init.normal_(self.word_emb_octave.weight(), std=0.02)
-        nn.init.normal_(self.word_emb_duration.weight(), std=0.02)
-        nn.init.normal_(self.word_emb_velocity.weight(), std=0.02)
 
     def forward_output_sampling(self, h, y_type, selection_temperatures=None, selection_probability_tresholds=None):
         # sample type
