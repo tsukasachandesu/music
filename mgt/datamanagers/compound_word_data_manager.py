@@ -59,7 +59,7 @@ class CompoundWordDataManager(DataManager):
                     for i in compound_data:
                       if i == [2,0,0,0,0,0,0,0]:
                         cur = cur + 1
-                    measure = [[0]*6 for _ in range(16*(cur+1))] 
+                    measure = [[0]*7 for _ in range(16*(cur+1))] 
 
                     a = [[i[0], i[1], dic.get((i[4], i[5], i[6]))] for i in compound_data]
                     d = []
