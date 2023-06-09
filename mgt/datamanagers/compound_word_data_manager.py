@@ -109,8 +109,7 @@ class CompoundWordDataManager(DataManager):
             if i[0] == 2:
                 b.append(i)
             if i[0] == 3:
-                b.append([2,i[1],0,0,0,0,0,0])
-                b.append([3,0,0,0,i[2],i[3],i[4],31])
+                b.append([3,i[1],0,0,i[2],i[3],i[4],31])
          
 
         remi = self.compound_word_mapper.map_to_remi(b)
