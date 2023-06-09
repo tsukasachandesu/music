@@ -68,6 +68,6 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         r = 0
         loss  = []
         for i in x:
-            loss = calculate_loss(i, target[..., r], type_mask(target))
+            loss.append(calculate_loss(i, target[..., r], type_mask(target)))
         loss = sum(loss) / len(loss)
         return loss
