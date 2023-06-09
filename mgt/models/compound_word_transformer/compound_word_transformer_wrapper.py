@@ -11,8 +11,8 @@ from mgt.models.compound_word_transformer.compound_transformer_embeddings import
 from mgt.models.utils import get_device
 
 class Encoder(nn.Module):
-  def __init__(self, n_layer=6, n_head=12, d_model=512, d_ff=2048, dropout=0.1, activation='relu'):
-    super(VAETransformerEncoder, self).__init__()
+  def __init__(self, n_layer=6, n_head=8, d_model=512, d_ff=2048, dropout=0.1, activation='gelu'):
+    super(rEncoder, self).__init__()
     self.n_layer = n_layer
     self.n_head = n_head
     self.d_model = d_model
