@@ -77,6 +77,7 @@ class CompoundWordDataManager(DataManager):
                     
 
                     print(f'Extracted {len(measure)} compound words.')
+                    print(measure)
 
                     training_data.append(measure)
                 except Exception as e:
@@ -108,6 +109,7 @@ class CompoundWordDataManager(DataManager):
             if i[0] == 3:
                 b.append(2,i[1],0,0,0,0,0,0])
                 b.append(i)
+         
 
         remi = self.compound_word_mapper.map_to_remi(b)
         return MidiToolkitWrapper(self.to_midi_mapper.to_midi(remi))
