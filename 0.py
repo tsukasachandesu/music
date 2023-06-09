@@ -70,9 +70,9 @@ def add_argument():
                         help='use CPU in case there\'s no GPU support')
     parser.add_argument('--use_ema', default=False, action='store_true',
                         help='whether use exponential moving average')
-    parser.add_argument('-b', '--batch_size', default=12, type=int,
+    parser.add_argument('-b', '--batch_size', default=6, type=int,
                         help='mini-batch size (default: 32)')
-    parser.add_argument('-e', '--epochs', default=4, type=int,
+    parser.add_argument('-e', '--epochs', default=2, type=int,
                         help='number of total epochs (default: 30)')
     parser.add_argument('--local_rank', type=int, default=-1,
                        help='local rank passed from distributed launcher')
@@ -84,7 +84,7 @@ def add_argument():
 # constants
 
 EPOCHS = 2
-GRADIENT_ACCUMULATE_EVERY = 3
+GRADIENT_ACCUMULATE_EVERY = 2
 GENERATE_EVERY = 1800
 GENERATE_LENGTH = 1024
 yes = None
