@@ -157,7 +157,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         )
         
         # in_features is equal to dimension plus dimensions of the type embedding
-        self.project_concat_type = nn.Linear(dim*9 + self.emb_sizes[0], dim)
+        self.project_concat_type = nn.Linear(dim*9 + self.emb_sizes[0], dim*9)
 
         self.compound_word_embedding_size = np.sum(emb_sizes)
 
@@ -344,5 +344,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         embs = embs + self.pos_emb1(embs)
         x = self.encoder(embs)
         x = rearrange(x, '(b d) s f -> b d (s f)',  b = r)
+        print(x.shape)
 
         return x, self.proj_type(x)
