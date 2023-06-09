@@ -274,6 +274,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         tf_skip_type = self.word_emb_type(target[..., 0])
 
         y_concat_type = torch.cat([h, tf_skip_type], dim=-1)
+        
+        y_concat_type = y_concat_type.squeeze(-2)
+        
         y_ = self.project_concat_type(y_concat_type)
 
         proj_barbeat = self.proj_barbeat(y_[:,:,2,:].unsqueeze(2))
