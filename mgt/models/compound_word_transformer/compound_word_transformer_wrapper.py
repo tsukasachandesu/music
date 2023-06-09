@@ -70,41 +70,10 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         self.num_tokens = num_tokens
         self.max_seq_len = max_seq_len
-
-        self.word_emb_type = CompoundTransformerEmbeddings(64, 96)
-        
-        # individual output
-        self.proj_type = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[0])
-        )
-        
-        self.proj_barbeat = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[1])
-        )
-        
-        self.proj_tempo = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[2])
-        )
-        
-        self.proj_instrument = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[3])
-        )
-        
-        self.proj_note_name = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[4])
-        )
-        
-        self.proj_octave = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[5])
-        )
-        
-        self.proj_duration = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[6])
-        )
-        
-        self.proj_velocity = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[7])
-        )
+        self.word_emb_type ＝　CompoundTransformerEmbeddings(64, 96)
+        for i in range(108):
+            exec_command2 = 'self.proj_type' + str(i) + '=' + 'nn.Linear(512, 64)'
+            exec(exec_command2)
 
         self.compound_word_embedding_size = np.sum(emb_sizes)
 
@@ -112,8 +81,6 @@ class CompoundWordTransformerWrapper(nn.Module):
                 use_pos_emb and not attn_layers.has_pos_emb) else always(0)
         
         self.emb_dropout = nn.Dropout(emb_dropout)
-
-        self.project_emb = nn.Linear(emb_dim, dim) if emb_dim != dim else nn.Identity()
         
         self.attn_layers = attn_layers
         
@@ -241,5 +208,9 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         x, intermediates = self.attn_layers(x, mask=mask, return_hiddens=True, **kwargs)
         x = self.norm(x)
+        r = []
+        for i in range(108):
+            exec_command2 = 'r.append(self.proj_type' + str(i) + '(x))'
+            exec(exec_command2)
 
-        return x, self.proj_type(x)
+        return r
