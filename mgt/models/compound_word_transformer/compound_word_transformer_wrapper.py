@@ -109,7 +109,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         )
         
         self.proj_instrument = nn.Sequential(
-            nn.LayerNorm(512)
+            nn.LayerNorm(512),
             nn.Linear(dim, self.num_tokens[3])
         )
         
@@ -153,9 +153,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.emb1 = nn.Embedding(6912, 512)
         self.in_linear1 = nn.Linear(32+96+512, 512)
         self.in_linear2 = nn.Linear(512*6, 512)
-        self.lstm = nn.LSTM(512, 512, batch_first=True, bidirectional=True)
-        self.lin = nn.Linear(1024, 512)
-
 
         self.init_()
 
@@ -293,12 +290,9 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_octave,
                 emb_duration,
                 emb_velocity
-            ], dim=1)
+            ], dim = -1)
         
-        hiddens, states = self.lstm(embs1)
-        out1, out2 = torch.chunk(hiddens, 2, dim=2)
-        out_cat = torch.cat((out1[:, -1, :], out2[:, 0, :]), 1)
-        outputs = self.lin(out_cat)
+        outputs = self.in_linear2(embs1)
 
         embs = torch.cat(
             [
