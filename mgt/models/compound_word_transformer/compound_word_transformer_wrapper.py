@@ -14,7 +14,7 @@ from einops_exts import rearrange_with_anon_dims
 from einops import rearrange, reduce, repeat
 
 class Encoder(nn.Module):
-  def __init__(self, n_layer=2, n_head=8, d_model=512, d_ff=2048, dropout=0.1, activation='gelu'):
+  def __init__(self, n_layer=1, n_head=8, d_model=512, d_ff=2048, dropout=0.1, activation='gelu'):
     super(Encoder, self).__init__()
     self.n_layer = n_layer
     self.n_head = n_head
@@ -297,6 +297,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_duration = self.word_emb_duration(x[..., 6])
         emb_velocity = self.word_emb_velocity(x[..., 7])
         
+        r = emb_velocity.shape[0]
+        
         embs1 = torch.cat(
             [
                 rearrange(emb_type , 'r n d -> (r n) 1 d'),
@@ -311,7 +313,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         embs1 = embs1 + self.pos_emb1(embs1)
         x = self.encoder(embs1)
-        r = x.shape[0]
+        
         x = rearrange(x, '(b d) s f -> b d (s f)',  b = r)
         
         emb_linear = self.in_linear1(x)
@@ -340,7 +342,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             ], dim = -2)
         embs = embs + self.pos_emb1(embs)
         x = self.encoder(embs)
-        x = rearrange(x, '(b d) s f -> b d (s f)',  b = 4)
+        x = rearrange(x, '(b d) s f -> b d (s f)',  b = r)
 
 
         return x, self.proj_type(x)
