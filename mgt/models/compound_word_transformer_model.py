@@ -80,8 +80,8 @@ class CompoundWordTransformerModel(object):
 
                     torch_batch = torch.tensor(np.array(batch)).long().to(utils.get_device())
                     losses = self.model.train_step(torch_batch)
-                    losses = myloss(losses)
-                    losses.backward()
+                    loss = myloss(losses)
+                    loss.backward()
 
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), 0.5)
                 self.optimizer.step()
