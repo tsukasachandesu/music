@@ -138,7 +138,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         x = self.norm(x)
         b = []
         for i in range(108):
-            exec_command2 = 'b.append(self.proj_type' + str(i+1) + '(x))'
+            exec_command2 = 'b.append(self.proj_type' + str(i) + '(x))'
             exec(exec_command2)
 
         return b
