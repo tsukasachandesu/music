@@ -42,7 +42,7 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         final_res = prompt.copy()
         last_token = final_res[-self.max_seq_len:]
         input_ = torch.tensor(np.array([last_token])).long().to(get_device())
-        proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave = self.net.forward_hidden(input_)
+        proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave,proj_duration = self.net.forward_hidden(input_)
 
         print('------ generate ------')
         for _ in range(output_length):
