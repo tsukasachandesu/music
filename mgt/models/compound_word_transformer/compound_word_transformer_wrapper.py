@@ -325,8 +325,8 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         x, intermediates = self.attn_layers(x, mask=mask, return_hiddens=True, **kwargs)
         x = self.norm(x)
-       
         r = x.shape[0]
+        
         embs = torch.cat(
             [
                 rearrange(x, 'r n d -> (r n) 1 d'),
@@ -340,7 +340,9 @@ class CompoundWordTransformerWrapper(nn.Module):
                 rearrange(emb_velocity , 'r n d -> (r n) 1 d')
             ], dim = -2)
         embs = embs + self.pos_emb1(embs)
+        print(embs.shape)
         x = self.encoder(embs)
+        print(x.shape)
         x = rearrange(x, '(b d) s f -> b d (s f)',  b = r)
         print(x.shape)
 
