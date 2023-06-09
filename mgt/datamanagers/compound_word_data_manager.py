@@ -64,21 +64,19 @@ class CompoundWordDataManager(DataManager):
                             cur = cur + 1
                         n = i[1]
                       else:
-                        d.append([i[0], n, i[5],i[6],i[7]])
-                    print("aaa")
+                        d.append([3, n, i[5],i[6],i[7]])
+                    print(d)
+                    print(cur)
                     measure = [[0]*108 for _ in range(16*(cur+5))]  
                     bar = -1
 
                     for i in d:
                         if i[0] == 2:
                             bar=bar+1
-                            print("aaaa")
                         else:
                             st = bar * 16 + i[1]
                             c = dic.get((i[2],i[3]))
-                            measure[st][c] = i[4]
-                            print("aaab")
-                    
+                            measure[st][c] = i[4]                    
 
                     print(f'Extracted {len(measure)} compound words.')
                     print(measure)
