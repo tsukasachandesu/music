@@ -74,7 +74,7 @@ class CompoundWordDataManager(DataManager):
                         if i[0] == 2:
                             bar=bar+1
                         else:
-                            st = bar * 16 + i[1]
+                            st = bar * 16 + i[1]-1
                             c = dic.get((i[2],i[3]))
                             measure[st][c] = i[4] 
 
