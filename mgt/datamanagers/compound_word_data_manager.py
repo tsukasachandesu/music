@@ -55,6 +55,7 @@ class CompoundWordDataManager(DataManager):
 
                     compound_words = self.compound_word_mapper.map_to_compound(data, self.dictionary)
                     compound_data = self.compound_word_mapper.map_compound_words_to_data(compound_words)
+                    print(compound_data)
                     d = []
                     cur = 0
                     for i in compound_data:
