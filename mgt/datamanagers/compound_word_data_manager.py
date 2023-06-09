@@ -98,9 +98,11 @@ class CompoundWordDataManager(DataManager):
         bar = -1
         a_reconstructed = []
         for beat in range(len(measure)):
+            if beat % 16 == 0:
+                bar += 1
             for note_index, note_value in enumerate(measure[beat]):
                 if note_value != 0:
-                    current_note = [3, beat - bar * 16, *inverse_dic[note_index], note_value]
+                    current_note = [3, beat - bar * 16 + 1, *inverse_dic[note_index], note_value]
                     a_reconstructed.append(current_note)
         b = []
         con = 0
@@ -110,7 +112,6 @@ class CompoundWordDataManager(DataManager):
             if i[0] == 3:
                 b.append([2, i[1], 0, 0, 0,0,0,0])
                 b.append([3,i[1],0,0,i[2],i[3],i[4],31])
-         
 
         remi = self.compound_word_mapper.map_to_remi(b)
         return MidiToolkitWrapper(self.to_midi_mapper.to_midi(remi))
