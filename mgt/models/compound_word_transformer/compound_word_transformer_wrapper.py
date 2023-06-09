@@ -12,7 +12,7 @@ from mgt.models.utils import get_device
 
 class Encoder(nn.Module):
   def __init__(self, n_layer=6, n_head=8, d_model=512, d_ff=2048, dropout=0.1, activation='gelu'):
-    super(rEncoder, self).__init__()
+    super(Encoder, self).__init__()
     self.n_layer = n_layer
     self.n_head = n_head
     self.d_model = d_model
