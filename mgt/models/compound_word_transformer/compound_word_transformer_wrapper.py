@@ -34,12 +34,6 @@ class Encoder(nn.Module):
     out = self.tr_encoder(x, src_key_padding_mask=padding_mask)
     return out
 
-
-
-
-
-
-
 def softmax_with_temperature(logits, temperature):
     probs = np.exp(logits / temperature) / np.sum(np.exp(logits / temperature))
     return probs
@@ -314,8 +308,9 @@ class CompoundWordTransformerWrapper(nn.Module):
                 rearrange(emb_duration , 'r n d -> (r n) 1 d'),
                 rearrange(emb_velocity , 'r n d -> (r n) 1 d')
             ], dim = -2)
-        embs = embs + self.pos_emb1(embs)
-        x = self.encoder(embs)
+        
+        embs1 = embs1 + self.pos_emb1(embs1)
+        x = self.encoder(embs1)
         r = x.shape[0]
         x = rearrange(x, '(b d) s f -> b d (s f)',  b = r)
         
