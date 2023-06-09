@@ -48,7 +48,7 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         for _ in range(output_length):
             # sample others
             next_arr = self.net.forward_output_sampling(
-                proj_type[:, -1:, :], proj_barbeat[:, -1:, :], proj_tempo[:, -1:, :], proj_instrument[:, -1:, :], proj_note_name[:, -1:, :], proj_octave[:, -1:, :],
+                proj_type[:, -1:, :], proj_barbeat[:, -1:, :], proj_tempo[:, -1:, :], proj_instrument[:, -1:, :], proj_note_name[:, -1:, :], proj_octave[:, -1:, :],proj_duration[:, -1:, :],
                 selection_temperatures=selection_temperatures,
                 selection_probability_tresholds=selection_probability_tresholds)
 
@@ -57,7 +57,7 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
             # forward
             last_token = final_res[-self.max_seq_len:]
             input_ = torch.tensor(np.array([last_token])).long().to(get_device())
-            proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave = self.net.forward_hidden(input_)
+            proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration = self.net.forward_hidden(input_)
 
         return final_res
 
@@ -65,7 +65,7 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         xi = x[:, :-1, :]
         target = x[:, 1:, :]
 
-        proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave = self.net.forward_hidden(xi, **kwargs)
+        proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration = self.net.forward_hidden(xi, **kwargs)
 
         type_loss = calculate_loss(proj_type, target[..., 0], type_mask(target))
         barbeat_loss = calculate_loss(proj_barbeat, target[..., 1], type_mask(target))
@@ -73,5 +73,6 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         instrument_loss = calculate_loss(proj_instrument, target[..., 3], type_mask(target))
         note_name_loss = calculate_loss(proj_note_name, target[..., 4], type_mask(target))
         octave_loss = calculate_loss(proj_octave, target[..., 5], type_mask(target))
+        duration_loss = calculate_loss(proj_duration, target[..., 6], type_mask(target))
 
-        return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss
+        return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss
