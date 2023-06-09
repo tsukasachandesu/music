@@ -91,85 +91,24 @@ class CompoundWordTransformerWrapper(nn.Module):
     def init_(self):
         nn.init.normal_(self.word_emb_type.weight(), std=0.02)
 
-    def forward_output_sampling(self, h, y_type, selection_temperatures=None, selection_probability_tresholds=None):
+    def forward_output_sampling(self, h, selection_temperatures=None, selection_probability_tresholds=None):
         # sample type
         if selection_probability_tresholds is None:
             selection_probability_tresholds = {}
 
         if selection_temperatures is None:
             selection_temperatures = {}
-
-        y_type_logit = y_type[0, :]
-        cur_word_type = sampling(
-            y_type_logit,
-            probability_treshold=selection_probability_tresholds.get(0, None),
-            temperature=selection_temperatures.get(0, 1.0)
-        )
-
-        type_word_t = torch.from_numpy(np.array([cur_word_type])).long().to(get_device()).unsqueeze(0)
-
-        tf_skip_type = self.word_emb_type(type_word_t)
-
-        # concat
-        y_concat_type = torch.cat([h, tf_skip_type], dim=-1)
-        y_ = self.project_concat_type(y_concat_type)
-
-        # project other
-        proj_barbeat = self.proj_barbeat(y_)
-        proj_tempo = self.proj_tempo(y_)
-        proj_instrument = self.proj_instrument(y_)
-        proj_note_name = self.proj_note_name(y_)
-        proj_octave = self.proj_octave(y_)
-        proj_duration = self.proj_duration(y_)
-        proj_velocity = self.proj_velocity(y_)
-
-        # sampling gen_cond
-        cur_word_barbeat = sampling(
-            proj_barbeat,
-            probability_treshold=selection_probability_tresholds.get(1, None),
-            temperature=selection_temperatures.get(1, 1.0))
-
-        cur_word_tempo = sampling(
-            proj_tempo,
-            probability_treshold=selection_probability_tresholds.get(2, None),
-            temperature=selection_temperatures.get(2, 1.0))
-
-        cur_word_instrument = sampling(
-            proj_instrument,
-            probability_treshold=selection_probability_tresholds.get(3, None),
-            temperature=selection_temperatures.get(3, 1.0))
-
-        cur_word_note_name = sampling(
-            proj_note_name,
-            probability_treshold=selection_probability_tresholds.get(4, None),
-            temperature=selection_temperatures.get(4, 1.0))
-
-        cur_word_octave = sampling(
-            proj_octave,
-            probability_treshold=selection_probability_tresholds.get(5, None),
-            temperature=selection_temperatures.get(5, 1.0))
-
-        cur_word_duration = sampling(
-            proj_duration,
-            probability_treshold=selection_probability_tresholds.get(6, None),
-            temperature=selection_temperatures.get(6, 1.0))
-
-        cur_word_velocity = sampling(
-            proj_velocity,
-            probability_treshold=selection_probability_tresholds.get(7, None),
-            temperature=selection_temperatures.get(7, 1.0))
-
+            
         # collect
         next_arr = np.array([
-            cur_word_type,
-            cur_word_barbeat,
-            cur_word_tempo,
-            cur_word_instrument,
-            cur_word_note_name,
-            cur_word_octave,
-            cur_word_duration,
-            cur_word_velocity
+            sampling(self.proj_type0(x))
         ])
+        
+        for f in range(107):
+            x=f[[:, -1:, :]]
+            exec_command2 = 'np.append(next_arr, sampling(self.proj_type' + str(i+1) + '(x))'
+            exec(exec_command2)
+
         return next_arr
 
     def forward_hidden(
@@ -196,9 +135,9 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         x, intermediates = self.attn_layers(x, mask=mask, return_hiddens=True, **kwargs)
         x = self.norm(x)
-        r = []
+        b = []
         for i in range(108):
-            exec_command2 = 'r.append(self.proj_type' + str(i) + '(x))'
+            exec_command2 = 'b.append(self.proj_type' + str(i+1) + '(x))'
             exec(exec_command2)
 
         return r
