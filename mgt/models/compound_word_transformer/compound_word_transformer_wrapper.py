@@ -70,7 +70,8 @@ class CompoundWordTransformerWrapper(nn.Module):
                 512,  # Note Name
                 512,  # Octave
                 512,  # Duration
-                512  # Velocity
+                512,  # Velocity
+                96
             ]
 
         self.emb_sizes = emb_sizes
@@ -87,6 +88,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.word_emb_instrument = CompoundTransformerEmbeddings(self.num_tokens[3], self.emb_sizes[3])
         self.word_emb_note_name = CompoundTransformerEmbeddings(self.num_tokens[4], self.emb_sizes[4])
         self.word_emb_octave = CompoundTransformerEmbeddings(self.num_tokens[5], self.emb_sizes[5])
+        self.word_emb_duration = CompoundTransformerEmbeddings(self.num_tokens[6], self.emb_sizes[6])
         
         # individual output
         self.proj_type = nn.Sequential(
@@ -113,6 +115,10 @@ class CompoundWordTransformerWrapper(nn.Module):
             nn.Linear(dim, self.num_tokens[5])
         )
         
+        self.proj_duration = nn.Sequential(
+            nn.Linear(dim, self.num_tokens[6])
+        )
+        
         self.compound_word_embedding_size = np.sum(emb_sizes)
 
         self.pos_emb = AbsolutePositionalEmbedding(self.compound_word_embedding_size, max_seq_len) if (
@@ -126,7 +132,7 @@ class CompoundWordTransformerWrapper(nn.Module):
                 use_pos_emb and not attn_layers.has_pos_emb) else always(0)
         
         self.norm = nn.LayerNorm(512)
-        self.in_linear1 = nn.Linear(512*6, 512)
+        self.in_linear1 = nn.Linear(512*6+96, 512)
 
         self.init_()
 
@@ -137,8 +143,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         nn.init.normal_(self.word_emb_instrument.weight(), std=0.02)
         nn.init.normal_(self.word_emb_note_name.weight(), std=0.02)
         nn.init.normal_(self.word_emb_octave.weight(), std=0.02)
+        nn.init.normal_(self.word_emb_duration.weight(), std=0.02)
 
-    def forward_output_sampling(self, proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, selection_temperatures=None, selection_probability_tresholds=None):
+    def forward_output_sampling(self, proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, selection_temperatures=None, selection_probability_tresholds=None):
         # sample type
         if selection_probability_tresholds is None:
             selection_probability_tresholds = {}
@@ -176,6 +183,11 @@ class CompoundWordTransformerWrapper(nn.Module):
             proj_octave,
             probability_treshold=selection_probability_tresholds.get(5, None),
             temperature=selection_temperatures.get(5, 1.0))
+        
+        cur_word_duration = sampling(
+            proj_duration,
+            probability_treshold=selection_probability_tresholds.get(6, None),
+            temperature=selection_temperatures.get(6, 1.0))
 
         # collect
         next_arr = np.array([
@@ -184,7 +196,8 @@ class CompoundWordTransformerWrapper(nn.Module):
             cur_word_tempo,
             cur_word_instrument,
             cur_word_note_name,
-            cur_word_octave
+            cur_word_octave,
+            cur_word_duration
         ])
         return next_arr
 
@@ -202,6 +215,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_instrument = self.word_emb_instrument(x[..., 3])
         emb_note_name = self.word_emb_note_name(x[..., 4])
         emb_octave = self.word_emb_octave(x[..., 5])
+        emb_duration = self.word_emb_duration(x[..., 6])
         
         embs1 = torch.cat(
             [
@@ -211,6 +225,7 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_instrument,
                 emb_note_name,
                 emb_octave,
+                emb_duration
             ], dim = -1)
     
 
@@ -226,4 +241,4 @@ class CompoundWordTransformerWrapper(nn.Module):
         x, intermediates = self.attn_layers(x, mask=mask, return_hiddens=True, **kwargs)
         x = self.norm(x)
 
-        return self.proj_type(x), self.proj_barbeat(x), self.proj_tempo(x), self.proj_instrument(x), self.proj_note_name(x), self.proj_octave(x)
+        return self.proj_type(x), self.proj_barbeat(x), self.proj_tempo(x), self.proj_instrument(x), self.proj_note_name(x), self.proj_octave(x),self.proj_duration(x)
