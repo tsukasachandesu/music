@@ -63,18 +63,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         super().__init__()
         assert isinstance(attn_layers, AttentionLayers), 'attention layers must be one of Encoder or Decoder'
 
-        if emb_sizes is None:
-            emb_sizes = [
-                32,  # Type
-                96,  # Bar / Beat
-                512,  # Tempo
-                512,  # Instrument
-                512,  # Note Name
-                512,  # Octave
-                512,  # Duration
-                512  # Velocity
-            ]
-
         self.emb_sizes = emb_sizes
 
         dim = attn_layers.dim
