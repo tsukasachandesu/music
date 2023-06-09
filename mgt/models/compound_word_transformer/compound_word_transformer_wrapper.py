@@ -279,7 +279,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         proj_note_name = self.proj_note_name(y_[:,:,5,:].unsqueeze(2))
         proj_octave = self.proj_octave(y_[:,:,6,:].unsqueeze(2))
         proj_duration = self.proj_duration(y_[:,:,7,:].unsqueeze(2))
-        proj_velocity = self.proj_velocity(y_[:,:,8,:].unsqueeze(2)
+        proj_velocity = self.proj_velocity(y_[:,:,8,:].unsqueeze(2))
 
         return proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, proj_velocity
 
