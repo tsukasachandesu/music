@@ -102,12 +102,12 @@ class CompoundWordTransformerWrapper(nn.Module):
             
         # collect
         next_arr = np.array([
-            sampling(self.proj_type0(x))
+            sampling(self.proj_type0(h))
         ])
         
         for f in range(107):
             x=f[:, -1:, :]
-            exec_command2 = 'np.append(next_arr, sampling(self.proj_type' + str(i+1) + '(x))'
+            exec_command2 = 'np.append(next_arr, sampling(self.proj_type' + str(i+1) + '(h))'
             exec(exec_command2)
 
         return next_arr
