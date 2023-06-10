@@ -65,7 +65,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         if emb_sizes is None:
             emb_sizes = [
-                32,  # Type
+                256,  # Type
                 96,  # Bar / Beat
                 512,  # Tempo
                 96,  # Instrument
@@ -121,7 +121,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.attn_layers = attn_layers
         
         self.norm = nn.LayerNorm(512)
-        self.in_linear1 = nn.Linear(512*2+96*2+32, 512)
+        self.in_linear1 = nn.Linear(512*2+96*2+256, 512)
 
         self.init_()
 
