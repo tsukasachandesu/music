@@ -146,7 +146,7 @@ class CompoundWordTransformerModel(object):
                 heads=self.heads,
                 ff_glu = True,
                 ff_swish = True,
-                rotary_xpos = True,
+                rel_pos_bias = True,
                 use_rmsnorm = True,
                 attn_dropout=self.dropout,  # dropout post-attention
                 ff_dropout=self.dropout,  # feedforward dropout
