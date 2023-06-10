@@ -72,8 +72,7 @@ class CompoundWordTransformerWrapper(nn.Module):
                 512,  # Note Name
                 512,  # Octave
                 512,  # Duration
-                512,
-                512# Velocity
+                512
             ]
 
         self.emb_sizes = emb_sizes
@@ -92,7 +91,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.word_emb_octave = CompoundTransformerEmbeddings(self.num_tokens[5], self.emb_sizes[5])
         self.word_emb_duration = CompoundTransformerEmbeddings(self.num_tokens[6], self.emb_sizes[6])
         self.word_emb_velocity = CompoundTransformerEmbeddings(self.num_tokens[7], self.emb_sizes[7])
-        self.word_emb_velocity1 = CompoundTransformerEmbeddings(self.num_tokens[8], self.emb_sizes[8])
         
         # individual output
         self.proj_type = nn.Sequential(
@@ -142,9 +140,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.project_emb = nn.Linear(emb_dim, dim) if emb_dim != dim else nn.Identity()
         self.attn_layers = attn_layers
         
-        
         self.norm = nn.LayerNorm(512)
-        self.in_linear1 = nn.Linear(512*7+96+256, 512)
+        self.in_linear1 = nn.Linear(512*6+96+256, 512)
 
         self.init_()
 
@@ -157,7 +154,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         nn.init.normal_(self.word_emb_octave.weight(), std=0.02)
         nn.init.normal_(self.word_emb_duration.weight(), std=0.02)
         nn.init.normal_(self.word_emb_velocity.weight(), std=0.02)
-        nn.init.normal_(self.word_emb_velocity1.weight(), std=0.02)
 
     def forward_output_sampling(self, h, y_type, selection_temperatures=None, selection_probability_tresholds=None):
         # sample type
@@ -291,7 +287,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_octave = self.word_emb_octave(x[..., 5])
         emb_duration = self.word_emb_duration(x[..., 6])
         emb_velocity = self.word_emb_velocity(x[..., 7])
-        emb_velocity1 = self.word_emb_velocity1(x[..., 7])
         
         embs1 = torch.cat(
             [
@@ -303,7 +298,6 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_octave,
                 emb_duration,
                 emb_velocity,
-                emb_velocity1
             ], dim = -1)
 
         emb_linear = self.in_linear1(embs1)
@@ -319,6 +313,4 @@ class CompoundWordTransformerWrapper(nn.Module):
         x, intermediates = self.attn_layers(x, mask=mask, return_hiddens=True, **kwargs)
         x = self.norm(x)
         
-        
-
         return x, self.proj_type(x)
