@@ -4,7 +4,7 @@ from mgt.datamanagers.midi_wrapper import MidiWrapper, MidiToolkitWrapper
 from mgt.datamanagers.remi.data_extractor import DataExtractor
 from mgt.datamanagers.remi.dictionary_generator import DictionaryGenerator
 from mgt.datamanagers.remi.to_midi_mapper import ToMidiMapper
-
+from tension_calculation import *
 
 defaults = {
     'transposition_steps': [0],
@@ -44,6 +44,18 @@ class CompoundWordDataManager(DataManager):
         self.to_midi_mapper = ToMidiMapper(self.dictionary)
 
     def prepare_data(self, midi_paths) -> DataSet:
+        
+        def cal_diameter1(piano_roll,key_index: int) -> List[int]:
+            diameters = []
+            indices = []
+            for i in piano_roll:
+                shifte = i - key_index
+                if shifte < 0:
+                    shifte += 12
+                indices.append(note_index_to_pitch_index[shifte])
+            diameters.append(largest_distance(indices))
+            return diameters
+        
         training_data = []
         dic = {(i, j, k): index for index, (i, j, k) in enumerate((i, j, k) for j in range(9) for i in range(12) for k in range(64))}
         inverse_dic = {v: k for k, v in dic.items()}
@@ -103,6 +115,33 @@ class CompoundWordDataManager(DataManager):
                     if p[-1] == [2, 0, 0, 0, 0, 0, 0, 0]:
                         del p[-1]
                         
+                    q1 = []
+                    for i in p:
+                        s = []
+                        if i[0] == 3:
+                            s.append(1)
+                            if i[2] != -1:
+                                s.append(inverse_dic[i[2]][1])
+                            if i[3] != -1:
+                                s.append(inverse_dic[i[3]][1])
+                            if i[4] != -1:
+                                s.append(inverse_dic[i[4]][1])
+                            if i[5] != -1:
+                                s.append(inverse_dic[i[5]][1])
+                            if i[6] != -1:
+                                s.append(inverse_dic[i[6]][1])
+                            if i[7] != -1:
+                                s.append(inverse_dic[i[7]][1])
+                        else:
+                            s.append(0)
+                        q1.append(s)
+                    centroids = []
+                    for iii in qq:
+                        if iii == [0]
+                            centroids.append(cal_diameter1(iii,0))
+                        else:
+                            centroids.append(0)
+                            
                     pq = []
                     for i in p:
                         r = 0
@@ -120,7 +159,7 @@ class CompoundWordDataManager(DataManager):
                             if i[7] != -1:
                                 r = r + 1
                         pq.append([i[0],i[1]]+sorted([i[2],i[3],i[4],i[5],i[6],i[7]], reverse=True)+[r])
-                        
+                    
                     pqq =[]
                     
                     for i in range(len(pq)):
