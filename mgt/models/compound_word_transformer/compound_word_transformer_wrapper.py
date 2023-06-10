@@ -65,11 +65,14 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         if emb_sizes is None:
             emb_sizes = [
-                256,  # Type
+                32,  # Type
                 96,  # Bar / Beat
                 512,  # Tempo
-                96,  # Instrument
+                512,  # Instrument
                 512,  # Note Name
+                512,  # Octave
+                512,  # Duration
+                512  # Velocity
             ]
 
         self.emb_sizes = emb_sizes
@@ -85,6 +88,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.word_emb_tempo = CompoundTransformerEmbeddings(self.num_tokens[2], self.emb_sizes[2])
         self.word_emb_instrument = CompoundTransformerEmbeddings(self.num_tokens[3], self.emb_sizes[3])
         self.word_emb_note_name = CompoundTransformerEmbeddings(self.num_tokens[4], self.emb_sizes[4])
+        self.word_emb_octave = CompoundTransformerEmbeddings(self.num_tokens[5], self.emb_sizes[5])
+        self.word_emb_duration = CompoundTransformerEmbeddings(self.num_tokens[6], self.emb_sizes[6])
+        self.word_emb_velocity = CompoundTransformerEmbeddings(self.num_tokens[7], self.emb_sizes[7])
         
         # individual output
         self.proj_type = nn.Sequential(
@@ -107,6 +113,17 @@ class CompoundWordTransformerWrapper(nn.Module):
             nn.Linear(dim, self.num_tokens[4])
         )
         
+        self.proj_octave = nn.Sequential(
+            nn.Linear(dim, self.num_tokens[5])
+        )
+        
+        self.proj_duration = nn.Sequential(
+            nn.Linear(dim, self.num_tokens[6])
+        )
+        
+        self.proj_velocity = nn.Sequential(
+            nn.Linear(dim, self.num_tokens[7])
+        )
         
         # in_features is equal to dimension plus dimensions of the type embedding
         self.project_concat_type = nn.Linear(dim + self.emb_sizes[0], dim)
@@ -120,8 +137,12 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.project_emb = nn.Linear(emb_dim, dim) if emb_dim != dim else nn.Identity()
         self.attn_layers = attn_layers
         
+        self.attn_layers1 = attn_layers
+        self.pos_emb1 = AbsolutePositionalEmbedding(512, 6) if (
+                use_pos_emb and not attn_layers.has_pos_emb) else always(0)
+        
         self.norm = nn.LayerNorm(512)
-        self.in_linear1 = nn.Linear(256+96+96+512+512, 512)
+        self.in_linear1 = nn.Linear(512*6+96+32, 512)
 
         self.init_()
 
@@ -131,6 +152,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         nn.init.normal_(self.word_emb_tempo.weight(), std=0.02)
         nn.init.normal_(self.word_emb_instrument.weight(), std=0.02)
         nn.init.normal_(self.word_emb_note_name.weight(), std=0.02)
+        nn.init.normal_(self.word_emb_octave.weight(), std=0.02)
+        nn.init.normal_(self.word_emb_duration.weight(), std=0.02)
+        nn.init.normal_(self.word_emb_velocity.weight(), std=0.02)
 
     def forward_output_sampling(self, h, y_type, selection_temperatures=None, selection_probability_tresholds=None):
         # sample type
@@ -160,6 +184,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         proj_tempo = self.proj_tempo(y_)
         proj_instrument = self.proj_instrument(y_)
         proj_note_name = self.proj_note_name(y_)
+        proj_octave = self.proj_octave(y_)
+        proj_duration = self.proj_duration(y_)
+        proj_velocity = self.proj_velocity(y_)
 
         # sampling gen_cond
         cur_word_barbeat = sampling(
@@ -182,13 +209,31 @@ class CompoundWordTransformerWrapper(nn.Module):
             probability_treshold=selection_probability_tresholds.get(4, None),
             temperature=selection_temperatures.get(4, 1.0))
 
+        cur_word_octave = sampling(
+            proj_octave,
+            probability_treshold=selection_probability_tresholds.get(5, None),
+            temperature=selection_temperatures.get(5, 1.0))
+
+        cur_word_duration = sampling(
+            proj_duration,
+            probability_treshold=selection_probability_tresholds.get(6, None),
+            temperature=selection_temperatures.get(6, 1.0))
+
+        cur_word_velocity = sampling(
+            proj_velocity,
+            probability_treshold=selection_probability_tresholds.get(7, None),
+            temperature=selection_temperatures.get(7, 1.0))
+
         # collect
         next_arr = np.array([
             cur_word_type,
             cur_word_barbeat,
             cur_word_tempo,
             cur_word_instrument,
-            cur_word_note_name
+            cur_word_note_name,
+            cur_word_octave,
+            cur_word_duration,
+            cur_word_velocity
         ])
         return next_arr
 
@@ -205,8 +250,11 @@ class CompoundWordTransformerWrapper(nn.Module):
         proj_tempo = self.proj_tempo(y_)
         proj_instrument = self.proj_instrument(y_)
         proj_note_name = self.proj_note_name(y_)
+        proj_octave = self.proj_octave(y_)
+        proj_duration = self.proj_duration(y_)
+        proj_velocity = self.proj_velocity(y_)
 
-        return proj_barbeat, proj_tempo, proj_instrument, proj_note_name
+        return proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, proj_velocity
 
     def forward_hidden(
             self,
@@ -220,6 +268,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_tempo = self.word_emb_tempo(x[..., 2])
         emb_instrument = self.word_emb_instrument(x[..., 3])
         emb_note_name = self.word_emb_note_name(x[..., 4])
+        emb_octave = self.word_emb_octave(x[..., 5])
+        emb_duration = self.word_emb_duration(x[..., 6])
+        emb_velocity = self.word_emb_velocity(x[..., 7])
         
         embs1 = torch.cat(
             [
@@ -227,7 +278,10 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_barbeat,
                 emb_tempo,
                 emb_instrument,
-                emb_note_name
+                emb_note_name,
+                emb_octave,
+                emb_duration,
+                emb_velocity
             ], dim = -1)
     
 
