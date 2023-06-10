@@ -65,7 +65,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         if emb_sizes is None:
             emb_sizes = [
-                256,  # Type
+                32,  # Type
                 96,  # Bar / Beat
                 512,  # Tempo
                 512,  # Instrument
