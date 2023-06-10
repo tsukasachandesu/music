@@ -300,7 +300,12 @@ class CompoundWordTransformerWrapper(nn.Module):
     
 
         emb_linear = self.in_linear1(embs1)
+        
+        print(emb_linear.bool())
+        
         x = emb_linear + self.pos_emb(emb_linear)
+        
+
         
         x = self.emb_dropout(x)
         x = self.project_emb(x)
