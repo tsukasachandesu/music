@@ -130,26 +130,25 @@ class CompoundWordDataManager(DataManager):
                                 r = r + 1
                         pq.append([i[0],i[1]]+sorted([i[2],i[3],i[4],i[5],i[6],i[7]], reverse=True)+[r])
                         
-                    print(pq)
                     pqq =[]
-                    n = -1
+                    n = 0
                     for i in pq:
                         if i[0] == 2:
-                            pqq.append([2,0,0,0,0])
+                            pqq.append([1,0,0,0,0])
                         else:
                             if i[2] != -1:
-                                pqq.append([i[0],i[1],i[2],int(i[8]*(i[8]-1)/2),n])
+                                pqq.append([2,i[1],i[2]+1,int(i[8]*(i[8]-1)/2)+1,n])
                                 if i[3] != -1:
-                                    pqq.append([i[0],i[1],i[3],int(i[8]*(i[8]-1)/2),n])
+                                    pqq.append([2,i[1],i[3]+1,int(i[8]*(i[8]-1)/2)+1,n])
                                     if i[4] != -1:
-                                        pqq.append([i[0],i[1],i[4],int(i[8]*(i[8]-1)/2),n])
+                                        pqq.append([2,i[1],i[4]+1,int(i[8]*(i[8]-1)/2)+1,n])
                                         if i[5] != -1:
-                                            pqq.append([i[0],i[1],i[5],int(i[8]*(i[8]-1)/2),n])
+                                            pqq.append([2,i[1],i[5]+1,int(i[8]*(i[8]-1)/2)+1,n])
                                             if i[6] != -1:
-                                                pqq.append([i[0],i[1],i[6],int(i[8]*(i[8]-1)/2),n])
+                                                pqq.append([2,i[1],i[6]+1,int(i[8]*(i[8]-1)/2)+1,n])
                                                 if i[7] != -1:
-                                                    pqq.append([i[0],i[1],i[7],int(i[8]*(i[8]-1)/2),n])
-                            n = i[2]
+                                                    pqq.append([2,i[1],i[7]+1,int(i[8]*(i[8]-1)/2)+1,n])
+                            n = i[2] + 1
                     
                     print(f'Extracted {len(p)} compound words.')
                     print(pqq)
@@ -165,25 +164,17 @@ class CompoundWordDataManager(DataManager):
         return list(map(lambda x: self.dictionary.data_to_word(x), remi))
 
     def to_midi(self, data) -> MidiWrapper:
-        dic1 = {}
-        c = 0        
-        for i in range(12):
-            for j in range(9):
-                for k in range(64):
-                    dic1[c] = [i,j,k]
-                    c = c + 1
+        dic = {(i, j, k): index for index, (i, j, k) in enumerate((i, j, k) for j in range(9) for i in range(12) for k in range(64))}
+        inverse_dic = {v: k for k, v in dic.items()}
+        
         q = []
         for i in data:
-            if i[0] == 3:
+            n = 0
+            if i[0] == 1:
+                q.append([2,0,0,0,0,0,0,0])
+            else:
                 q.append([2,i[1],0,0,0,0,0,0])
-            q.append(i)  
-        b = []
-        for i in q:
-          if i[0] == 3:
-            for j in range(6):
-              if i[j+2]:
-                b.append( [i[0]]+[i[1]] + [0,0] + dic1.get(i[j+2])  +[31] )
-          else:
-            b.append( [i[0]]+[i[1]] + [0,0,0,0,0,0])
-        remi = self.compound_word_mapper.map_to_remi(b)
+                q.append([2,i[1],0,0,*inverse_dic[i[2],31])
+                
+        remi = self.compound_word_mapper.map_to_remi(q)
         return MidiToolkitWrapper(self.to_midi_mapper.to_midi(remi))
