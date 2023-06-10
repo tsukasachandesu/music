@@ -65,14 +65,15 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         if emb_sizes is None:
             emb_sizes = [
-                32,  # Type
+                256,  # Type
                 96,  # Bar / Beat
                 512,  # Tempo
                 512,  # Instrument
                 512,  # Note Name
                 512,  # Octave
                 512,  # Duration
-                512  # Velocity
+                512,
+                512# Velocity
             ]
 
         self.emb_sizes = emb_sizes
@@ -91,6 +92,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.word_emb_octave = CompoundTransformerEmbeddings(self.num_tokens[5], self.emb_sizes[5])
         self.word_emb_duration = CompoundTransformerEmbeddings(self.num_tokens[6], self.emb_sizes[6])
         self.word_emb_velocity = CompoundTransformerEmbeddings(self.num_tokens[7], self.emb_sizes[7])
+        self.word_emb_velocity1 = CompoundTransformerEmbeddings(self.num_tokens[8], self.emb_sizes[8])
         
         # individual output
         self.proj_type = nn.Sequential(
@@ -124,6 +126,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.proj_velocity = nn.Sequential(
             nn.Linear(dim, self.num_tokens[7])
         )
+        self.proj_velocity1 = nn.Sequential(
+            nn.Linear(dim, self.num_tokens[8])
+        )
         
         # in_features is equal to dimension plus dimensions of the type embedding
         self.project_concat_type = nn.Linear(dim + self.emb_sizes[0], dim)
@@ -142,7 +147,7 @@ class CompoundWordTransformerWrapper(nn.Module):
                 use_pos_emb and not attn_layers.has_pos_emb) else always(0)
         
         self.norm = nn.LayerNorm(512)
-        self.in_linear1 = nn.Linear(512*6+96+32, 512)
+        self.in_linear1 = nn.Linear(512*7+96+256, 512)
 
         self.init_()
 
@@ -155,6 +160,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         nn.init.normal_(self.word_emb_octave.weight(), std=0.02)
         nn.init.normal_(self.word_emb_duration.weight(), std=0.02)
         nn.init.normal_(self.word_emb_velocity.weight(), std=0.02)
+        nn.init.normal_(self.word_emb_velocity1.weight(), std=0.02)
 
     def forward_output_sampling(self, h, y_type, selection_temperatures=None, selection_probability_tresholds=None):
         # sample type
@@ -187,6 +193,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         proj_octave = self.proj_octave(y_)
         proj_duration = self.proj_duration(y_)
         proj_velocity = self.proj_velocity(y_)
+        proj_velocity1 = self.proj_velocity(y_)
 
         # sampling gen_cond
         cur_word_barbeat = sampling(
@@ -223,6 +230,12 @@ class CompoundWordTransformerWrapper(nn.Module):
             proj_velocity,
             probability_treshold=selection_probability_tresholds.get(7, None),
             temperature=selection_temperatures.get(7, 1.0))
+        
+        cur_word_velocity1 = sampling(
+            proj_velocity,
+            probability_treshold=selection_probability_tresholds.get(8, None),
+            temperature=selection_temperatures.get(8, 1.0))
+
 
         # collect
         next_arr = np.array([
@@ -233,7 +246,8 @@ class CompoundWordTransformerWrapper(nn.Module):
             cur_word_note_name,
             cur_word_octave,
             cur_word_duration,
-            cur_word_velocity
+            cur_word_velocity,
+            cur_word_velocity1
         ])
         return next_arr
 
@@ -253,8 +267,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         proj_octave = self.proj_octave(y_)
         proj_duration = self.proj_duration(y_)
         proj_velocity = self.proj_velocity(y_)
+        proj_velocity1 = self.proj_velocity(y_)
 
-        return proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, proj_velocity
+        return proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, proj_velocity,proj_velocity1
 
     def forward_hidden(
             self,
@@ -271,6 +286,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_octave = self.word_emb_octave(x[..., 5])
         emb_duration = self.word_emb_duration(x[..., 6])
         emb_velocity = self.word_emb_velocity(x[..., 7])
+        emb_velocity1 = self.word_emb_velocity(x[..., 7])
         
         embs1 = torch.cat(
             [
@@ -281,7 +297,8 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_note_name,
                 emb_octave,
                 emb_duration,
-                emb_velocity
+                emb_velocity,
+                emb_velocity1
             ], dim = -1)
     
 
