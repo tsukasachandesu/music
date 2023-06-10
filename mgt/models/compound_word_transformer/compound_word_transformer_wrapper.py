@@ -142,9 +142,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.project_emb = nn.Linear(emb_dim, dim) if emb_dim != dim else nn.Identity()
         self.attn_layers = attn_layers
         
-        self.attn_layers1 = attn_layers
-        self.pos_emb1 = AbsolutePositionalEmbedding(512, 6) if (
-                use_pos_emb and not attn_layers.has_pos_emb) else always(0)
         
         self.norm = nn.LayerNorm(512)
         self.in_linear1 = nn.Linear(512*7+96+256, 512)
@@ -232,7 +229,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             temperature=selection_temperatures.get(7, 1.0))
         
         cur_word_velocity1 = sampling(
-            proj_velocity,
+            proj_velocity1,
             probability_treshold=selection_probability_tresholds.get(8, None),
             temperature=selection_temperatures.get(8, 1.0))
 
@@ -267,7 +264,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         proj_octave = self.proj_octave(y_)
         proj_duration = self.proj_duration(y_)
         proj_velocity = self.proj_velocity(y_)
-        proj_velocity1 = self.proj_velocity(y_)
+        proj_velocity1 = self.proj_velocity1(y_)
 
         return proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, proj_velocity,proj_velocity1
 
@@ -286,7 +283,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_octave = self.word_emb_octave(x[..., 5])
         emb_duration = self.word_emb_duration(x[..., 6])
         emb_velocity = self.word_emb_velocity(x[..., 7])
-        emb_velocity1 = self.word_emb_velocity(x[..., 7])
+        emb_velocity1 = self.word_emb_velocity1(x[..., 7])
         
         embs1 = torch.cat(
             [
