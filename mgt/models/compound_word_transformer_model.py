@@ -15,7 +15,7 @@ from mgt.models.utils import get_device
 
 defaults = {
     'num_tokens': [
-        126,    # Type
+        3,    # Type
         17,   # Bar / Beat
         6913,  # Tempo
         6913,  # Instrument
@@ -25,7 +25,7 @@ defaults = {
         6913
     ],
     'emb_sizes': [
-        256,   # Type
+        32,   # Type
         96,   # Bar / Beat
         512,  # Tempo
         512,  # Instrument
