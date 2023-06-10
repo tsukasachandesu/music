@@ -151,9 +151,8 @@ class CompoundWordDataManager(DataManager):
                             n = i[2] + 1
                     
                     print(f'Extracted {len(p)} compound words.')
-                    print(pqq)
                     
-                    training_data.append(p)
+                    training_data.append(pqq)
                 except Exception as e:
                     print(f"Exception: {e}")
 
