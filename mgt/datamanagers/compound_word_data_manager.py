@@ -123,18 +123,23 @@ class CompoundWordDataManager(DataManager):
                         
                     pqq =[]
                     
-                    m = 0
                     n = 1
-                    for i in pq:
-                        t = i
-                        if m != 0:
-                            if t[0] == 2:
-                                pqq.append([1,0,0,0,0,0,0,0,0])
-                                n = n + 1
+                    for i in range(len(pq)):
+                        if pq[i][0] == 2:
+                            pqq.append([1,0,0,0,0,0,0,0,0])
+                            n = n + 1
+                        else:
+                            if i == len(pq):
+                                pqq.append([n,pq[i][1],pq[i][2]+1,pq[i][3]+1,pq[i][4]+1,pq[i][5]+1,pq[i][6]+1,pq[i][7]+1,0])
                             else:
-                                pqq.append([n,t[1],t[2]+1,t[3]+1,t[4]+1,t[5]+1,t[6]+1,t[7]+1],i[2])
-                        m = m + 1
-                    
+                                if pq[i+1][2] == 0:
+                                    if i+1 == len(pq):
+                                        pqq.append([n,pq[i][1],pq[i][2]+1,pq[i][3]+1,pq[i][4]+1,pq[i][5]+1,pq[i][6]+1,pq[i][7]+1,0])
+                                    else:
+                                        pqq.append([n,pq[i][1],pq[i][2]+1,pq[i][3]+1,pq[i][4]+1,pq[i][5]+1,pq[i][6]+1,pq[i][7]+1,pq[i+2][2]])
+                                else:
+                                    pqq.append([n,pq[i][1],pq[i][2]+1,pq[i][3]+1,pq[i][4]+1,pq[i][5]+1,pq[i][6]+1,pq[i][7]+1,pq[i+1][2]])
+  
                     print(f'Extracted {len(pqq)} compound words.')
                     
                     training_data.append(pqq)
