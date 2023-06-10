@@ -128,7 +128,7 @@ class CompoundWordDataManager(DataManager):
                                 r = r + 1
                             if i[7] != -1:
                                 r = r + 1
-                        pq.append([i[0],i[1]]+[i[2],i[3],i[4],i[5],i[6],i[7]].sort()+[r])
+                        pq.append([i[2],i[3],i[4],i[5],i[6],i[7]].sort())
                         
                         
 
