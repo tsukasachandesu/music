@@ -164,7 +164,8 @@ class CompoundWordDataManager(DataManager):
                 q.append([2,0,0,0,0,0,0,0])
             else:
                 q.append([2,i[1],0,0,0,0,0,0])
-                q.append([3,i[1],0,0,*inverse_dic[int(i[2]-1)],31])
+                if i[2] != 0:
+                    q.append([3,i[1],0,0,*inverse_dic[int(i[2]-1)],31])
                 
         remi = self.compound_word_mapper.map_to_remi(q)
         return MidiToolkitWrapper(self.to_midi_mapper.to_midi(remi))
