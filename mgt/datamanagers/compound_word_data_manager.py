@@ -45,7 +45,7 @@ class CompoundWordDataManager(DataManager):
 
     def prepare_data(self, midi_paths) -> DataSet:
         training_data = []
-        dic = {(i, j, k): index for index, (i, j, k) in enumerate((i, j, k) for i in range(12) for j in range(9) for k in range(64))}
+        dic = {(i, j, k): index for index, (i, j, k) in enumerate((i, j, k) for j in range(9) for i in range(12) for k in range(64))}
         inverse_dic = {v: k for k, v in dic.items()}
 
         for path in midi_paths:
@@ -113,7 +113,7 @@ class CompoundWordDataManager(DataManager):
                         del p[-1]
                         
                     pq = []
-                    for i in p1:
+                    for i in p:
                         r = 0
                         if i[0] == 3:
                             if i[2] != -1:
