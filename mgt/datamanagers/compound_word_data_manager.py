@@ -131,16 +131,15 @@ class CompoundWordDataManager(DataManager):
                                 s.append(inverse_dic[i[6]][1])
                             if i[7] != -1:
                                 s.append(inverse_dic[i[7]][1])
-                        q1.append(s)
-                    print(q1)
+                            q1.append(s)
+                        
                     centroids = []
                     for iii in q1:
-                        if iii  == []:
+                        if len(iii)  == 1:
                             centroids.append([5])
                         else:
                             centroids.append(cal_diameter1(iii,0))
-                    print(centroids)
-
+                            
                     centroids1 = []
                     for (i,iii) in enumerate(q1):
                         if i < len(q1)-1:
@@ -173,15 +172,15 @@ class CompoundWordDataManager(DataManager):
                             pqq.append([1,0,0,0,0,0,0,0,0,0,0])
                         else:
                             if i+1 >= len(pq):
-                                pqq.append([2,pq[i][1],pq[i][2]+1,pq[i][3]+1,pq[i][4]+1,pq[i][5]+1,pq[i][6]+1,pq[i][7]+1,0,centroids1[n],key_dife[n]])
+                                pqq.append([2,pq[i][1],pq[i][2]+1,pq[i][3]+1,pq[i][4]+1,pq[i][5]+1,pq[i][6]+1,pq[i][7]+1,0,centroids[n],key_dife[n]])
                             else:
                                 if pq[i+1][2] == 0:
                                     if i+2 >= len(pq):
-                                        pqq.append([2,pq[i][1],pq[i][2]+1,pq[i][3]+1,pq[i][4]+1,pq[i][5]+1,pq[i][6]+1,pq[i][7]+1,0,centroids1[n],key_dife[n]])
+                                        pqq.append([2,pq[i][1],pq[i][2]+1,pq[i][3]+1,pq[i][4]+1,pq[i][5]+1,pq[i][6]+1,pq[i][7]+1,0,centroids[n],key_dife[n]])
                                     else:
-                                        pqq.append([2,pq[i][1],pq[i][2]+1,pq[i][3]+1,pq[i][4]+1,pq[i][5]+1,pq[i][6]+1,pq[i][7]+1,pq[i+2][2]+1,centroids1[n],key_dife[n]])
+                                        pqq.append([2,pq[i][1],pq[i][2]+1,pq[i][3]+1,pq[i][4]+1,pq[i][5]+1,pq[i][6]+1,pq[i][7]+1,pq[i+2][2]+1,centroids[n],key_dife[n]])
                                 else:
-                                    pqq.append([2,pq[i][1],pq[i][2]+1,pq[i][3]+1,pq[i][4]+1,pq[i][5]+1,pq[i][6]+1,pq[i][7]+1,pq[i+1][2]+1,centroids1[n],key_dife[n]])
+                                    pqq.append([2,pq[i][1],pq[i][2]+1,pq[i][3]+1,pq[i][4]+1,pq[i][5]+1,pq[i][6]+1,pq[i][7]+1,pq[i+1][2]+1,centroids[n],key_dife[n]])
                                 
                             n = n + 1
                     print(f'Extracted {len(pqq)} compound words.')
