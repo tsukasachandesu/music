@@ -126,7 +126,7 @@ class CompoundWordDataManager(DataManager):
                     t = 1
                     for i in pq:
                         if i[0] == 2:
-                            pqq.append([1,0,0,0,0,0,0,0,0,0])
+                            pqq.append([1,0,0,0,0,0,0,0])
                         else:
                             pqq.append([2,i[1],i[2]+1,i[3]+1,i[4]+1,i[5]+1,i[6]+1,i[7]+1])
                             n = i[2] + 1
@@ -155,8 +155,8 @@ class CompoundWordDataManager(DataManager):
             else:
                 q.append([2,i[1],0,0,0,0,0,0])
                 for j in range(6):
-                    if i[j+2]-1 != 0
-                        q.append([3,i[1],0,0,*inverse_dic[int(i[2]-1)],31])
+                    if i[j+2]-1 != 0:
+                        q.append([3,i[1],0,0,*inverse_dic[int(i[j+2]-1)],31])
 
         remi = self.compound_word_mapper.map_to_remi(q)
         return MidiToolkitWrapper(self.to_midi_mapper.to_midi(remi))
