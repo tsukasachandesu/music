@@ -300,8 +300,9 @@ class CompoundWordTransformerWrapper(nn.Module):
     
 
         emb_linear = self.in_linear1(embs1)
-        
-        print(emb_linear.bool())
+        print(emb_linear[:,-1,-1])
+        a = emb_linear.bool()
+        print(a[:,-1,-1])
         
         x = emb_linear + self.pos_emb(emb_linear)
         
