@@ -129,16 +129,16 @@ class CompoundWordDataManager(DataManager):
                             pqq.append([1,0,0,0,0,0,0,0,0])
                             n = n + 1
                         else:
-                            if i+1 == len(pq):
+                            if i+2 >= len(pq):
                                 pqq.append([n,pq[i][1],pq[i][2]+1,pq[i][3]+1,pq[i][4]+1,pq[i][5]+1,pq[i][6]+1,pq[i][7]+1,0])
                             else:
-                                if pq[i+1][2] == 0:
-                                    if i+2 == len(pq):
+                                if pq[i+2][2] == 0:
+                                    if i+3 >= len(pq):
                                         pqq.append([n,pq[i][1],pq[i][2]+1,pq[i][3]+1,pq[i][4]+1,pq[i][5]+1,pq[i][6]+1,pq[i][7]+1,0])
                                     else:
-                                        pqq.append([n,pq[i][1],pq[i][2]+1,pq[i][3]+1,pq[i][4]+1,pq[i][5]+1,pq[i][6]+1,pq[i][7]+1,pq[i+2][2]+1])
+                                        pqq.append([n,pq[i][1],pq[i][2]+1,pq[i][3]+1,pq[i][4]+1,pq[i][5]+1,pq[i][6]+1,pq[i][7]+1,pq[i+3][2]+1])
                                 else:
-                                    pqq.append([n,pq[i][1],pq[i][2]+1,pq[i][3]+1,pq[i][4]+1,pq[i][5]+1,pq[i][6]+1,pq[i][7]+1,pq[i+1][2]+1])
+                                    pqq.append([n,pq[i][1],pq[i][2]+1,pq[i][3]+1,pq[i][4]+1,pq[i][5]+1,pq[i][6]+1,pq[i][7]+1,pq[i+2][2]+1])
   
                     print(f'Extracted {len(pqq)} compound words.')
                     
