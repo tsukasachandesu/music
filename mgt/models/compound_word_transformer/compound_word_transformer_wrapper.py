@@ -274,13 +274,9 @@ class CompoundWordTransformerWrapper(nn.Module):
             mask=None,
             **kwargs
     ):
-        # embeddings
-        
-        
-        emb_type = self.word_emb_type(x[..., 0])
-        aa=emb_type.bool()
-        print(aa[:,-1,:])
-        
+
+        mask = x[..., 0].bool().unsqueeze(-1).expand(-1, -1, 512)
+        print(mask[:,-1,-1])
         
         emb_barbeat = self.word_emb_barbeat(x[..., 1])
         emb_tempo = self.word_emb_tempo(x[..., 2])
