@@ -136,9 +136,9 @@ class CompoundWordDataManager(DataManager):
                                     if i+2 == len(pq):
                                         pqq.append([n,pq[i][1],pq[i][2]+1,pq[i][3]+1,pq[i][4]+1,pq[i][5]+1,pq[i][6]+1,pq[i][7]+1,0])
                                     else:
-                                        pqq.append([n,pq[i][1],pq[i][2]+1,pq[i][3]+1,pq[i][4]+1,pq[i][5]+1,pq[i][6]+1,pq[i][7]+1,pq[i+2][2]])
+                                        pqq.append([n,pq[i][1],pq[i][2]+1,pq[i][3]+1,pq[i][4]+1,pq[i][5]+1,pq[i][6]+1,pq[i][7]+1,pq[i+2][2]+1])
                                 else:
-                                    pqq.append([n,pq[i][1],pq[i][2]+1,pq[i][3]+1,pq[i][4]+1,pq[i][5]+1,pq[i][6]+1,pq[i][7]+1,pq[i+1][2]])
+                                    pqq.append([n,pq[i][1],pq[i][2]+1,pq[i][3]+1,pq[i][4]+1,pq[i][5]+1,pq[i][6]+1,pq[i][7]+1,pq[i+1][2]+1])
   
                     print(f'Extracted {len(pqq)} compound words.')
                     
