@@ -122,14 +122,16 @@ class CompoundWordDataManager(DataManager):
                         pq.append([i[0],i[1]]+sorted([i[2],i[3],i[4],i[5],i[6],i[7]], reverse=True)+[r])
                         
                     pqq =[]
-                    n = 0
-                    t = 1
+                    
+                    m = 0
                     for i in pq:
-                        if i[0] == 2:
-                            pqq.append([1,0,0,0,0,0,0,0])
-                        else:
-                            pqq.append([2,i[1],i[2]+1,i[3]+1,i[4]+1,i[5]+1,i[6]+1,i[7]+1])
-                            n = i[2] + 1
+                        t = i
+                        if m != 0:
+                            if t[0] == 2:
+                                pqq.append([1,0,0,0,0,0,0,0,0])
+                            else:
+                                pqq.append([2,t[1],t[2]+1,t[3]+1,t[4]+1,t[5]+1,t[6]+1,t[7]+1],i[2])
+                        m = m + 1
                     
                     print(f'Extracted {len(pqq)} compound words.')
                     
