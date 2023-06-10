@@ -91,8 +91,8 @@ class CompoundWordDataManager(DataManager):
                     p1 = []
 
                     for i in pp:
-                        n =[0,0,12*9*64,12*9*64,12*9*64,12*9*64,12*9*64,12*9*64]
-                        nn=[0,0,12*9*64,12*9*64,12*9*64,12*9*64,12*9*64,12*9*64]
+                        n =[0,0,-1,-1,-1,-1,-1,-1]
+                        nn=[0,0,-1,-1,-1,-1,-1,-1]
                         r = 2
                         for j in i:
                             n[0] = j[0]
@@ -116,25 +116,26 @@ class CompoundWordDataManager(DataManager):
                     for i in p1:
                         r = 0
                         if i[0] == 3:
-                            if i[2] != 12*9*64:
+                            if i[2] != -1:
                                 r = r + 1
-                            if i[3] != 12*9*64:
+                            if i[3] != -1:
                                 r = r + 1
-                            if i[4] != 12*9*64:
+                            if i[4] != -1:
                                 r = r + 1
-                            if i[5] != 12*9*64:
+                            if i[5] != -1:
                                 r = r + 1
-                            if i[6] != 12*9*64:
+                            if i[6] != -1:
                                 r = r + 1
-                            if i[7] != 12*9*64:
+                            if i[7] != -1:
                                 r = r + 1
-                        pq.append([i[0],i[1],i[2],i[3],i[4],i[5],i[6],i[7],r])
+                        pq.append([i[0],i[1]]+[i[2],i[3],i[4],i[5],i[6],i[7]].sort()+[r])
+                        
+                        
 
 
                     print(f'Extracted {len(p)} compound words.')
                     print(pq)
-                    print(p1)
-                    print(p)
+
 
                     training_data.append(p)
                 except Exception as e:
