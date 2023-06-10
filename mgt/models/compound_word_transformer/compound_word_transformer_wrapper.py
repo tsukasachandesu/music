@@ -279,7 +279,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         emb_type = self.word_emb_type(x[..., 0])
         aa=emb_type.bool()
-        print(aa[:,-1,-1])
+        print(aa[:,-1,:])
         
         
         emb_barbeat = self.word_emb_barbeat(x[..., 1])
