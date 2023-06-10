@@ -277,7 +277,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         mask = x[..., 0].bool().unsqueeze(-1).expand(-1, -1, 512)
         print(mask[:,-1,-1])
-        
+        emb_type = self.word_emb_type(x[..., 0])
         emb_barbeat = self.word_emb_barbeat(x[..., 1])
         emb_tempo = self.word_emb_tempo(x[..., 2])
         emb_instrument = self.word_emb_instrument(x[..., 3])
