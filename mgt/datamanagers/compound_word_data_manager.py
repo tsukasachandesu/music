@@ -128,7 +128,7 @@ class CompoundWordDataManager(DataManager):
                                 r = r + 1
                             if i[7] != -1:
                                 r = r + 1
-                        pq.append(sorted([i[2],i[3],i[4],i[5],i[6],i[7]]))
+                        pq.append([i[0],i[1]]+sorted([i[2],i[3],i[4],i[5],i[6],i[7]], reverse=True)+[r])
 
                     print(f'Extracted {len(p)} compound words.')
                     print(pq)
