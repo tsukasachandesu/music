@@ -15,7 +15,7 @@ from mgt.models.utils import get_device
 
 defaults = {
     'num_tokens': [
-        96,    # Type
+        126,    # Type
         17,   # Bar / Beat
         6913,  # Tempo
         21,  # Instrument
@@ -28,7 +28,7 @@ defaults = {
         96,  # Instrument
         512,  # Note Name
     ],
-    'max_sequence_length': 1024,
+    'max_sequence_length': 512,
     'learning_rate': 1e-4,
     'dropout': 0.1,
     'dim': 512,
