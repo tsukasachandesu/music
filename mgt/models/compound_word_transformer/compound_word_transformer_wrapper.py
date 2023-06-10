@@ -125,7 +125,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             nn.Linear(dim, self.num_tokens[7])
         )
         self.proj_velocity1 = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[8])
+            nn.Linear(dim, self.num_tokens[7])
         )
         
         # in_features is equal to dimension plus dimensions of the type embedding
