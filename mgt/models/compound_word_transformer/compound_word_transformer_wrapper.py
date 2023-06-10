@@ -275,6 +275,8 @@ class CompoundWordTransformerWrapper(nn.Module):
             **kwargs
     ):
         # embeddings
+        y = x[..., 0]
+        print(y[-1].bool)
         emb_type = self.word_emb_type(x[..., 0])
         emb_barbeat = self.word_emb_barbeat(x[..., 1])
         emb_tempo = self.word_emb_tempo(x[..., 2])
@@ -297,16 +299,10 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_velocity,
                 emb_velocity1
             ], dim = -1)
-    
 
         emb_linear = self.in_linear1(embs1)
-        print(emb_linear[:,-1,-1])
-        a = emb_linear.bool()
-        print(a[:,-1,-1])
-        
-        x = emb_linear + self.pos_emb(emb_linear)
-        
 
+        x = emb_linear + self.pos_emb(emb_linear)
         
         x = self.emb_dropout(x)
         x = self.project_emb(x)
