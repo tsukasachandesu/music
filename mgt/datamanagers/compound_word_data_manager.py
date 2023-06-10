@@ -114,7 +114,7 @@ class CompoundWordDataManager(DataManager):
                     pq = []
                     for i in p1:
                         r = 0
-                        if i[0] = 3:
+                        if i[0] == 3:
                             if i[2] != 12*9*64:
                                 r = r + 1
                             if i[3] != 12*9*64:
@@ -128,9 +128,7 @@ class CompoundWordDataManager(DataManager):
                             if i[7] != 12*9*64:
                                 r = r + 1
                         pq.append(i[0],i[1],i[2],i[3],i[4],i[5],i[6],i[7],r)
-                       
-                            
-                        
+
 
                     print(f'Extracted {len(p)} compound words.')
                     print(pq)
