@@ -46,6 +46,7 @@ class CompoundWordDataManager(DataManager):
     def prepare_data(self, midi_paths) -> DataSet:
         training_data = []
         dic = {(i, j, k): index for index, (i, j, k) in enumerate((i, j, k) for i in range(12) for j in range(9) for k in range(64))}
+        inverse_dic = {v: k for k, v in dic.items()}
 
         for path in midi_paths:
             for transposition_step in self.transposition_steps:
@@ -76,7 +77,7 @@ class CompoundWordDataManager(DataManager):
                         if i == [2, 0, 0]:
                             cur = cur + 1
                         if i[0] == 3:
-                            p[i[1] + cur * 16].append([i[0],i[1],i[2]])
+                            p[i[1] + cur * 16 -1].append([i[0],i[1],i[2]])
 
                     pp = []
                     cur = 0
@@ -87,22 +88,52 @@ class CompoundWordDataManager(DataManager):
                             pp.append(i)
                         cur = cur + 1
                     p  = []
+                    p1 = []
 
                     for i in pp:
                         n =[0,0,12*9*64,12*9*64,12*9*64,12*9*64,12*9*64,12*9*64]
+                        nn=[0,0,12*9*64,12*9*64,12*9*64,12*9*64,12*9*64,12*9*64]
                         r = 2
                         for j in i:
                             n[0] = j[0]
                             n[1] = j[1]
                             n[r] = j[2]
+                            
+                            nn[0] = j[0]
+                            nn[1] = j[1]
+                            nn[r] = [*inverse_dic[j[2]]][0] + [*inverse_dic[j[2]]][1]*12
+                            
+                            
                             if r >= 7:
                                 break
                             r = r + 1
                         p.append(n)
                     if p[-1] == [2, 0, 0, 0, 0, 0, 0, 0]:
                         del p[-1]
+                        
+                    pq = []
+                    for i in p1:
+                        r = 0
+                        if i[0] = 3:
+                            if i[2] != 12*9*64:
+                                r = r + 1
+                            if i[3] != 12*9*64:
+                                r = r + 1
+                            if i[4] != 12*9*64:
+                                r = r + 1
+                            if i[5] != 12*9*64:
+                                r = r + 1
+                            if i[6] != 12*9*64:
+                                r = r + 1
+                            if i[7] != 12*9*64:
+                                r = r + 1
+                        pq.append(i[0],i[1],i[2],i[3],i[4],i[5],i[6],i[7],r)
+                       
+                            
+                        
 
                     print(f'Extracted {len(p)} compound words.')
+                    print(pq)
 
                     training_data.append(p)
                 except Exception as e:
