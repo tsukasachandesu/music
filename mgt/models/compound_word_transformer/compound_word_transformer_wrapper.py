@@ -278,8 +278,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         
         emb_type = self.word_emb_type(x[..., 0])
-        mask = emb_type.bool()
-        print(mask[:,-1,-1])
+        aa=emb_type.bool()
+        print(aa[:,-1,-1])
         
         
         emb_barbeat = self.word_emb_barbeat(x[..., 1])
@@ -308,8 +308,12 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         x = emb_linear + self.pos_emb(emb_linear)
         
-
-        
+        rand = torch.randn(x.shape, device = x.device)
+        rand[:, 0] = -torch.finfo(rand.dtype).max 
+        num_mask = min(int(self.max_seq_len * 0.15), self.max_seq_len - 1)
+        indices = rand.topk(num_mask, dim = -1).indices
+        maski = ~torch.zeros_like(x).scatter(1, indices, 1.).bool()
+ 
         x = self.emb_dropout(x)
         x = self.project_emb(x)
 
