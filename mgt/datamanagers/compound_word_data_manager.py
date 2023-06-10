@@ -124,13 +124,15 @@ class CompoundWordDataManager(DataManager):
                     pqq =[]
                     
                     m = 0
+                    n = 1
                     for i in pq:
                         t = i
                         if m != 0:
                             if t[0] == 2:
                                 pqq.append([1,0,0,0,0,0,0,0,0])
+                                n = n + 1
                             else:
-                                pqq.append([2,t[1],t[2]+1,t[3]+1,t[4]+1,t[5]+1,t[6]+1,t[7]+1],i[2])
+                                pqq.append([n,t[1],t[2]+1,t[3]+1,t[4]+1,t[5]+1,t[6]+1,t[7]+1],i[2])
                         m = m + 1
                     
                     print(f'Extracted {len(pqq)} compound words.')
