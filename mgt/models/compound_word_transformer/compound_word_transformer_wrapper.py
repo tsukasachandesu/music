@@ -278,7 +278,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         mask = x[..., 0].bool()
         rand = torch.randn(x[..., 0].shape, device = x.device)
         rand[:, 0] = -torch.finfo(rand.dtype).max 
-        num_mask = min(int(self.max_seq_len * 0.15), self.max_seq_len - 1)
+        num_mask = min(int(x[..., 0].shape[1] * 0.15), x[..., 0].shape[1] - 1)
         indices = rand.topk(num_mask, dim = -1).indices   
         maski = ~torch.zeros_like(x[..., 0]).scatter(1, indices, 1.).bool()
         kwargs.update(self_attn_context_mask = maski)
