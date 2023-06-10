@@ -126,21 +126,9 @@ class CompoundWordDataManager(DataManager):
                     t = 1
                     for i in pq:
                         if i[0] == 2:
-                            pqq.append([1,0,0,0,0])
-
+                            pqq.append([1,0,0,0,0,0,0,0,0,0])
                         else:
-                            if i[2] != -1:
-                                pqq.append([2,i[1],i[2]+1,int(i[8]*(i[8]-1)/2)+1,n])
-                                if i[3] != -1:
-                                    pqq.append([2,i[1],i[3]+1,int(i[8]*(i[8]-1)/2)+1,n])
-                                    if i[4] != -1:
-                                        pqq.append([2,i[1],i[4]+1,int(i[8]*(i[8]-1)/2)+1,n])
-                                        if i[5] != -1:
-                                            pqq.append([2,i[1],i[5]+1,int(i[8]*(i[8]-1)/2)+1,n])
-                                            if i[6] != -1:
-                                                pqq.append([2,i[1],i[6]+1,int(i[8]*(i[8]-1)/2)+1,n])
-                                                if i[7] != -1:
-                                                    pqq.append([2,i[1],i[7]+1,int(i[8]*(i[8]-1)/2)+1,n])
+                            pqq.append([2,i[1],i[2]+1,i[3]+1,i[4]+1,i[5]+1,i[6]+1,i[7]+1])
                             n = i[2] + 1
                     
                     print(f'Extracted {len(pqq)} compound words.')
@@ -166,8 +154,9 @@ class CompoundWordDataManager(DataManager):
                 q.append([2,0,0,0,0,0,0,0])
             else:
                 q.append([2,i[1],0,0,0,0,0,0])
-                if i[2] != 0:
-                    q.append([3,i[1],0,0,*inverse_dic[int(i[2]-1)],31])
-                
+                for j in range(6):
+                    if i[j+2]-1 != 0
+                        q.append([3,i[1],0,0,*inverse_dic[int(i[2]-1)],31])
+
         remi = self.compound_word_mapper.map_to_remi(q)
         return MidiToolkitWrapper(self.to_midi_mapper.to_midi(remi))
