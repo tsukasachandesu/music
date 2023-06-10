@@ -133,25 +133,28 @@ class CompoundWordDataManager(DataManager):
                     print(pq)
                     pqq =[]
                     for i in pq:
-                        r = 2
-                        n = [0, 0, 0, 0]
-                        for j in i:
-                            print(j)
-                            if j[r] != -1:
-                                n[0] = j[0]
-                                n[1] = j[1]
-                                n[2] = j[r]
-                                n[3] = j[8]*(j[8]-1)/2 + r
-                            pqq.append(n)
-                            if r >= 7:
-                                break
-                            r = r + 1
-                        
+                        if i[0] == 2:
+                            pqq.append([2,0,0,0])
+                        if i[2] != -1:
+                            pqq.append([i[0],i[1],i[2],i[8]*(i[8]-1)/2 + 1])
+                            if i[3] != -1:
+                                pqq.append([i[0],i[1],i[3],i[8]*(i[8]-1)/2 + 1])
+                                if i[4] != -1:
+                                    pqq.append([i[0],i[1],i[4],i[8]*(i[8]-1)/2 + 1])
+                                    if i[5] != -1:
+                                        pqq.append([i[0],i[1],i[5],i[8]*(i[8]-1)/2 + 1])
+                                        if i[6] != -1:
+                                            pqq.append([i[0],i[1],i[6],i[8]*(i[8]-1)/2 + 1])
+                                            if i[7] != -1:
+                                                pqq.append([i[0],i[1],i[7],i[8]*(i[8]-1)/2 + 1])
+                    
+                                            
+                            
 
+                        
                     print(f'Extracted {len(p)} compound words.')
                     print(pqq)
-
-
+                    
                     training_data.append(p)
                 except Exception as e:
                     print(f"Exception: {e}")
