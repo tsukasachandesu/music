@@ -45,7 +45,7 @@ class CompoundWordDataManager(DataManager):
 
     def prepare_data(self, midi_paths) -> DataSet:
         training_data = []
-        dic = {(i, j, k): index for index, (i, j, k) in enumerate((i, j, k) for i in range(12) for j in range(9) for k in range(64))}
+        dic = {(i, j, k): index for index, (i, j, k) in enumerate((i, j, k) for i in range(12) for j in range(10) for k in range(64))}
 
         for path in midi_paths:
             for transposition_step in self.transposition_steps:
