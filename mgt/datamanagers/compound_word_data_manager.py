@@ -132,22 +132,24 @@ class CompoundWordDataManager(DataManager):
                         
                     print(pq)
                     pqq =[]
+                    n = -1
                     for i in pq:
                         if i[0] == 2:
-                            pqq.append([2,0,0,0])
+                            pqq.append([2,0,0,0,0])
                         else:
                             if i[2] != -1:
-                                pqq.append([i[0],i[1],i[2],int(i[8]*(i[8]-1)/2)])
+                                pqq.append([i[0],i[1],i[2],int(i[8]*(i[8]-1)/2)],n)
                                 if i[3] != -1:
-                                    pqq.append([i[0],i[1],i[3],i[8]*(i[8]-1)/2])
+                                    pqq.append([i[0],i[1],i[3],i[8]*(i[8]-1)/2],n)
                                     if i[4] != -1:
-                                        pqq.append([i[0],i[1],i[4],i[8]*(i[8]-1)/2])
+                                        pqq.append([i[0],i[1],i[4],i[8]*(i[8]-1)/2],n)
                                         if i[5] != -1:
-                                            pqq.append([i[0],i[1],i[5],i[8]*(i[8]-1)/2])
+                                            pqq.append([i[0],i[1],i[5],i[8]*(i[8]-1)/2],n)
                                             if i[6] != -1:
-                                                pqq.append([i[0],i[1],i[6],i[8]*(i[8]-1)/2])
+                                                pqq.append([i[0],i[1],i[6],i[8]*(i[8]-1)/2],n)
                                                 if i[7] != -1:
-                                                    pqq.append([i[0],i[1],i[7],i[8]*(i[8]-1)/2])
+                                                    pqq.append([i[0],i[1],i[7],i[8]*(i[8]-1)/2],n)
+                            n = i[2]
                     
                     print(f'Extracted {len(p)} compound words.')
                     print(pqq)
