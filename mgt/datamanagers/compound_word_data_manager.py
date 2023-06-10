@@ -119,7 +119,6 @@ class CompoundWordDataManager(DataManager):
                     for i in p:
                         s = []
                         if i[0] == 3:
-                            s.append(1)
                             if i[2] != -1:
                                 s.append(inverse_dic[i[2]][1])
                             if i[3] != -1:
@@ -132,29 +131,21 @@ class CompoundWordDataManager(DataManager):
                                 s.append(inverse_dic[i[6]][1])
                             if i[7] != -1:
                                 s.append(inverse_dic[i[7]][1])
-                        else:
-                            s.append(0)
                         q1.append(s)
                         
-
                     centroids = []
                     
                     for iii in q1:
-                        if iii == [0]
-                            centroids.append(cal_diameter1(iii,0))
-                        else:
-                            centroids.append(0)
-                            
-                    centroids1 = [np.array([10,10,10])]
+                        centroids.append(cal_diameter1(iii,0))
 
+                    centroids1 = []
                     for (i,iii) in enumerate(q1):
                         if i < len(q1)-1:
-                            if (iii == []) or (q1[i+1] == []):
-                                centroids1.append(np.array([5,5,5]))
-                            else:
-                                centroids1.append(notes_to_ce(qq[i+1],0)-notes_to_ce(qq[i],0))
-                                
+                            centroids1.append(notes_to_ce(q1[i+1],0) - notes_to_ce(q1[i],0))
+                    centroids1.append(np.array([5,5,5]))       
                     key_dife = np.linalg.norm(centroids1, axis=-1)
+                    
+                    print(key_dife)
  
                             
                     pq = []
