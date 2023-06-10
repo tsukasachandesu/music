@@ -276,7 +276,7 @@ class CompoundWordTransformerWrapper(nn.Module):
     ):
 
         mask = x[..., 0].bool()
-        print(mask[:,-1,-1])
+
         emb_type = self.word_emb_type(x[..., 0])
         emb_barbeat = self.word_emb_barbeat(x[..., 1])
         emb_tempo = self.word_emb_tempo(x[..., 2])
@@ -304,6 +304,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         x = emb_linear + self.pos_emb(emb_linear)
         
+
 
         x = self.emb_dropout(x)
         x = self.project_emb(x)
