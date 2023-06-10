@@ -130,20 +130,23 @@ class CompoundWordDataManager(DataManager):
                                 r = r + 1
                         pq.append([i[0],i[1]]+sorted([i[2],i[3],i[4],i[5],i[6],i[7]], reverse=True)+[r])
                         
+                    print(pq)
                     pqq =[]
                     for i in pq:
                         r = 2
                         n = [0, 0, 0, 0]
                         for j in i:
+                            print(j)
                             if j[r] != -1:
                                 n[0] = j[0]
                                 n[1] = j[1]
                                 n[2] = j[r]
                                 n[3] = j[8]*(j[8]-1)/2 + r
-                        
+                            pqq.append(n)
                             if r >= 7:
                                 break
                             r = r + 1
+                        
 
                     print(f'Extracted {len(p)} compound words.')
                     print(pqq)
