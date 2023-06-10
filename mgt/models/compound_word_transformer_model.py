@@ -22,8 +22,7 @@ defaults = {
         6913,   # Note name
         6913,    # Octave
         6913,   # Duration
-        6913,
-        6913,# Velocity
+        6913
     ],
     'emb_sizes': [
         256,   # Type
@@ -33,7 +32,6 @@ defaults = {
         512,  # Note Name
         512,  # Octave
         512,  # Duration
-        512,
         512
     ],
     'max_sequence_length': 1024,
