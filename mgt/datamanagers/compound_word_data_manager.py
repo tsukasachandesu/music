@@ -155,7 +155,7 @@ class CompoundWordDataManager(DataManager):
             else:
                 q.append([2,i[1],0,0,0,0,0,0])
                 for j in range(6):
-                    if i[j+2] == 0:
+                    if i[j+2] != 0:
                         q.append([3,i[1],0,0,*inverse_dic[int(i[j+2]-1)],31])
 
         remi = self.compound_word_mapper.map_to_remi(q)
