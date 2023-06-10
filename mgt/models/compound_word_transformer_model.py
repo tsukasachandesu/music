@@ -15,20 +15,26 @@ from mgt.models.utils import get_device
 
 defaults = {
     'num_tokens': [
-        126,    # Type
+        3,    # Type
         17,   # Bar / Beat
         6913,  # Tempo
-        21,  # Instrument
+        6913,  # Instrument
         6913,   # Note name
+        6913,    # Octave
+        6913,   # Duration
+        6913    # Velocity
     ],
     'emb_sizes': [
-        256,   # Type
+        32,   # Type
         96,   # Bar / Beat
         512,  # Tempo
-        96,  # Instrument
+        512,  # Instrument
         512,  # Note Name
+        512,  # Octave
+        512,  # Duration
+        512   # Velocity
     ],
-    'max_sequence_length': 512,
+    'max_sequence_length': 1024,
     'learning_rate': 1e-4,
     'dropout': 0.1,
     'dim': 512,
