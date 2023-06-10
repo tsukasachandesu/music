@@ -88,27 +88,18 @@ class CompoundWordDataManager(DataManager):
                             pp.append(i)
                         cur = cur + 1
                     p  = []
-                    p1 = []
-
                     for i in pp:
                         n =[0,0,-1,-1,-1,-1,-1,-1]
-                        nn=[0,0,-1,-1,-1,-1,-1,-1]
                         r = 2
                         for j in i:
                             n[0] = j[0]
                             n[1] = j[1]
                             n[r] = j[2]
                             
-                            nn[0] = j[0]
-                            nn[1] = j[1]
-                            nn[r] = [*inverse_dic[j[2]]][0] + [*inverse_dic[j[2]]][1]*12
-                            
-                            
                             if r >= 7:
                                 break
                             r = r + 1
                         p.append(n)
-                        p1.append(nn)
                     if p[-1] == [2, 0, 0, 0, 0, 0, 0, 0]:
                         del p[-1]
                         
