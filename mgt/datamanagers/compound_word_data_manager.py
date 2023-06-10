@@ -150,7 +150,7 @@ class CompoundWordDataManager(DataManager):
                                                     pqq.append([2,i[1],i[7]+1,int(i[8]*(i[8]-1)/2)+1,n])
                             n = i[2] + 1
                     
-                    print(f'Extracted {len(p)} compound words.')
+                    print(f'Extracted {len(pqq)} compound words.')
                     
                     training_data.append(pqq)
                 except Exception as e:
