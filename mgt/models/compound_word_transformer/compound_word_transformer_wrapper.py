@@ -232,8 +232,6 @@ class CompoundWordTransformerWrapper(nn.Module):
             probability_treshold=selection_probability_tresholds.get(7, None),
             temperature=selection_temperatures.get(7, 1.0))
         
-
-        print(proj_velocity1[0,0,0].cpu().detach().numpy()[0])
         # collect
         next_arr = np.array([
             cur_word_type,
