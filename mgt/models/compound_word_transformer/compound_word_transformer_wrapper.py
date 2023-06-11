@@ -202,9 +202,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.attn_layers = attn_layers
         
         self.norm = nn.LayerNorm(512)
-        self.in_linear1 = nn.Linear(512*6+96+32+126, 512)
+        self.in_linear1 = nn.Linear(512*6+96+32+256, 512)
         
-        self.in_linear = nn.Linear(1, 126)
+        self.numerical_embedder = NumericalEmbedder(256, 511)
 
         self.init_()
 
@@ -366,7 +366,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_duration = self.word_emb_duration(x[..., 6])
         emb_velocity = self.word_emb_velocity(x[..., 7])
        
-        emb = self.in_linear(x[..., -1].unsqueeze(-1))
+        emb = self.numerical_embedder(x[..., 8])
         
         embs1 = torch.cat(
             [
