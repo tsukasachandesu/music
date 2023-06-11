@@ -54,18 +54,7 @@ class CompoundWordDataManager(DataManager):
         self.to_midi_mapper = ToMidiMapper(self.dictionary)
 
     def prepare_data(self, midi_paths) -> DataSet:
-        
-        def cal_diameter1(piano_roll,key_index: int) -> List[int]:
-            diameters = []
-            indices = []
-            for i in piano_roll:
-                shifte = i - key_index
-                if shifte < 0:
-                    shifte += 12
-                indices.append(note_index_to_pitch_index[shifte])
-            diameters.append(largest_distance(indices))
-            return diameters
-        
+
         training_data = []
         dic = {(i, j, k): index for index, (i, j, k) in enumerate((i, j, k) for j in range(9) for i in range(12) for k in range(64))}
         inverse_dic = {v: k for k, v in dic.items()}
