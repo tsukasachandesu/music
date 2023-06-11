@@ -147,10 +147,6 @@ class CompoundWordDataManager(DataManager):
                     centroids1.append(np.array([5,5,5]))       
                     key_dife = np.linalg.norm(centroids1, axis=-1)
                     
-                    print(key_dife)
-                    print(centroids)
-                    print(q1)
-                    
                     pq = []
                     for i in p:
                         r = 0
@@ -176,18 +172,18 @@ class CompoundWordDataManager(DataManager):
                     n = 0
                     for i in range(len(pq)):
                         if pq[i][0] == 2:
-                            pqq.append([1,0,0,0,0,0,0,0,0,0,0])
+                            pqq.append([1,0,0,0,0,0,0,0,0,0])
                         else:
                             if i+1 >= len(pq):
-                                pqq.append([2,pq[i][1],pq[i][2]+1,pq[i][3]+1,pq[i][4]+1,pq[i][5]+1,pq[i][6]+1,pq[i][7]+1,0,np.argmin(np.abs(np.array(dia) - centroids[n])).item(),np.argmin(np.abs(np.array(dife) - key_dife[n])).item()])
+                                pqq.append([2,pq[i][1],pq[i][2]+1,pq[i][3]+1,pq[i][4]+1,pq[i][5]+1,pq[i][6]+1,pq[i][7]+1,np.argmin(np.abs(np.array(dia) - centroids[n])).item(),np.argmin(np.abs(np.array(dife) - key_dife[n])).item()])
                             else:
                                 if pq[i+1][2] == 0:
                                     if i+2 >= len(pq):
-                                        pqq.append([2,pq[i][1],pq[i][2]+1,pq[i][3]+1,pq[i][4]+1,pq[i][5]+1,pq[i][6]+1,pq[i][7]+1,0,np.argmin(np.abs(np.array(dia) - centroids[n])).item(),np.argmin(np.abs(np.array(dife) - key_dife[n])).item()])
+                                        pqq.append([2,pq[i][1],pq[i][2]+1,pq[i][3]+1,pq[i][4]+1,pq[i][5]+1,pq[i][6]+1,pq[i][7]+1,np.argmin(np.abs(np.array(dia) - centroids[n])).item(),np.argmin(np.abs(np.array(dife) - key_dife[n])).item()])
                                     else:
-                                        pqq.append([2,pq[i][1],pq[i][2]+1,pq[i][3]+1,pq[i][4]+1,pq[i][5]+1,pq[i][6]+1,pq[i][7]+1,pq[i+2][2]+1,np.argmin(np.abs(np.array(dia) - centroids[n])).item(),np.argmin(np.abs(np.array(dife) - key_dife[n])).item()])
+                                        pqq.append([2,pq[i][1],pq[i][2]+1,pq[i][3]+1,pq[i][4]+1,pq[i][5]+1,pq[i][6]+1,pq[i][7]+1,np.argmin(np.abs(np.array(dia) - centroids[n])).item(),np.argmin(np.abs(np.array(dife) - key_dife[n])).item()])
                                 else:
-                                    pqq.append([2,pq[i][1],pq[i][2]+1,pq[i][3]+1,pq[i][4]+1,pq[i][5]+1,pq[i][6]+1,pq[i][7]+1,pq[i+1][2]+1,np.argmin(np.abs(np.array(dia) - centroids[n])).item(),np.argmin(np.abs(np.array(dife) - key_dife[n])).item()])
+                                    pqq.append([2,pq[i][1],pq[i][2]+1,pq[i][3]+1,pq[i][4]+1,pq[i][5]+1,pq[i][6]+1,pq[i][7]+1,np.argmin(np.abs(np.array(dia) - centroids[n])).item(),np.argmin(np.abs(np.array(dife) - key_dife[n])).item()])
                                 
                             n = n + 1
                     print(f'Extracted {len(pqq)} compound words.')                    
