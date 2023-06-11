@@ -24,9 +24,6 @@ def notes_to_ce(indices):
     total /= count               
   return total.tolist()    
 
-    return total
-
-
 def pitch_index_to_position(pitch_index: int) -> ndarray:
     c = pitch_index - (4 * (pitch_index // 4))
     verticalStep = 0.4
