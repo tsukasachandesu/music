@@ -22,7 +22,8 @@ def tiv(q):
         a = np.array(a)
         c = c + a
         count += 1
-    c /= count
+    if count != 0:
+        c /= count
     a = 0
     for i in c:
         a = a + i * i
@@ -317,6 +318,7 @@ class CompoundWordTransformerWrapper(nn.Module):
                 q1.append(inverse_dic[cur_word_velocity-1][0])
         
         # collect
+       print(q1) 
         next_arr = np.array([
             cur_word_type,
             cur_word_barbeat,
