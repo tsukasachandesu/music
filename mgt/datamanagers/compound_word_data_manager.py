@@ -6,6 +6,7 @@ from mgt.datamanagers.remi.dictionary_generator import DictionaryGenerator
 from mgt.datamanagers.remi.to_midi_mapper import ToMidiMapper
 
 import numpy as np
+import itertools
 
 defaults = {
     'transposition_steps': [0],
@@ -39,7 +40,18 @@ def pitch_index_to_position(pitch_index) :
         pos[0] = -1*radius
     pos[2] = pitch_index * verticalStep
     return np.array(pos)
-          
+
+def largest_distance(pitches):
+    if len(pitches) < 2:
+        return 0
+    diameter = 0
+    pitch_pairs = itertools.combinations(pitches, 2)
+    for pitch_pair in pitch_pairs:
+        distance = np.linalg.norm(pitch_index_to_position(
+            pitch_pair[0]) - pitch_index_to_position(pitch_pair[1]))
+        if distance > diameter:
+            diameter = distance
+    return diameter.item()
 
 class CompoundWordDataManager(DataManager):
     """
@@ -176,13 +188,13 @@ class CompoundWordDataManager(DataManager):
                     n = 0
                     for i in range(len(pq)):
                         if pq[i][0] == 2:
-                            pqq.append([1,0,0,0,0,0,0,0,0,0,0])
+                            pqq.append([1,0,0,0,0,0,0,0,0,0,0,0])
                         else:
-                            pqq.append([2,pq[i][1],pq[i][2]+1,pq[i][3]+1,pq[i][4]+1,pq[i][5]+1,pq[i][6]+1,pq[i][7]+1,centroids[n][0],centroids[n][1],centroids[n][2]])
+                            pqq.append([2,pq[i][1],pq[i][2]+1,pq[i][3]+1,pq[i][4]+1,pq[i][5]+1,pq[i][6]+1,pq[i][7]+1,centroids[n][0],centroids[n][1],centroids[n][2],largest_distance[n]])
                             n = n + 1
 
                     print(f'Extracted {len(pqq)} compound words.') 
-                    print(pqq)
+                    
                     training_data.append(pqq)
                 except Exception as e:
                     print(f"Exception: {e}")
