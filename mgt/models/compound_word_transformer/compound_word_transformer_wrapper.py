@@ -231,8 +231,8 @@ class CompoundWordTransformerWrapper(nn.Module):
             proj_velocity,
             probability_treshold=selection_probability_tresholds.get(7, None),
             temperature=selection_temperatures.get(7, 1.0))
-        print(proj_velocity1.cpu().detach().numpy()[0])
-        print(cur_word_type)
+
+        
         # collect
         next_arr = np.array([
             cur_word_type,
@@ -243,9 +243,9 @@ class CompoundWordTransformerWrapper(nn.Module):
             cur_word_octave,
             cur_word_duration,
             cur_word_velocity,
-            proj_velocity1.cpu().detach().numpy()[0],
-            proj_velocity2.cpu().detach().numpy()[0],
-            proj_velocity3.cpu().detach().numpy()[0]
+            proj_velocity1.cpu().detach().numpy()[0][0][0],
+            proj_velocity2.cpu().detach().numpy()[0][0][0],
+            proj_velocity3.cpu().detach().numpy()[0][0][0]
         ])
         return next_arr
 
