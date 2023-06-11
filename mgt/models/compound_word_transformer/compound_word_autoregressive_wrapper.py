@@ -81,6 +81,9 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, proj_velocity, proj_velocity1, proj_velocity2,proj_velocity3 = self.net.forward_output(
             h, target)
         # Filter padding indices
+        print(proj_velocity1.squeeze(-1).shape)
+        print(proj_velocity1.shape)
+        print(target[..., 8].shape)
         type_loss = calculate_loss(proj_type, target[..., 0], type_mask(target))
         barbeat_loss = calculate_loss(proj_barbeat, target[..., 1], type_mask(target))
         tempo_loss = calculate_loss(proj_tempo, target[..., 2], type_mask(target))
@@ -89,9 +92,9 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         octave_loss = calculate_loss(proj_octave, target[..., 5], type_mask(target))
         duration_loss = calculate_loss(proj_duration, target[..., 6], type_mask(target))
         velocity_loss = calculate_loss(proj_velocity, target[..., 7], type_mask(target))
-        velocity_loss1 = calculate_loss1(proj_velocity1, target[..., 8], type_mask(target))
-        velocity_loss2 = calculate_loss1(proj_velocity2, target[..., 9], type_mask(target))
-        velocity_loss3 = calculate_loss1(proj_velocity3, target[..., 10], type_mask(target))
+        velocity_loss1 = calculate_loss1(proj_velocity1.squeeze(-1), target[..., 8], type_mask(target))
+        velocity_loss2 = calculate_loss1(proj_velocity2.squeeze(-1), target[..., 9], type_mask(target))
+        velocity_loss3 = calculate_loss1(proj_velocity3.squeeze(-1), target[..., 10], type_mask(target))
         
 
         return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss, velocity_loss, velocity_loss1, velocity_loss2, velocity_loss3
