@@ -21,7 +21,8 @@ defaults = {
         6913,  # Instrument
         6913,   # Note name
         6913,    # Octave
-        6913,   # Duration
+        6913, 
+        6913,# Duration
         13,
         212
     ],
@@ -32,7 +33,8 @@ defaults = {
         512,  # Instrument
         512,  # Note Name
         512,  # Octave
-        512,  # Duration
+        512,
+        512,# Duration
         96,
         256
     ],
