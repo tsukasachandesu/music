@@ -190,7 +190,7 @@ class CompoundWordDataManager(DataManager):
                         
                     centroids2 = []
                     for iii in q1:
-                        centroids1.append(tiv(iii))                       
+                        centroids2.append(tiv(iii))                       
                         
 
                     pq = []
@@ -215,7 +215,7 @@ class CompoundWordDataManager(DataManager):
                     n = 0
                     for i in range(len(pq)):
                         if pq[i][0] == 2:
-                            pqq.append([1,0,0,0,0,0,0,0,0,0,0,0])
+                            pqq.append([1,0,0,0,0,0,0,0,0,0,0,0,0])
                         else:
                             pqq.append([2,pq[i][1],pq[i][2]+1,pq[i][3]+1,pq[i][4]+1,pq[i][5]+1,pq[i][6]+1,pq[i][7]+1,centroids[n][0],centroids[n][1],centroids[n][2],centroids1[n], centroids2[n] ] )
                             n = n + 1
