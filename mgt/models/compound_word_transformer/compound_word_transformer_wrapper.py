@@ -243,9 +243,9 @@ class CompoundWordTransformerWrapper(nn.Module):
             cur_word_octave,
             cur_word_duration,
             cur_word_velocity,
-            proj_velocity1,
-            proj_velocity2,
-            proj_velocity3
+            proj_velocity1.cpu().detach().numpy()[0],
+            proj_velocity2.cpu().detach().numpy()[0],
+            proj_velocity3.cpu().detach().numpy()[0]
         ])
         return next_arr
 
