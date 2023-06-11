@@ -212,13 +212,16 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.attn_layers = attn_layers
         
         self.norm = nn.LayerNorm(512)
-        self.in_linear1 = nn.Linear(512*6+96+32+4*5, 512)
+        self.in_linear1 = nn.Linear(512*6+96+32+32, 512)
         
-        self.in_linear2 = nn.Linear(1, 4)
-        self.in_linear3 = nn.Linear(1, 4)
-        self.in_linear4 = nn.Linear(1, 4)
-        self.in_linear5 = nn.Linear(1, 4)
-        self.in_linear6 = nn.Linear(1, 4)
+        self.in_linear2 = nn.Linear(1, 8)
+        self.in_linear3 = nn.Linear(1, 8)
+        self.in_linear4 = nn.Linear(1, 8)
+        self.in_linear5 = nn.Linear(1, 8)
+        self.in_linear6 = nn.Linear(1, 8)
+        
+        self.fc_mu = nn.Linear(40, 32)
+        self.fc_logvar = nn.Linear(40, 32)
         
         self.init_()
 
@@ -231,6 +234,15 @@ class CompoundWordTransformerWrapper(nn.Module):
         nn.init.normal_(self.word_emb_octave.weight(), std=0.02)
         nn.init.normal_(self.word_emb_duration.weight(), std=0.02)
         nn.init.normal_(self.word_emb_velocity.weight(), std=0.02)
+        
+    def reparameterize(self, mu, logvar, use_sampling=True, sampling_var=1.):
+        std = torch.exp(0.5 * logvar).to(mu.device)
+        if use_sampling:
+            eps = torch.randn_like(std).to(mu.device) * sampling_var
+        else:
+            eps = torch.zeros_like(std).to(mu.device)
+        return eps * std + mu
+        
 
     def forward_output_sampling(self, h, y_type, selection_temperatures=None, selection_probability_tresholds=None):
         # sample type
@@ -388,7 +400,20 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_linear4 = self.in_linear4(x[..., 10].unsqueeze(-1).to(torch.float32))
         emb_linear5 = self.in_linear5(x[..., 11].unsqueeze(-1).to(torch.float32))
         emb_linear6 = self.in_linear5(x[..., 12].unsqueeze(-1).to(torch.float32))
-   
+        
+        embs2 = torch.cat(
+            [
+                emb_linear2,
+                emb_linear3,
+                emb_linear4,
+                emb_linear5,
+                emb_linear6,
+                
+            ], dim = -1)
+        
+        mu, logvar = self.fc_mu(embs2), self.fc_logvar(embs2)
+        vae_latent = self.reparameterize(mu, logvar)
+        
         embs1 = torch.cat(
             [
                 emb_type,
@@ -399,11 +424,7 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_octave,
                 emb_duration,
                 emb_velocity,
-                emb_linear2,
-                emb_linear3,
-                emb_linear4,
-                emb_linear5,
-                emb_linear6,
+                vae_latent
                 
             ], dim = -1)
         
@@ -420,4 +441,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         x, intermediates = self.attn_layers(x, mask=mask, return_hiddens=True, **kwargs)
         x = self.norm(x)
         
-        return x, self.proj_type(x)
+        kl_raw = -0.5 * (1 + logvar - mu ** 2 - logvar.exp()).mean(dim=0)
+        kl_before_free_bits = kl_raw.mean()
+        kl_after_free_bits = kl_raw.clamp(min=0.25)
+        kldiv_loss = kl_after_free_bits.mean()
+        
+        return x, self.proj_type(x), kldiv_loss
