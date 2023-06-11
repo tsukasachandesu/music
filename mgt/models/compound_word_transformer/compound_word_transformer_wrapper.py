@@ -10,16 +10,6 @@ from x_transformers.x_transformers import AttentionLayers, default, AbsolutePosi
 from mgt.models.compound_word_transformer.compound_transformer_embeddings import CompoundTransformerEmbeddings
 from mgt.models.utils import get_device
 
-class NumericalEmbedder(nn.Module):
-    def __init__(self, dim, num_numerical_types):
-        super().__init__()
-        self.weights = nn.Parameter(torch.randn(num_numerical_types, dim))
-        self.biases = nn.Parameter(torch.randn(num_numerical_types, dim))
-
-    def forward(self, x):
-        x = rearrange(x, 'b n -> b n 1')
-        return x * self.weights + self.biases
-
 def softmax_with_temperature(logits, temperature):
     probs = np.exp(logits / temperature) / np.sum(np.exp(logits / temperature))
     return probs
@@ -82,9 +72,7 @@ class CompoundWordTransformerWrapper(nn.Module):
                 512,  # Note Name
                 512,  # Octave
                 512,
-                512,# Duration
-                96,
-                256
+                512
             ]
 
         self.emb_sizes = emb_sizes
@@ -103,10 +91,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.word_emb_octave = CompoundTransformerEmbeddings(self.num_tokens[5], self.emb_sizes[5])
         self.word_emb_duration = CompoundTransformerEmbeddings(self.num_tokens[6], self.emb_sizes[6])
         self.word_emb_velocity = CompoundTransformerEmbeddings(self.num_tokens[7], self.emb_sizes[7])
-        self.word_emb_velocity1 = CompoundTransformerEmbeddings(self.num_tokens[8], self.emb_sizes[8])
-        self.word_emb_velocity2 = CompoundTransformerEmbeddings(self.num_tokens[9], self.emb_sizes[9])
         
-        self.numerical_embedder = NumericalEmbedder(96, 3)
+        self.project_in = nn.Linear(3, 96) 
         
         
         # individual output
@@ -142,10 +128,13 @@ class CompoundWordTransformerWrapper(nn.Module):
             nn.Linear(dim, self.num_tokens[7])
         )
         self.proj_velocity1 = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[8])
+            nn.Linear(dim, 1)
         )
         self.proj_velocity2 = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[9])
+            nn.Linear(dim, 1)
+        )
+        self.proj_velocity3 = nn.Sequential(
+            nn.Linear(dim, 1)
         )
         
         # in_features is equal to dimension plus dimensions of the type embedding
@@ -161,7 +150,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.attn_layers = attn_layers
         
         self.norm = nn.LayerNorm(512)
-        self.in_linear1 = nn.Linear(512*6+96+32+96+256, 512)
+        self.in_linear1 = nn.Linear(512*6+96+32+96, 512)
 
         self.init_()
 
@@ -174,8 +163,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         nn.init.normal_(self.word_emb_octave.weight(), std=0.02)
         nn.init.normal_(self.word_emb_duration.weight(), std=0.02)
         nn.init.normal_(self.word_emb_velocity.weight(), std=0.02)
-        nn.init.normal_(self.word_emb_velocity1.weight(), std=0.02)
-        nn.init.normal_(self.word_emb_velocity2.weight(), std=0.02)
 
     def forward_output_sampling(self, h, y_type, selection_temperatures=None, selection_probability_tresholds=None):
         # sample type
@@ -210,6 +197,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         proj_velocity = self.proj_velocity(y_)
         proj_velocity1 = self.proj_velocity1(y_)
         proj_velocity2 = self.proj_velocity2(y_)
+        proj_velocity3 = self.proj_velocity3(y_)
 
         # sampling gen_cond
         cur_word_barbeat = sampling(
@@ -251,8 +239,14 @@ class CompoundWordTransformerWrapper(nn.Module):
             proj_velocity1,
             probability_treshold=selection_probability_tresholds.get(8, None),
             temperature=selection_temperatures.get(8, 1.0))
+        
         cur_word_velocity2 = sampling(
             proj_velocity2,
+            probability_treshold=selection_probability_tresholds.get(9, None),
+            temperature=selection_temperatures.get(9, 1.0))
+        
+        cur_word_velocity3 = sampling(
+            proj_velocity3,
             probability_treshold=selection_probability_tresholds.get(9, None),
             temperature=selection_temperatures.get(9, 1.0))
         
@@ -267,7 +261,8 @@ class CompoundWordTransformerWrapper(nn.Module):
             cur_word_duration,
             cur_word_velocity,
             cur_word_velocity1,
-            cur_word_velocity2
+            cur_word_velocity2,
+            cur_word_velocity3
         ])
         return next_arr
 
@@ -289,8 +284,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         proj_velocity = self.proj_velocity(y_)
         proj_velocity1 = self.proj_velocity1(y_)
         proj_velocity2 = self.proj_velocity2(y_)
-
-        return proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, proj_velocity,proj_velocity1,proj_velocity2
+        proj_velocity3 = self.proj_velocity3(y_)
+        
+        return proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, proj_velocity,proj_velocity1,proj_velocity2,proj_velocity3
 
     def forward_hidden(
             self,
@@ -315,8 +311,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_octave = self.word_emb_octave(x[..., 5])
         emb_duration = self.word_emb_duration(x[..., 6])
         emb_velocity = self.word_emb_velocity(x[..., 7])
-        emb_velocity1 = self.word_emb_velocity1(x[..., 8])
-        emb_velocity2 = self.numerical_embedder(x[..., 9])
+        
+        emb = self.project_in(x[..., 8:])
         
         embs1 = torch.cat(
             [
@@ -328,8 +324,7 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_octave,
                 emb_duration,
                 emb_velocity,
-                emb_velocity1,
-                emb_velocity2,
+                
             ], dim = -1)
 
         emb_linear = self.in_linear1(embs1)
