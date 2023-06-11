@@ -374,6 +374,8 @@ class CompoundWordTransformerWrapper(nn.Module):
     def forward_hidden(
             self,
             x,
+            y,
+        
             mask=None,
             **kwargs
     ):
@@ -412,7 +414,10 @@ class CompoundWordTransformerWrapper(nn.Module):
             ], dim = -1)
         
         mu, logvar = self.fc_mu(embs2), self.fc_logvar(embs2)
-        vae_latent = self.reparameterize(mu, logvar)
+        if y == 0:
+            vae_latent = self.reparameterize(mu, logvar)
+        else:
+            vae_latent = self.reparameterize(mu, logvar,False)
         
         embs1 = torch.cat(
             [
