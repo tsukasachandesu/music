@@ -318,7 +318,6 @@ class CompoundWordTransformerWrapper(nn.Module):
                 q1.append(inverse_dic[cur_word_velocity-1][0])
         
         # collect
-       print(q1) 
         next_arr = np.array([
             cur_word_type,
             cur_word_barbeat,
