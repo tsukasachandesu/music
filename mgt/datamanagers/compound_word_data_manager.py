@@ -7,12 +7,30 @@ from mgt.datamanagers.remi.to_midi_mapper import ToMidiMapper
 
 import numpy as np
 import itertools
+import math
 
 defaults = {
     'transposition_steps': [0],
     'map_tracks_to_instruments': {},
     'instrument_mapping': {}
 }
+
+def tiv(q):
+    c = [0]*6*2
+    c = np.array(c)
+    count = 0
+    for i in q:
+        a = [math.sin(math.radians(30*-i)),math.cos(math.radians(30*-i)),math.sin(math.radians(60*-i)),math.cos(math.radians(60*-i)),math.sin(math.radians(90*-i)),math.cos(math.radians(90*-i)),math.sin(math.radians(120*-i)),math.cos(math.radians(120*-i)),math.sin(math.radians(150*-i)),math.cos(math.radians(150*-i)),math.sin(math.radians(180*-i)),math.cos(math.radians(180*-i))]
+        a = np.array(a)
+        c = c + a
+        count += 1
+    c /= count
+    a = 0
+    for i in c:
+        a = a + i * i
+        a = math.sqrt(a)
+    return a
+
 
 def notes_to_ce(indices):
   note_index_to_pitch_index = [0, -5, 2, -3, 4, -1, -6, 1, -4, 3, -2, 5]
@@ -169,6 +187,11 @@ class CompoundWordDataManager(DataManager):
                     centroids1 = []
                     for iii in q1:
                         centroids1.append(largest_distance(iii))     
+                        
+                    centroids2 = []
+                    for iii in q1:
+                        centroids1.append(tiv(iii))                       
+                        
 
                     pq = []
                     for i in p:
@@ -194,7 +217,7 @@ class CompoundWordDataManager(DataManager):
                         if pq[i][0] == 2:
                             pqq.append([1,0,0,0,0,0,0,0,0,0,0,0])
                         else:
-                            pqq.append([2,pq[i][1],pq[i][2]+1,pq[i][3]+1,pq[i][4]+1,pq[i][5]+1,pq[i][6]+1,pq[i][7]+1,centroids[n][0],centroids[n][1],centroids[n][2],centroids1[n]])
+                            pqq.append([2,pq[i][1],pq[i][2]+1,pq[i][3]+1,pq[i][4]+1,pq[i][5]+1,pq[i][6]+1,pq[i][7]+1,centroids[n][0],centroids[n][1],centroids[n][2],centroids1[n], centroids2[n]  )
                             n = n + 1
 
                     print(f'Extracted {len(pqq)} compound words.') 
