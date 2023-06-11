@@ -5,6 +5,8 @@ from mgt.datamanagers.remi.data_extractor import DataExtractor
 from mgt.datamanagers.remi.dictionary_generator import DictionaryGenerator
 from mgt.datamanagers.remi.to_midi_mapper import ToMidiMapper
 
+import numpy as np
+
 defaults = {
     'transposition_steps': [0],
     'map_tracks_to_instruments': {},
