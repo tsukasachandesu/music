@@ -11,6 +11,23 @@ from mgt.models.compound_word_transformer.compound_transformer_embeddings import
 from mgt.models.utils import get_device
 from einops import rearrange, repeat
 import itertools
+import math
+
+def tiv(q):
+    c = [0]*6*2
+    c = np.array(c)
+    count = 0
+    for i in q:
+        a = [math.sin(math.radians(30*-i)),math.cos(math.radians(30*-i)),math.sin(math.radians(60*-i)),math.cos(math.radians(60*-i)),math.sin(math.radians(90*-i)),math.cos(math.radians(90*-i)),math.sin(math.radians(120*-i)),math.cos(math.radians(120*-i)),math.sin(math.radians(150*-i)),math.cos(math.radians(150*-i)),math.sin(math.radians(180*-i)),math.cos(math.radians(180*-i))]
+        a = np.array(a)
+        c = c + a
+        count += 1
+    c /= count
+    a = 0
+    for i in c:
+        a = a + i * i
+        a = math.sqrt(a)
+    return a
 
 def notes_to_ce(indices):
   note_index_to_pitch_index = [0, -5, 2, -3, 4, -1, -6, 1, -4, 3, -2, 5]
@@ -174,8 +191,10 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.proj_velocity3 = nn.Sequential(
             nn.Linear(dim, 1)
         )
-        
         self.proj_velocity4 = nn.Sequential(
+            nn.Linear(dim, 1)
+        )
+        self.proj_velocity5 = nn.Sequential(
             nn.Linear(dim, 1)
         )
         
@@ -192,12 +211,13 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.attn_layers = attn_layers
         
         self.norm = nn.LayerNorm(512)
-        self.in_linear1 = nn.Linear(512*6+96+32+4*4, 512)
+        self.in_linear1 = nn.Linear(512*6+96+32+4*5, 512)
         
         self.in_linear2 = nn.Linear(1, 4)
         self.in_linear3 = nn.Linear(1, 4)
         self.in_linear4 = nn.Linear(1, 4)
         self.in_linear5 = nn.Linear(1, 4)
+        self.in_linear6 = nn.Linear(1, 4)
         
         self.init_()
 
@@ -309,7 +329,8 @@ class CompoundWordTransformerWrapper(nn.Module):
             notes_to_ce(q1)[0],
             notes_to_ce(q1)[1],
             notes_to_ce(q1)[2],
-            largest_distance(q1)
+            largest_distance(q1),
+            tiv(q1)
         ])
         return next_arr
 
@@ -333,8 +354,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         proj_velocity2 = self.proj_velocity2(y_)
         proj_velocity3 = self.proj_velocity3(y_)
         proj_velocity4 = self.proj_velocity4(y_)
+        proj_velocity5 = self.proj_velocity5(y_)
         
-        return proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, proj_velocity,proj_velocity1,proj_velocity2,proj_velocity3,proj_velocity4
+        return proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, proj_velocity,proj_velocity1,proj_velocity2,proj_velocity3,proj_velocity4,proj_velocity5
 
     def forward_hidden(
             self,
@@ -364,6 +386,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_linear3 = self.in_linear3(x[..., 9].unsqueeze(-1).to(torch.float32))
         emb_linear4 = self.in_linear4(x[..., 10].unsqueeze(-1).to(torch.float32))
         emb_linear5 = self.in_linear5(x[..., 11].unsqueeze(-1).to(torch.float32))
+        emb_linear6 = self.in_linear5(x[..., 12].unsqueeze(-1).to(torch.float32))
    
         embs1 = torch.cat(
             [
@@ -379,6 +402,7 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_linear3,
                 emb_linear4,
                 emb_linear5,
+                emb_linear6,
                 
             ], dim = -1)
         
