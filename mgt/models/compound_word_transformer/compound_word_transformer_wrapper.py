@@ -9,7 +9,7 @@ from x_transformers.x_transformers import AttentionLayers, default, AbsolutePosi
 
 from mgt.models.compound_word_transformer.compound_transformer_embeddings import CompoundTransformerEmbeddings
 from mgt.models.utils import get_device
-
+from einops import rearrange, repeat
 import itertools
 
 class NumericalEmbedder(nn.Module):
