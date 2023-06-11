@@ -22,7 +22,8 @@ defaults = {
         6913,   # Note name
         6913,    # Octave
         6913,   # Duration
-        6913
+        13,
+        212
     ],
     'emb_sizes': [
         32,   # Type
@@ -32,7 +33,8 @@ defaults = {
         512,  # Note Name
         512,  # Octave
         512,  # Duration
-        512
+        96,
+        256
     ],
     'max_sequence_length': 1024,
     'learning_rate': 1e-4,
