@@ -22,7 +22,26 @@ def notes_to_ce(indices):
     count += 1
   if count != 0:
     total /= count               
-  return total.tolist()                 
+  return total.tolist()    
+
+    return total
+
+
+def pitch_index_to_position(pitch_index: int) -> ndarray:
+    c = pitch_index - (4 * (pitch_index // 4))
+    verticalStep = 0.4
+    radius = 1.0
+    pos = np.array([0.0, 0.0, 0.0])
+    if c == 0:
+        pos[1] = radius
+    if c == 1:
+        pos[0] = radius
+    if c == 2:
+        pos[1] = -1*radius
+    if c == 3:
+        pos[0] = -1*radius
+    pos[2] = pitch_index * verticalStep
+    return np.array(pos)
           
 
 class CompoundWordDataManager(DataManager):
