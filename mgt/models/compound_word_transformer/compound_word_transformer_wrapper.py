@@ -92,9 +92,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.word_emb_duration = CompoundTransformerEmbeddings(self.num_tokens[6], self.emb_sizes[6])
         self.word_emb_velocity = CompoundTransformerEmbeddings(self.num_tokens[7], self.emb_sizes[7])
         
-        self.project_in = nn.Linear(3, 96) 
-        
-        
         # individual output
         self.proj_type = nn.Sequential(
             nn.Linear(dim, self.num_tokens[0])
@@ -150,7 +147,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.attn_layers = attn_layers
         
         self.norm = nn.LayerNorm(512)
-        self.in_linear1 = nn.Linear(512*6+96+32+96, 512)
+        self.in_linear1 = nn.Linear(512*6+96+32+3, 512)
 
         self.init_()
 
@@ -297,12 +294,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_octave = self.word_emb_octave(x[..., 5])
         emb_duration = self.word_emb_duration(x[..., 6])
         emb_velocity = self.word_emb_velocity(x[..., 7])
-        r = x[..., 7:]
-        rr = x[..., 7]
-        print(r.shape())
-        print(rr.shape())
-        rrr = x[..., 7:].unsqueeze(1)
-        print(rrr.shape())
 
         emb = self.project_in(x[..., 7:].unsqueeze(1))
         
@@ -316,7 +307,9 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_octave,
                 emb_duration,
                 emb_velocity,
-                emb
+                x[..., 8],
+                x[..., 9],
+                x[..., 10]
                 
             ], dim = -1)
 
