@@ -12,6 +12,16 @@ from mgt.models.utils import get_device
 
 import itertools
 
+class NumericalEmbedder(nn.Module):
+    def __init__(self, dim, num_numerical_types):
+        super().__init__()
+        self.weights = nn.Parameter(torch.randn(num_numerical_types, dim))
+        self.biases = nn.Parameter(torch.randn(num_numerical_types, dim))
+
+    def forward(self, x):
+        x = rearrange(x, 'b n -> b n 1')
+        return x * self.weights + self.biases
+
 def notes_to_ce(indices):
   note_index_to_pitch_index = [0, -5, 2, -3, 4, -1, -6, 1, -4, 3, -2, 5]
   total = np.zeros(3)
@@ -178,6 +188,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.proj_velocity4 = nn.Sequential(
             nn.Linear(dim, 1)
         )
+        
+        self.numerical_embedder = NumericalEmbedder(256, 4)
         
         # in_features is equal to dimension plus dimensions of the type embedding
         self.project_concat_type = nn.Linear(dim + self.emb_sizes[0], dim)
@@ -353,6 +365,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_octave = self.word_emb_octave(x[..., 5])
         emb_duration = self.word_emb_duration(x[..., 6])
         emb_velocity = self.word_emb_velocity(x[..., 7])
+        
+        x_numer = self.numerical_embedder(x[..., 7:])
 
         embs1 = torch.cat(
             [
