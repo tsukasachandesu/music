@@ -51,7 +51,7 @@ def largest_distance(pitches):
             pitch_pair[0]) - pitch_index_to_position(pitch_pair[1]))
         if distance > diameter:
             diameter = distance
-    return diameter.item()
+    return diameter
 
 class CompoundWordDataManager(DataManager):
     """
