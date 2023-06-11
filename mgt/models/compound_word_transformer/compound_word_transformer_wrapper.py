@@ -235,11 +235,11 @@ class CompoundWordTransformerWrapper(nn.Module):
             temperature=selection_temperatures.get(7, 1.0))
         
         cur_word_velocity1 = sampling(
-            proj_velocity,
+            proj_velocity1,
             probability_treshold=selection_probability_tresholds.get(8, None),
             temperature=selection_temperatures.get(8, 1.0))
         cur_word_velocity2 = sampling(
-            proj_velocity,
+            proj_velocity2,
             probability_treshold=selection_probability_tresholds.get(9, None),
             temperature=selection_temperatures.get(9, 1.0))
         
