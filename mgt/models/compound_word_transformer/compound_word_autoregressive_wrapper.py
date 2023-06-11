@@ -23,7 +23,6 @@ def calculate_loss(predicted, target, loss_mask):
 
     return loss
 
-
 class CompoundWordAutoregressiveWrapper(nn.Module):
     def __init__(self, net: CompoundWordTransformerWrapper, ignore_index=-100, pad_value=None):
         super().__init__()
@@ -67,7 +66,7 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         target = x[:, 1:, :]
 
         h, proj_type = self.net.forward_hidden(xi, **kwargs)
-        proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, proj_velocity, proj_velocity1, proj_velocity2 = self.net.forward_output(
+        proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, proj_velocity, proj_velocity1, proj_velocity2,proj_velocity3 = self.net.forward_output(
             h, target)
         # Filter padding indices
         type_loss = calculate_loss(proj_type, target[..., 0], type_mask(target))
@@ -78,7 +77,9 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         octave_loss = calculate_loss(proj_octave, target[..., 5], type_mask(target))
         duration_loss = calculate_loss(proj_duration, target[..., 6], type_mask(target))
         velocity_loss = calculate_loss(proj_velocity, target[..., 7], type_mask(target))
-        velocity_loss1 = calculate_loss(proj_velocity1, target[..., 8], type_mask(target))
-        velocity_loss2 = calculate_loss(proj_velocity2, target[..., 9], type_mask(target))
+        
+        velocity_loss1 = F.mse_loss(proj_velocity1, target, reduction = 'mean')
+        velocity_loss2 = F.mse_loss(proj_velocity2, target, reduction = 'mean')
+        velocity_loss3 = F.mse_loss(proj_velocity3, target, reduction = 'mean')
 
-        return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss, velocity_loss, velocity_loss1, velocity_loss2
+        return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss, velocity_loss, velocity_loss1, velocity_loss2, velocity_loss3
