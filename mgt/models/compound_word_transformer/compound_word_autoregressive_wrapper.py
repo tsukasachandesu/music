@@ -53,7 +53,7 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         final_res = prompt.copy()
         last_token = final_res[-self.max_seq_len:]
         input_ = torch.tensor(np.array([last_token])).long().to(get_device())
-        h, y_type = self.net.forward_hidden(input_)
+        h, y_type = self.net.forward_hidden(input_,input_.shape[-1])
 
         print('------ generate ------')
         for _ in range(output_length):
@@ -69,7 +69,7 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
             # forward
             last_token = final_res[-self.max_seq_len:]
             input_ = torch.tensor(np.array([last_token])).long().to(get_device())
-            h, y_type = self.net.forward_hidden(input_)
+            h, y_type = self.net.forward_hidden(input_, input_.shape[-1])
 
         return final_res
 
@@ -77,7 +77,7 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         xi = x[:, :-1, :]
         target = x[:, 1:, :]
 
-        h, proj_type = self.net.forward_hidden(xi, **kwargs)
+        h, proj_type = self.net.forward_hidden(xi, xi.shape[-1],**kwargs)
         proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, proj_velocity, proj_velocity1, proj_velocity2,proj_velocity3 = self.net.forward_output(
             h, target)
         # Filter padding indices
