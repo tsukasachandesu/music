@@ -192,12 +192,12 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.attn_layers = attn_layers
         
         self.norm = nn.LayerNorm(512)
-        self.in_linear1 = nn.Linear(512*6+96+32+4*32, 512)
+        self.in_linear1 = nn.Linear(512*6+96+32+4*4, 512)
         
-        self.in_linear2 = nn.Linear(1, 32)
-        self.in_linear3 = nn.Linear(1, 32)
-        self.in_linear4 = nn.Linear(1, 32)
-        self.in_linear5 = nn.Linear(1, 32)
+        self.in_linear2 = nn.Linear(1, 4)
+        self.in_linear3 = nn.Linear(1, 4)
+        self.in_linear4 = nn.Linear(1, 4)
+        self.in_linear5 = nn.Linear(1, 4)
         
         self.init_()
 
