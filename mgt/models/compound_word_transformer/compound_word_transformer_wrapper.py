@@ -366,7 +366,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_duration = self.word_emb_duration(x[..., 6])
         emb_velocity = self.word_emb_velocity(x[..., 7])
        
-        emb = self.in_linear(x[..., -1])
+        emb = self.in_linear(x[..., -1].unsqueeze(-1))
         
         embs1 = torch.cat(
             [
