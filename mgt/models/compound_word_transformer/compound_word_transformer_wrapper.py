@@ -12,16 +12,6 @@ from mgt.models.utils import get_device
 from einops import rearrange, repeat
 import itertools
 
-class NumericalEmbedder(nn.Module):
-    def __init__(self, dim, num_numerical_types):
-        super().__init__()
-        self.weights = nn.Parameter(torch.randn(num_numerical_types, dim))
-        self.biases = nn.Parameter(torch.randn(num_numerical_types, dim))
-
-    def forward(self, x):
-        x = rearrange(x, 'b n -> b n 1')
-        return x * self.weights + self.biases
-
 def notes_to_ce(indices):
   note_index_to_pitch_index = [0, -5, 2, -3, 4, -1, -6, 1, -4, 3, -2, 5]
   total = np.zeros(3)
@@ -202,10 +192,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.attn_layers = attn_layers
         
         self.norm = nn.LayerNorm(512)
-        self.in_linear1 = nn.Linear(512*6+96+32+256, 512)
+        self.in_linear1 = nn.Linear(512*6+96+32+4, 512)
         
-        self.numerical_embedder = NumericalEmbedder(256, 511)
-
         self.init_()
 
     def init_(self):
@@ -339,8 +327,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         proj_velocity1 = self.proj_velocity1(y_)
         proj_velocity2 = self.proj_velocity2(y_)
         proj_velocity3 = self.proj_velocity3(y_)
+        proj_velocity4 = self.proj_velocity4(y_)
         
-        return proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, proj_velocity,proj_velocity1,proj_velocity2,proj_velocity3
+        return proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, proj_velocity,proj_velocity1,proj_velocity2,proj_velocity3,proj_velocity4
 
     def forward_hidden(
             self,
@@ -366,8 +355,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_duration = self.word_emb_duration(x[..., 6])
         emb_velocity = self.word_emb_velocity(x[..., 7])
        
-        emb = self.numerical_embedder(x[..., 8])
-        
         embs1 = torch.cat(
             [
                 emb_type,
@@ -378,7 +365,10 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_octave,
                 emb_duration,
                 emb_velocity,
-                emb
+                x[..., 8].unsqueeze(-1),
+                x[..., 9].unsqueeze(-1),
+                x[..., 10].unsqueeze(-1),
+                x[..., 11].unsqueeze(-1),
                 
             ], dim = -1)
 
