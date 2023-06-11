@@ -23,6 +23,18 @@ def calculate_loss(predicted, target, loss_mask):
 
     return loss
 
+def calculate_loss1(predicted, target, loss_mask):
+    trainable_values = torch.sum(loss_mask)
+    if trainable_values == 0:
+        return 0
+
+    loss = F.mse_loss(predicted[:, ...], target, reduction = 'none')
+    loss = loss * loss_mask
+    loss = torch.sum(loss) / trainable_values
+
+    return loss
+
+
 class CompoundWordAutoregressiveWrapper(nn.Module):
     def __init__(self, net: CompoundWordTransformerWrapper, ignore_index=-100, pad_value=None):
         super().__init__()
@@ -77,9 +89,9 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         octave_loss = calculate_loss(proj_octave, target[..., 5], type_mask(target))
         duration_loss = calculate_loss(proj_duration, target[..., 6], type_mask(target))
         velocity_loss = calculate_loss(proj_velocity, target[..., 7], type_mask(target))
+        velocity_loss1 = calculate_loss(proj_velocity1, target[..., 8], type_mask(target))
+        velocity_loss2 = calculate_loss(proj_velocity2, target[..., 9], type_mask(target))
+        velocity_loss3 = calculate_loss(proj_velocity3, target[..., 10], type_mask(target))
         
-        velocity_loss1 = F.mse_loss(proj_velocity1, target, reduction = 'mean')
-        velocity_loss2 = F.mse_loss(proj_velocity2, target, reduction = 'mean')
-        velocity_loss3 = F.mse_loss(proj_velocity3, target, reduction = 'mean')
 
         return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss, velocity_loss, velocity_loss1, velocity_loss2, velocity_loss3
