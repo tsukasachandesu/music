@@ -305,9 +305,9 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_octave,
                 emb_duration,
                 emb_velocity,
-                x[..., 8],
-                x[..., 9],
-                x[..., 10]
+                x[..., 8].unsqueeze(1),
+                x[..., 9].unsqueeze(1),
+                x[..., 10].unsqueeze(1)
                 
             ], dim = -1)
 
