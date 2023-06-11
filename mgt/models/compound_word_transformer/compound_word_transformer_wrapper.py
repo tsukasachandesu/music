@@ -134,6 +134,10 @@ class CompoundWordTransformerWrapper(nn.Module):
             nn.Linear(dim, 1)
         )
         
+        self.proj_velocity4 = nn.Sequential(
+            nn.Linear(dim, 1)
+        )
+        
         # in_features is equal to dimension plus dimensions of the type embedding
         self.project_concat_type = nn.Linear(dim + self.emb_sizes[0], dim)
 
@@ -147,7 +151,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.attn_layers = attn_layers
         
         self.norm = nn.LayerNorm(512)
-        self.in_linear1 = nn.Linear(512*6+96+32+3, 512)
+        self.in_linear1 = nn.Linear(512*6+96+32+4, 512)
 
         self.init_()
 
@@ -195,6 +199,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         proj_velocity1 = self.proj_velocity1(y_)
         proj_velocity2 = self.proj_velocity2(y_)
         proj_velocity3 = self.proj_velocity3(y_)
+        proj_velocity4 = self.proj_velocity4(y_)
 
         # sampling gen_cond
         cur_word_barbeat = sampling(
@@ -245,7 +250,8 @@ class CompoundWordTransformerWrapper(nn.Module):
             cur_word_velocity,
             proj_velocity1.cpu().detach().numpy()[0][0][0],
             proj_velocity2.cpu().detach().numpy()[0][0][0],
-            proj_velocity3.cpu().detach().numpy()[0][0][0]
+            proj_velocity3.cpu().detach().numpy()[0][0][0],
+            proj_velocity4.cpu().detach().numpy()[0][0][0]
         ])
         return next_arr
 
@@ -307,7 +313,8 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_velocity,
                 x[..., 8].unsqueeze(-1),
                 x[..., 9].unsqueeze(-1),
-                x[..., 10].unsqueeze(-1)
+                x[..., 10].unsqueeze(-1),
+                x[..., 11].unsqueeze(-1)
                 
             ], dim = -1)
 
