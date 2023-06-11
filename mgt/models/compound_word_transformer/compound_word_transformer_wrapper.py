@@ -10,6 +10,16 @@ from x_transformers.x_transformers import AttentionLayers, default, AbsolutePosi
 from mgt.models.compound_word_transformer.compound_transformer_embeddings import CompoundTransformerEmbeddings
 from mgt.models.utils import get_device
 
+class NumericalEmbedder(nn.Module):
+    def __init__(self, dim, num_numerical_types):
+        super().__init__()
+        self.weights = nn.Parameter(torch.randn(num_numerical_types, dim))
+        self.biases = nn.Parameter(torch.randn(num_numerical_types, dim))
+
+    def forward(self, x):
+        x = rearrange(x, 'b n -> b n 1')
+        return x * self.weights + self.biases
+
 def softmax_with_temperature(logits, temperature):
     probs = np.exp(logits / temperature) / np.sum(np.exp(logits / temperature))
     return probs
@@ -95,6 +105,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.word_emb_velocity = CompoundTransformerEmbeddings(self.num_tokens[7], self.emb_sizes[7])
         self.word_emb_velocity1 = CompoundTransformerEmbeddings(self.num_tokens[8], self.emb_sizes[8])
         self.word_emb_velocity2 = CompoundTransformerEmbeddings(self.num_tokens[9], self.emb_sizes[9])
+        
+        self.numerical_embedder = NumericalEmbedder(96, 3)
+        
         
         # individual output
         self.proj_type = nn.Sequential(
@@ -303,7 +316,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_duration = self.word_emb_duration(x[..., 6])
         emb_velocity = self.word_emb_velocity(x[..., 7])
         emb_velocity1 = self.word_emb_velocity1(x[..., 8])
-        emb_velocity2 = self.word_emb_velocity2(x[..., 9])
+        emb_velocity2 = self.numerical_embedder(x[..., 9])
         
         embs1 = torch.cat(
             [
