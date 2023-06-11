@@ -382,8 +382,10 @@ class CompoundWordTransformerWrapper(nn.Module):
                 
             ], dim = -1)
         
-        emb_linear = self.in_linear2(embs2)
+        print(embs2.shape)
+        print(x[..., 11].unsqueeze(-1).shape)
         
+        emb_linear1 = self.in_linear2(embs2)
 
         emb_linear = self.in_linear1(embs1)
 
