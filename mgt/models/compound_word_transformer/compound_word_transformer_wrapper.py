@@ -10,6 +10,47 @@ from x_transformers.x_transformers import AttentionLayers, default, AbsolutePosi
 from mgt.models.compound_word_transformer.compound_transformer_embeddings import CompoundTransformerEmbeddings
 from mgt.models.utils import get_device
 
+import itertools
+
+def notes_to_ce(indices):
+  note_index_to_pitch_index = [0, -5, 2, -3, 4, -1, -6, 1, -4, 3, -2, 5]
+  total = np.zeros(3)
+  count = 0
+  for index in indices:
+    total += pitch_index_to_position(note_index_to_pitch_index[index])
+    count += 1
+  if count != 0:
+    total /= count               
+  return total.tolist()    
+
+def pitch_index_to_position(pitch_index) :
+    c = pitch_index - (4 * (pitch_index // 4))
+    verticalStep = 0.4
+    radius = 1.0
+    pos = np.array([0.0, 0.0, 0.0])
+    if c == 0:
+        pos[1] = radius
+    if c == 1:
+        pos[0] = radius
+    if c == 2:
+        pos[1] = -1*radius
+    if c == 3:
+        pos[0] = -1*radius
+    pos[2] = pitch_index * verticalStep
+    return np.array(pos)
+
+def largest_distance(pitches):
+    if len(pitches) < 2:
+        return 0
+    diameter = 0
+    pitch_pairs = itertools.combinations(pitches, 2)
+    for pitch_pair in pitch_pairs:
+        distance = np.linalg.norm(pitch_index_to_position(
+            pitch_pair[0]) - pitch_index_to_position(pitch_pair[1]))
+        if distance > diameter:
+            diameter = distance
+    return diameter
+
 def softmax_with_temperature(logits, temperature):
     probs = np.exp(logits / temperature) / np.sum(np.exp(logits / temperature))
     return probs
@@ -196,11 +237,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         proj_octave = self.proj_octave(y_)
         proj_duration = self.proj_duration(y_)
         proj_velocity = self.proj_velocity(y_)
-        proj_velocity1 = self.proj_velocity1(y_)
-        proj_velocity2 = self.proj_velocity2(y_)
-        proj_velocity3 = self.proj_velocity3(y_)
-        proj_velocity4 = self.proj_velocity4(y_)
-
+        
         # sampling gen_cond
         cur_word_barbeat = sampling(
             proj_barbeat,
@@ -236,7 +273,23 @@ class CompoundWordTransformerWrapper(nn.Module):
             proj_velocity,
             probability_treshold=selection_probability_tresholds.get(7, None),
             temperature=selection_temperatures.get(7, 1.0))
-
+        
+        dic = {(i, j, k): index for index, (i, j, k) in enumerate((i, j, k) for j in range(9) for i in range(12) for k in range(64))}
+        inverse_dic = {v: k for k, v in dic.items()}
+        q1 = []
+        if cur_word_type == 1:
+            if cur_word_tempo != 0:
+                q1.append(inverse_dic[cur_word_tempo-1][0])
+            if cur_word_instrument  != 0:
+                q1.append(inverse_dic[cur_word_instrument-1][0])
+            if cur_word_note_name != 0:
+                q1.append(inverse_dic[cur_word_note_name-1][0])
+            if cur_word_octave != 0:
+                q1.append(inverse_dic[cur_word_octave-1][0])
+            if cur_word_duration != 0:
+                q1.append(inverse_dic[cur_word_duration-1][0])
+            if cur_word_velocity != 0:
+                q1.append(inverse_dic[cur_word_velocity-1][0])
         
         # collect
         next_arr = np.array([
@@ -248,10 +301,10 @@ class CompoundWordTransformerWrapper(nn.Module):
             cur_word_octave,
             cur_word_duration,
             cur_word_velocity,
-            proj_velocity1.cpu().detach().numpy()[0][0][0],
-            proj_velocity2.cpu().detach().numpy()[0][0][0],
-            proj_velocity3.cpu().detach().numpy()[0][0][0],
-            proj_velocity4.cpu().detach().numpy()[0][0][0]
+            notes_to_ce(q1)[0],
+            notes_to_ce(q1)[1],
+            notes_to_ce(q1)[2],
+            largest_distance(q1)
         ])
         return next_arr
 
