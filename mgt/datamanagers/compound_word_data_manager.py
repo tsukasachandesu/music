@@ -4,7 +4,6 @@ from mgt.datamanagers.midi_wrapper import MidiWrapper, MidiToolkitWrapper
 from mgt.datamanagers.remi.data_extractor import DataExtractor
 from mgt.datamanagers.remi.dictionary_generator import DictionaryGenerator
 from mgt.datamanagers.remi.to_midi_mapper import ToMidiMapper
-from tension_calculation import *
 
 defaults = {
     'transposition_steps': [0],
@@ -12,6 +11,17 @@ defaults = {
     'instrument_mapping': {}
 }
 
+def notes_to_ce(indices):
+  note_index_to_pitch_index = [0, -5, 2, -3, 4, -1, -6, 1, -4, 3, -2, 5]
+  total = np.zeros(3)
+  count = 0
+  for index in indices:
+    total += pitch_index_to_position(note_index_to_pitch_index[index])
+    count += 1
+  if count != 0:
+    total /= count               
+  return total.tolist()                 
+          
 
 class CompoundWordDataManager(DataManager):
     """
@@ -135,7 +145,7 @@ class CompoundWordDataManager(DataManager):
                         
                     centroids = []
                     for iii in q1:
-                        centroids.append(notes_to_ce(iii,0))
+                        centroids.append(notes_to_ce(iii))
 
                     pq = []
                     for i in p:
@@ -159,9 +169,9 @@ class CompoundWordDataManager(DataManager):
                     n = 0
                     for i in range(len(pq)):
                         if pq[i][0] == 2:
-                            pqq.append([1,0,0,0,0,0,0,0,0])
+                            pqq.append([1,0,0,0,0,0,0,0,0,0,0])
                         else:
-                            pqq.append([2,pq[i][1],pq[i][2]+1,pq[i][3]+1,pq[i][4]+1,pq[i][5]+1,pq[i][6]+1,pq[i][7]+1,centroids[n]])
+                            pqq.append([2,pq[i][1],pq[i][2]+1,pq[i][3]+1,pq[i][4]+1,pq[i][5]+1,pq[i][6]+1,pq[i][7]+1,centroids[n][0],centroids[n][1],centroids[n][2]])
                             n = n + 1
 
                     print(f'Extracted {len(pqq)} compound words.') 
