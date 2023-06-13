@@ -53,7 +53,7 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         final_res = prompt.copy()
         last_token = final_res[-self.max_seq_len:]
         input_ = torch.tensor(np.array([last_token])).long().to(get_device())
-        h, y_type,loss = self.net.forward_hidden(input_,1)
+        h, y_type = self.net.forward_hidden(input_,1)
 
         print('------ generate ------')
         for _ in range(output_length):
@@ -69,7 +69,7 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
             # forward
             last_token = final_res[-self.max_seq_len:]
             input_ = torch.tensor(np.array([last_token])).long().to(get_device())
-            h, y_type,loss = self.net.forward_hidden(input_,1)
+            h, y_type = self.net.forward_hidden(input_,1)
 
         return final_res
 
@@ -77,7 +77,8 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         xi = x[:, :-1, :]
         target = x[:, 1:, :]
 
-        h, proj_type,loss = self.net.forward_hidden(xi,0,**kwargs)
+        h, proj_type = self.net.forward_hidden(xi,0,**kwargs)
+        
         proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, proj_velocity, proj_velocity1, proj_velocity2,proj_velocity3,proj_velocity4 ,proj_velocity5= self.net.forward_output(
             h, target)
         # Filter padding indices
@@ -97,4 +98,4 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         velocity_loss4 = calculate_loss1(proj_velocity4.squeeze(-1), target[..., 11].float(), type_mask(target))
         velocity_loss5 = calculate_loss1(proj_velocity5.squeeze(-1), target[..., 12].float(), type_mask(target))
         
-        return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss, velocity_loss, velocity_loss1*0.20, velocity_loss2*0.10, velocity_loss3*0.10, velocity_loss4*0.10,velocity_loss5*0.20,loss
+        return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss, velocity_loss, velocity_loss1, velocity_loss2, velocity_loss3, velocity_loss4,velocity_loss5
