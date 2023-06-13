@@ -92,10 +92,4 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         duration_loss = calculate_loss(proj_duration, target[..., 6], type_mask(target))
         velocity_loss = calculate_loss(proj_velocity, target[..., 7], type_mask(target))
         
-        velocity_loss1 = calculate_loss1(proj_velocity1.squeeze(-1), target[..., 8].float(), type_mask(target))
-        velocity_loss2 = calculate_loss1(proj_velocity2.squeeze(-1), target[..., 9].float(), type_mask(target))
-        velocity_loss3 = calculate_loss1(proj_velocity3.squeeze(-1), target[..., 10].float(), type_mask(target))
-        velocity_loss4 = calculate_loss1(proj_velocity4.squeeze(-1), target[..., 11].float(), type_mask(target))
-        velocity_loss5 = calculate_loss1(proj_velocity5.squeeze(-1), target[..., 12].float(), type_mask(target))
-        
-        return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss, velocity_loss, velocity_loss1*0.1, velocity_loss2*0.1, velocity_loss3*0.1, velocity_loss4*0.1,velocity_loss5*0.1
+        return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss, velocity_loss
