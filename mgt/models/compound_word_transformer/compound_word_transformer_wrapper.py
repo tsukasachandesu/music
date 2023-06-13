@@ -212,16 +212,10 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.attn_layers = attn_layers
         
         self.norm = nn.LayerNorm(512)
-        self.in_linear1 = nn.Linear(512*6+96+32+32, 512)
+        self.in_linear1 = nn.Linear(512*6+96+32, 512)
         
-        self.in_linear2 = nn.Linear(1, 8)
-        self.in_linear3 = nn.Linear(1, 8)
-        self.in_linear4 = nn.Linear(1, 8)
-        self.in_linear5 = nn.Linear(1, 8)
-        self.in_linear6 = nn.Linear(1, 8)
-        
-        self.fc_mu = nn.Linear(40, 32)
-        self.fc_logvar = nn.Linear(40, 32)
+        self.fc_mu = nn.Linear(5, 512)
+        self.fc_logvar = nn.Linear(5, 512)
         
         self.init_()
 
@@ -395,25 +389,20 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_note_name = self.word_emb_note_name(x[..., 4])
         emb_octave = self.word_emb_octave(x[..., 5])
         emb_duration = self.word_emb_duration(x[..., 6])
-        emb_velocity = self.word_emb_velocity(x[..., 7])
-        
-        emb_linear2 = self.in_linear2(x[..., 8].unsqueeze(-1).to(torch.float32))
-        emb_linear3 = self.in_linear3(x[..., 9].unsqueeze(-1).to(torch.float32))
-        emb_linear4 = self.in_linear4(x[..., 10].unsqueeze(-1).to(torch.float32))
-        emb_linear5 = self.in_linear5(x[..., 11].unsqueeze(-1).to(torch.float32))
-        emb_linear6 = self.in_linear5(x[..., 12].unsqueeze(-1).to(torch.float32))
+        emb_velocity = self.word_emb_velocity(x[..., 7]) 
         
         embs2 = torch.cat(
             [
-                emb_linear2,
-                emb_linear3,
-                emb_linear4,
-                emb_linear5,
-                emb_linear6,
+                x[..., 8].unsqueeze(-1).to(torch.float32),
+                x[..., 9].unsqueeze(-1).to(torch.float32),
+                x[..., 10].unsqueeze(-1).to(torch.float32),
+                x[..., 11].unsqueeze(-1).to(torch.float32),
+                x[..., 12].unsqueeze(-1).to(torch.float32),
                 
             ], dim = -1)
         
         mu, logvar = self.fc_mu(embs2), self.fc_logvar(embs2)
+        
         if y == 0:
             vae_latent = self.reparameterize(mu, logvar)
         else:
@@ -428,8 +417,7 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_note_name,
                 emb_octave,
                 emb_duration,
-                emb_velocity,
-                vae_latent
+                emb_velocity
                 
             ], dim = -1)
         
@@ -443,7 +431,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         if not self.training:
             x.squeeze(0)
 
-        x, intermediates = self.attn_layers(x, mask=mask, return_hiddens=True, **kwargs)
+        x, intermediates = self.attn_layers(x, vae_latent, mask=mask, return_hiddens=True, **kwargs)
         x = self.norm(x)
         
         kl_raw = -0.5 * (1 + logvar - mu ** 2 - logvar.exp()).mean(dim=0)
