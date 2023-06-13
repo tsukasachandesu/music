@@ -247,11 +247,12 @@ class CompoundWordDataManager(DataManager):
         for i in data:
             if n %16 == 0:
                 q.append([2,0,0,0,0,0,0,0])
-            q.append([2,n %16+1,0,0,0,0,0,0])
             for j in range(6):
                 if i[j+1] != 6913:
                     if i[j+1] != 0:
-                        q.append([3,n%16+1,0,0,*inverse_dic[int(i[j+1]-1)],31])
+                        q.append([2,n%16+1,0,0,0,0,0,0])
+                        q.append([3,0,0,0,*inverse_dic[int(i[j+1]-1)],31])
+            n=n+1
 
         remi = self.compound_word_mapper.map_to_remi(q)
         return MidiToolkitWrapper(self.to_midi_mapper.to_midi(remi))
