@@ -124,7 +124,6 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         if emb_sizes is None:
             emb_sizes = [
-                32,  # Type
                 96,  # Bar / Beat
                 512,  # Tempo
                 512,  # Instrument
@@ -149,7 +148,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.word_emb_note_name = CompoundTransformerEmbeddings(self.num_tokens[4], self.emb_sizes[4])
         self.word_emb_octave = CompoundTransformerEmbeddings(self.num_tokens[5], self.emb_sizes[5])
         self.word_emb_duration = CompoundTransformerEmbeddings(self.num_tokens[6], self.emb_sizes[6])
-        self.word_emb_velocity = CompoundTransformerEmbeddings(self.num_tokens[7], self.emb_sizes[7])
         
         # individual output
         self.proj_type = nn.Sequential(
@@ -180,9 +178,6 @@ class CompoundWordTransformerWrapper(nn.Module):
             nn.Linear(dim, self.num_tokens[6])
         )
         
-        self.proj_velocity = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[7])
-        )
         self.proj_velocity1 = nn.Sequential(
             nn.Linear(dim, 1)
         )
@@ -199,9 +194,6 @@ class CompoundWordTransformerWrapper(nn.Module):
             nn.Linear(dim, 1)
         )
         
-        # in_features is equal to dimension plus dimensions of the type embedding
-        self.project_concat_type = nn.Linear(dim + self.emb_sizes[0], dim)
-
         self.compound_word_embedding_size = np.sum(emb_sizes)
 
         self.pos_emb = AbsolutePositionalEmbedding(self.compound_word_embedding_size, max_seq_len) if (
@@ -213,7 +205,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         self.norm = nn.LayerNorm(512)
         
-        self.in_linear1 = nn.Linear(512*6+96+32, 512)
+        self.in_linear1 = nn.Linear(512*6+96, 512)
         
         self.fc_mu = nn.Linear(5, 512)
         
@@ -227,9 +219,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         nn.init.normal_(self.word_emb_note_name.weight(), std=0.02)
         nn.init.normal_(self.word_emb_octave.weight(), std=0.02)
         nn.init.normal_(self.word_emb_duration.weight(), std=0.02)
-        nn.init.normal_(self.word_emb_velocity.weight(), std=0.02)
         
-    def forward_output_sampling(self, h, y_type, selection_temperatures=None, selection_probability_tresholds=None):
+    def forward_output_sampling(self, h, selection_temperatures=None, selection_probability_tresholds=None):
         # sample type
         if selection_probability_tresholds is None:
             selection_probability_tresholds = {}
@@ -237,31 +228,21 @@ class CompoundWordTransformerWrapper(nn.Module):
         if selection_temperatures is None:
             selection_temperatures = {}
 
-        y_type_logit = y_type[0, :]
-        cur_word_type = sampling(
-            y_type_logit,
-            probability_treshold=selection_probability_tresholds.get(0, None),
-            temperature=selection_temperatures.get(0, 1.0)
-        )
-
-        type_word_t = torch.from_numpy(np.array([cur_word_type])).long().to(get_device()).unsqueeze(0)
-
-        tf_skip_type = self.word_emb_type(type_word_t)
-
-        # concat
-        y_concat_type = torch.cat([h, tf_skip_type], dim=-1)
-        y_ = self.project_concat_type(y_concat_type)
-
         # project other
-        proj_barbeat = self.proj_barbeat(y_)
-        proj_tempo = self.proj_tempo(y_)
-        proj_instrument = self.proj_instrument(y_)
-        proj_note_name = self.proj_note_name(y_)
-        proj_octave = self.proj_octave(y_)
-        proj_duration = self.proj_duration(y_)
-        proj_velocity = self.proj_velocity(y_)
+        proj_type = self.proj_type(h)
+        proj_barbeat = self.proj_barbeat(h)
+        proj_tempo = self.proj_tempo(h)
+        proj_instrument = self.proj_instrument(h)
+        proj_note_name = self.proj_note_name(h)
+        proj_octave = self.proj_octave(h)
+        proj_duration = self.proj_duration(h)
         
         # sampling gen_cond
+        cur_word_type = sampling(
+            proj_type,
+            probability_treshold=selection_probability_tresholds.get(0, None),
+            temperature=selection_temperatures.get(0, 1.0))
+        
         cur_word_barbeat = sampling(
             proj_barbeat,
             probability_treshold=selection_probability_tresholds.get(1, None),
@@ -292,27 +273,23 @@ class CompoundWordTransformerWrapper(nn.Module):
             probability_treshold=selection_probability_tresholds.get(6, None),
             temperature=selection_temperatures.get(6, 1.0))
 
-        cur_word_velocity = sampling(
-            proj_velocity,
-            probability_treshold=selection_probability_tresholds.get(7, None),
-            temperature=selection_temperatures.get(7, 1.0))
-        
+
         dic = {(i, j, k): index for index, (i, j, k) in enumerate((i, j, k) for j in range(9) for i in range(12) for k in range(64))}
         inverse_dic = {v: k for k, v in dic.items()}
         q1 = []
-        if cur_word_type == 1:
-            if cur_word_tempo != 0:
-                q1.append(inverse_dic[cur_word_tempo-1][0])
-            if cur_word_instrument  != 0:
-                q1.append(inverse_dic[cur_word_instrument-1][0])
-            if cur_word_note_name != 0:
-                q1.append(inverse_dic[cur_word_note_name-1][0])
-            if cur_word_octave != 0:
-                q1.append(inverse_dic[cur_word_octave-1][0])
-            if cur_word_duration != 0:
-                q1.append(inverse_dic[cur_word_duration-1][0])
-            if cur_word_velocity != 0:
-                q1.append(inverse_dic[cur_word_velocity-1][0])
+        if cur_word_barbeat != 0 and cur_word_barbeat != 6913:
+            q1.append(inverse_dic[cur_word_barbeat-1][0])
+        if cur_word_tempo != 0 and cur_word_tempo != 6913:
+            q1.append(inverse_dic[cur_word_tempo-1][0])
+        if cur_word_instrument  != 0 and cur_word_instrument  != 6913:
+            q1.append(inverse_dic[cur_word_instrument-1][0])
+        if cur_word_note_name != 0 and cur_word_note_name != 6913:
+            q1.append(inverse_dic[cur_word_note_name-1][0])
+        if cur_word_octave != 0 and cur_word_octave != 6913:
+            q1.append(inverse_dic[cur_word_octave-1][0])
+        if cur_word_duration != 0 and cur_word_duration != 6913:
+            q1.append(inverse_dic[cur_word_duration-1][0])
+
         
         # collect
         next_arr = np.array([
@@ -323,7 +300,6 @@ class CompoundWordTransformerWrapper(nn.Module):
             cur_word_note_name,
             cur_word_octave,
             cur_word_duration,
-            cur_word_velocity,
             notes_to_ce(q1)[0],
             notes_to_ce(q1)[1],
             notes_to_ce(q1)[2],
@@ -336,11 +312,8 @@ class CompoundWordTransformerWrapper(nn.Module):
                        h,
                        target
                        ):
-        tf_skip_type = self.word_emb_type(target[..., 0])
-
-        y_concat_type = torch.cat([h, tf_skip_type], dim=-1)
-        y_ = self.project_concat_type(y_concat_type)
-
+        proj_type = self.proj_type(y_)
+        proj_barbeat = self.proj_barbeat(y_)
         proj_barbeat = self.proj_barbeat(y_)
         proj_tempo = self.proj_tempo(y_)
         proj_instrument = self.proj_instrument(y_)
@@ -420,4 +393,4 @@ class CompoundWordTransformerWrapper(nn.Module):
         x, intermediates = self.attn_layers(x, vae_latent, mask=mask, return_hiddens=True, **kwargs)
         x = self.norm(x)
         
-        return x, self.proj_type(x)
+        return x
