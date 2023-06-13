@@ -309,8 +309,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         return next_arr
 
     def forward_output(self,
-                       h,
-                       target
+                       h
                        ):
         proj_type = self.proj_type(y_)
         proj_barbeat = self.proj_barbeat(y_)
