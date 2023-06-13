@@ -212,10 +212,10 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.attn_layers = attn_layers
         
         self.norm = nn.LayerNorm(512)
+        
         self.in_linear1 = nn.Linear(512*6+96+32, 512)
         
         self.fc_mu = nn.Linear(5, 512)
-        self.fc_logvar = nn.Linear(5, 512)
         
         self.init_()
 
@@ -229,15 +229,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         nn.init.normal_(self.word_emb_duration.weight(), std=0.02)
         nn.init.normal_(self.word_emb_velocity.weight(), std=0.02)
         
-    def reparameterize(self, mu, logvar, use_sampling=True, sampling_var=1.):
-        std = torch.exp(0.5 * logvar).to(mu.device)
-        if use_sampling:
-            eps = torch.randn_like(std).to(mu.device) * sampling_var
-        else:
-            eps = torch.zeros_like(std).to(mu.device)
-        return eps * std + mu
-        
-
     def forward_output_sampling(self, h, y_type, selection_temperatures=None, selection_probability_tresholds=None):
         # sample type
         if selection_probability_tresholds is None:
@@ -401,12 +392,7 @@ class CompoundWordTransformerWrapper(nn.Module):
                 
             ], dim = -1)
         
-        mu, logvar = self.fc_mu(embs2), self.fc_logvar(embs2)
-        
-        if y == 0:
-            vae_latent = self.reparameterize(mu, logvar)
-        else:
-            vae_latent = self.reparameterize(mu, logvar,False)
+        vae_latent = self.fc_mu(embs2)
         
         embs1 = torch.cat(
             [
@@ -434,9 +420,4 @@ class CompoundWordTransformerWrapper(nn.Module):
         x, intermediates = self.attn_layers(x, vae_latent, mask=mask, return_hiddens=True, **kwargs)
         x = self.norm(x)
         
-        kl_raw = -0.5 * (1 + logvar - mu ** 2 - logvar.exp()).mean(dim=0)
-        kl_before_free_bits = kl_raw.mean()
-        kl_after_free_bits = kl_raw.clamp(min=0.25)
-        kldiv_loss = kl_after_free_bits.mean()
-        
-        return x, self.proj_type(x), kldiv_loss
+        return x, self.proj_type(x)
