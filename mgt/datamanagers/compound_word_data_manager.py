@@ -219,10 +219,18 @@ class CompoundWordDataManager(DataManager):
                         else:
                             pqq.append([2,pq[i][1],pq[i][2]+1,pq[i][3]+1,pq[i][4]+1,pq[i][5]+1,pq[i][6]+1,pq[i][7]+1,centroids[n][0],centroids[n][1],centroids[n][2],centroids1[n], centroids2[n] ] )
                             n = n + 1
+                            
+                    ppqq =[[i%16,6913,6913,6913,6913,6913,6913,0,0,0,0,0] * 1 for i in range(cur*16+1)]
+                    cur = -1
+                    for i in range(len(pqq)):
+                        if pqq[i][0] == 1:
+                            cur  = cur + 1
+                        if pqq[i][0] == 2:
+                            ppqq[cur*16+pqq[i][1]-1] = [pqq[i][1]-1,pqq[i][2],pqq[i][3],pqq[i][4],pqq[i][5],pqq[i][6],pqq[i][7],pqq[i][8],pqq[i][9],pqq[i][10],pqq[i][11],pqq[i][12] ] 
 
-                    print(f'Extracted {len(pqq)} compound words.') 
+                    print(f'Extracted {len(ppqq)} compound words.') 
                     
-                    training_data.append(pqq)
+                    training_data.append(ppqq)
                 except Exception as e:
                     print(f"Exception: {e}")
 
@@ -237,15 +245,16 @@ class CompoundWordDataManager(DataManager):
         inverse_dic = {v: k for k, v in dic.items()}
         
         q = []
+        n = 0
         for i in data:
-            n = 0
-            if i[0] == 1:
+            if n %16 == 0:
                 q.append([2,0,0,0,0,0,0,0])
             else:
-                q.append([2,i[1],0,0,0,0,0,0])
+                q.append([2,i[0]+1,0,0,0,0,0,0])
                 for j in range(6):
-                    if i[j+2] != 0:
-                        q.append([3,i[1],0,0,*inverse_dic[int(i[j+2]-1)],31])
+                    if i[j+1] != 6913:
+                        if i[j+1] != 0:
+                            q.append([3,i[0],0,0,*inverse_dic[int(i[j+1]-1)],31])
 
         remi = self.compound_word_mapper.map_to_remi(q)
         return MidiToolkitWrapper(self.to_midi_mapper.to_midi(remi))
