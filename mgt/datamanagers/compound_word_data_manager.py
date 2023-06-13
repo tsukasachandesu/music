@@ -131,6 +131,7 @@ class CompoundWordDataManager(DataManager):
                         if i == [2, 0, 0]:
                             cur = cur + 1
                     p =[[] * 1 for i in range(cur*16+1)]
+                    ppqq =[[i%16+1,6913,6913,6913,6913,6913,6913,0,0,0,0,0] * 1 for i in range(cur*16+1)]
                     cur = -1
                     for i in d:
                         if i == [2, 0, 0]:
@@ -148,7 +149,7 @@ class CompoundWordDataManager(DataManager):
                         cur = cur + 1
                     p  = []
                     for i in pp:
-                        n =[0,0,-1,-1,-1,-1,-1,-1]
+                        n =[0,0,6913,6913,6913,6913,6913,6913]
                         r = 2
                         for j in i:
                             n[0] = j[0]
@@ -159,24 +160,24 @@ class CompoundWordDataManager(DataManager):
                                 break
                             r = r + 1
                         p.append(n)
-                    if p[-1] == [2, 0, 0, 0, 0, 0, 0, 0]:
+                    if p[-1] == [2, 0, 6913,6913,6913,6913,6913,6913]:
                         del p[-1]
                         
                     q1 = []
                     for i in p:
                         s = []
                         if i[0] == 3:
-                            if i[2] != -1:
+                            if i[2] != 6913:
                                 s.append(inverse_dic[i[2]][0])
-                            if i[3] != -1:
+                            if i[3] != 6913:
                                 s.append(inverse_dic[i[3]][0])
-                            if i[4] != -1:
+                            if i[4] != 6913:
                                 s.append(inverse_dic[i[4]][0])
-                            if i[5] != -1:
+                            if i[5] != 6913:
                                 s.append(inverse_dic[i[5]][0])
-                            if i[6] != -1:
+                            if i[6] != 6913:
                                 s.append(inverse_dic[i[6]][0])
-                            if i[7] != -1:
+                            if i[7] != 6913:
                                 s.append(inverse_dic[i[7]][0])
                             q1.append(s)
                         
@@ -192,24 +193,9 @@ class CompoundWordDataManager(DataManager):
                     for iii in q1:
                         centroids2.append(tiv(iii))                       
                         
-
                     pq = []
                     for i in p:
-                        r = 0
-                        if i[0] == 3:
-                            if i[2] != -1:
-                                r = r + 1
-                            if i[3] != -1:
-                                r = r + 1
-                            if i[4] != -1:
-                                r = r + 1
-                            if i[5] != -1:
-                                r = r + 1
-                            if i[6] != -1:
-                                r = r + 1
-                            if i[7] != -1:
-                                r = r + 1
-                        pq.append([i[0],i[1]]+sorted([i[2],i[3],i[4],i[5],i[6],i[7]], reverse=True)+[r])
+                        pq.append([i[0],i[1]]+sorted([i[2],i[3],i[4],i[5],i[6],i[7]]))
                         
                     pqq =[]
                     n = 0
@@ -220,7 +206,6 @@ class CompoundWordDataManager(DataManager):
                             pqq.append([2,pq[i][1],pq[i][2]+1,pq[i][3]+1,pq[i][4]+1,pq[i][5]+1,pq[i][6]+1,pq[i][7]+1,centroids[n][0],centroids[n][1],centroids[n][2],centroids1[n], centroids2[n] ] )
                             n = n + 1
                             
-                    ppqq =[[i%16+1,6913,6913,6913,6913,6913,6913,0,0,0,0,0] * 1 for i in range(cur*16+1)]
                     cur = -1
                     for i in range(len(pqq)):
                         if pqq[i][0] == 1:
@@ -249,12 +234,11 @@ class CompoundWordDataManager(DataManager):
         for i in data:
             if n %16 == 0:
                 q.append([2,0,0,0,0,0,0,0])
-            else:
-                q.append([2,i[0],0,0,0,0,0,0])
-                for j in range(6):
-                    if i[j+1] != 6913:
-                        if i[j+1] != 0:
-                            q.append([3,i[0],0,0,*inverse_dic[int(i[j+1]-1)],31])
+            q.append([2,n %16+1,0,0,0,0,0,0])
+            for j in range(6):
+                if i[j+1] != 6913:
+                    if i[j+1] != 0:
+                        q.append([3,n%16+1,0,0,*inverse_dic[int(i[j+1]-1)],31])
 
         remi = self.compound_word_mapper.map_to_remi(q)
         return MidiToolkitWrapper(self.to_midi_mapper.to_midi(remi))
