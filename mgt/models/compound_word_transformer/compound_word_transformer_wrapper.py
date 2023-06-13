@@ -320,20 +320,12 @@ class CompoundWordTransformerWrapper(nn.Module):
         proj_note_name = self.proj_note_name(y_)
         proj_octave = self.proj_octave(y_)
         proj_duration = self.proj_duration(y_)
-        proj_velocity = self.proj_velocity(y_)
-        proj_velocity1 = self.proj_velocity1(y_)
-        proj_velocity2 = self.proj_velocity2(y_)
-        proj_velocity3 = self.proj_velocity3(y_)
-        proj_velocity4 = self.proj_velocity4(y_)
-        proj_velocity5 = self.proj_velocity5(y_)
         
-        return proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, proj_velocity,proj_velocity1,proj_velocity2,proj_velocity3,proj_velocity4,proj_velocity5
+        return proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration
 
     def forward_hidden(
             self,
             x,
-            y,
-        
             mask=None,
             **kwargs
     ):
@@ -353,15 +345,14 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_note_name = self.word_emb_note_name(x[..., 4])
         emb_octave = self.word_emb_octave(x[..., 5])
         emb_duration = self.word_emb_duration(x[..., 6])
-        emb_velocity = self.word_emb_velocity(x[..., 7]) 
         
         embs2 = torch.cat(
             [
+                x[..., 7].unsqueeze(-1).to(torch.float32),
                 x[..., 8].unsqueeze(-1).to(torch.float32),
                 x[..., 9].unsqueeze(-1).to(torch.float32),
                 x[..., 10].unsqueeze(-1).to(torch.float32),
                 x[..., 11].unsqueeze(-1).to(torch.float32),
-                x[..., 12].unsqueeze(-1).to(torch.float32),
                 
             ], dim = -1)
         
@@ -375,9 +366,7 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_instrument,
                 emb_note_name,
                 emb_octave,
-                emb_duration,
-                emb_velocity
-                
+                emb_duration                
             ], dim = -1)
         
         emb_linear = self.in_linear1(embs1)
