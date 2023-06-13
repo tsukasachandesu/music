@@ -311,14 +311,15 @@ class CompoundWordTransformerWrapper(nn.Module):
     def forward_output(self,
                        h
                        ):
-        proj_type = self.proj_type(y_)
-        proj_barbeat = self.proj_barbeat(y_)
-        proj_barbeat = self.proj_barbeat(y_)
-        proj_tempo = self.proj_tempo(y_)
-        proj_instrument = self.proj_instrument(y_)
-        proj_note_name = self.proj_note_name(y_)
-        proj_octave = self.proj_octave(y_)
-        proj_duration = self.proj_duration(y_)
+
+        proj_type = self.proj_type(h)
+        proj_barbeat = self.proj_barbeat(h)
+        proj_barbeat = self.proj_barbeat(h)
+        proj_tempo = self.proj_tempo(h)
+        proj_instrument = self.proj_instrument(h)
+        proj_note_name = self.proj_note_name(h)
+        proj_octave = self.proj_octave(h)
+        proj_duration = self.proj_duration(h)
         
         return proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration
 
