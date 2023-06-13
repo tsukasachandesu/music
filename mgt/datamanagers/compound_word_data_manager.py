@@ -212,7 +212,20 @@ class CompoundWordDataManager(DataManager):
                             cur  = cur + 1
                         if pqq[i][0] == 2:
                             ppqq[cur*16+pqq[i][1]-1] = [pqq[i][1],pqq[i][2],pqq[i][3],pqq[i][4],pqq[i][5],pqq[i][6],pqq[i][7],pqq[i][8],pqq[i][9],pqq[i][10],pqq[i][11],pqq[i][12] ] 
-
+                    for i in ppqq:
+                        if i[1] == 6914:
+                            i[1] = 6913
+                        if i[2] == 6914:
+                            i[2] = 6913
+                        if i[3] == 6914:
+                            i[3] = 6913
+                        if i[4] == 6914:
+                            i[4] = 6913
+                        if i[5] == 6914:
+                            i[5] = 6913
+                        if i[6] == 6914:
+                            i[6] = 6913
+                            
                     print(f'Extracted {len(ppqq)} compound words.') 
                     
                     training_data.append(ppqq)
