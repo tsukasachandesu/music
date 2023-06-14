@@ -296,6 +296,8 @@ class CompoundWordDataManager(DataManager):
             
         q = []
         for a in pm:
+            i = 0
+            b = []
             while i < len(a):
                 if a[i] == 1:
                     count = 1
