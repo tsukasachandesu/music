@@ -241,13 +241,22 @@ class CompoundWordDataManager(DataManager):
                                 if inverse_dic[ppqq[i][j]-1][2] == 1:
                                     pm[dic1.get((inverse_dic[ppqq[i][j]-1][0],inverse_dic[ppqq[i][j-1]][1]))][i+inverse_dic[ppqq[i][j]-1][2]-1] = 2
                     zzzz = []
+                    print(pm)
+                    print(len(pm[0])
                     for i in range(len(pm[0])):
                         zzz=[216,216,216,216,216,216]
                         l = 0
                         for j in range(108):
                             if pm[j][i] != 0:
+                                if l == 6: 
+                                    break
                                 zzz[l] = dic2.get((pm[j][i]-1,j))
                                 l = l + 1
+                                
+                          
+                          
+                          
+                          
                         zzzz.append(zzz)
 
                             
