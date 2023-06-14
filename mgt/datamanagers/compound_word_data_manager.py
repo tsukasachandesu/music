@@ -235,6 +235,9 @@ class CompoundWordDataManager(DataManager):
                             j = jj + 1 
                             if ppqq[i][j] != 6913 and ppqq[i][j] != 0:
                                 if inverse_dic[ppqq[i][j]-1][2] > 1:
+                                    print(dic1.get(inverse_dic[ppqq[i][j]-1][0],inverse_dic[ppqq[i][j]-1][1])
+                                    print(inverse_dic[ppqq[i][j]-1][0])
+                                    print(inverse_dic[ppqq[i][j]-1][1])    
                                     pm[dic1.get(inverse_dic[ppqq[i][j]-1][0],inverse_dic[ppqq[i][j]-1][1])][i+inverse_dic[ppqq[i][j]-1][2]-1] = 2
                                     for l in range(inverse_dic[ppqq[i][j]-1][2]-1):
                                         pm[dic1.get(inverse_dic[ppqq[i][j]-1][0],inverse_dic[ppqq[i][j]-1][1])][i+l] = 1
