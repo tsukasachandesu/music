@@ -241,8 +241,6 @@ class CompoundWordDataManager(DataManager):
                                 if inverse_dic[ppqq[i][j]-1][2] == 1:
                                     pm[dic1.get((inverse_dic[ppqq[i][j]-1][0],inverse_dic[ppqq[i][j-1]][1]))][i+inverse_dic[ppqq[i][j]-1][2]-1] = 2
                     zzzz = []
-                    print(pm)
-                    print(len(pm[0])
                     for i in range(len(pm[0])):
                         zzz=[216,216,216,216,216,216]
                         l = 0
@@ -252,18 +250,16 @@ class CompoundWordDataManager(DataManager):
                                     break
                                 zzz[l] = dic2.get((pm[j][i]-1,j))
                                 l = l + 1
-                                
-                          
-                          
-                          
-                          
                         zzzz.append(zzz)
+                    q = []
+                    for i in range(len(ppqq)):
+                        q.append(ppqq[i][0],zzzz[i][0],zzzz[i][1],zzzz[i][2],zzzz[i][3],zzzz[i][4],zzzz[i][5],ppqq[i][7],ppqq[i][8],ppqq[i][9],ppqq[i][10],ppqq[i][11])
 
                             
                     print(f'Extracted {len(zzzz)} compound words.') 
-                    print(zzzz) 
+                    print(q) 
                     
-                    training_data.append(zzzz)
+                    training_data.append(q)
                 except Exception as e:
                     print(f"Exception: {e}")
 
