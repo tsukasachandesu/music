@@ -235,14 +235,11 @@ class CompoundWordDataManager(DataManager):
                             j = jj + 1 
                             if ppqq[i][j] != 6913 and ppqq[i][j] != 0:
                                 if inverse_dic[ppqq[i][j]-1][2] > 1:
-                                    print(dic1.get(inverse_dic[ppqq[i][j]-1][0],inverse_dic[ppqq[i][j]-1][1])
-                                    print(inverse_dic[ppqq[i][j]-1][0])
-                                    print(inverse_dic[ppqq[i][j]-1][1])    
-                                    pm[dic1.get(inverse_dic[ppqq[i][j]-1][0],inverse_dic[ppqq[i][j]-1][1])][i+inverse_dic[ppqq[i][j]-1][2]-1] = 2
+                                    pm[dic1.get((inverse_dic[ppqq[i][j]-1][0],inverse_dic[ppqq[i][j]-1][1]))][i+inverse_dic[ppqq[i][j]-1][2]-1] = 2
                                     for l in range(inverse_dic[ppqq[i][j]-1][2]-1):
-                                        pm[dic1.get(inverse_dic[ppqq[i][j]-1][0],inverse_dic[ppqq[i][j]-1][1])][i+l] = 1
+                                        pm[dic1.get((inverse_dic[ppqq[i][j]-1][0],inverse_dic[ppqq[i][j]-1][1]))][i+l] = 1
                                 if inverse_dic[ppqq[i][j]-1][2] == 1:
-                                    pm[dic1.get(inverse_dic[ppqq[i][j]-1][0],inverse_dic[ppqq[i][j-1]][1])][i+inverse_dic[ppqq[i][j]-1][2]-1] = 2
+                                    pm[dic1.get((inverse_dic[ppqq[i][j]-1][0],inverse_dic[ppqq[i][j-1]][1]))][i+inverse_dic[ppqq[i][j]-1][2]-1] = 2
                     print(pm)
                     zzzz = []
                     for i in range(len(ppqq)):
@@ -250,7 +247,7 @@ class CompoundWordDataManager(DataManager):
                         l = 0
                         for j in range(108):
                             if pm[j][i] != 0:
-                                zzz[l] = dic2.get(pm[j][i],j)
+                                zzz[l] = dic2.get((pm[j][i],j))
                                 l = l + 1
                         zzzz.append(zzz)
 
