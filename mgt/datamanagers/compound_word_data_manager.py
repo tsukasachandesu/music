@@ -242,18 +242,18 @@ class CompoundWordDataManager(DataManager):
                                     pm[dic1.get((inverse_dic[ppqq[i][j]-1][0],inverse_dic[ppqq[i][j-1]][1]))][i+inverse_dic[ppqq[i][j]-1][2]-1] = 2
                     zzzz = []
                     for i in range(len(pm[0])):
-                        zzz=[216,216,216,216,216,216]
+                        zzz=[216,216,216,216,216,216,216,216]
                         l = 0
                         for j in range(108):
                             if pm[j][i] != 0:
-                                if l == 6: 
+                                if l == 8: 
                                     break
                                 zzz[l] = dic2.get((pm[j][i]-1,j))
                                 l = l + 1
                         zzzz.append(zzz)
                     q = []
                     for i in range(len(ppqq)):
-                        q.append([ppqq[i][0],zzzz[i][0],zzzz[i][1],zzzz[i][2],zzzz[i][3],zzzz[i][4],zzzz[i][5],ppqq[i][7],ppqq[i][8],ppqq[i][9],ppqq[i][10],ppqq[i][11]])
+                        q.append([ppqq[i][0],zzzz[i][0],zzzz[i][1],zzzz[i][2],zzzz[i][3],zzzz[i][4],zzzz[i][5],zzzz[i][6],zzzz[i][7],ppqq[i][7],ppqq[i][8],ppqq[i][9],ppqq[i][10],ppqq[i][11]])
 
                             
                     print(f'Extracted {len(zzzz)} compound words.') 
@@ -292,8 +292,11 @@ class CompoundWordDataManager(DataManager):
                 pm[inverse_dic2[data[i][5]][1]][i]=inverse_dic2[data[i][5]][0]+1
             if data[i][6] != 216:
                 pm[inverse_dic2[data[i][6]][1]][i]=inverse_dic2[data[i][6]][0]+1
-
-        print(pm)
+            if data[i][7] != 216:
+                pm[inverse_dic2[data[i][7]][1]][i]=inverse_dic2[data[i][7]][0]+1
+            if data[i][8] != 216:
+                pm[inverse_dic2[data[i][8]][1]][i]=inverse_dic2[data[i][8]][0]+1
+                
         q = []
         for a in pm:
             i = 0
@@ -321,9 +324,6 @@ class CompoundWordDataManager(DataManager):
                 for i in range(b[i]-1):
                     c.append(0)
             q.append(c)
-            
-        print(len(q))
-        print(len(q[0]))
 
         qq = []
         n = 0
