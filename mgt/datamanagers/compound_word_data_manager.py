@@ -131,6 +131,7 @@ class CompoundWordDataManager(DataManager):
                         if i == [2, 0, 0]:
                             cur = cur + 1
                     p =[[] * 1 for i in range(cur*16+1)]
+                    pm =[ [ 0  for i in range(cur*16+1) ]  for j in range(108)]
                     ppqq =[[i%16+1,6913,6913,6913,6913,6913,6913,0,0,0,0,0] * 1 for i in range(cur*16+1)]
                     cur = -1
                     for i in d:
@@ -226,9 +227,31 @@ class CompoundWordDataManager(DataManager):
                         if i[6] == 6914:
                             i[6] = 6913
                             
-                    print(f'Extracted {len(ppqq)} compound words.') 
+                    dic2 = {(i, j): index for index, (i, j) in enumerate((i, j) for j in range(108) for i in range(2))}
                     
-                    training_data.append(ppqq)
+                    for i in range(len(ppqq)):
+                        for jj in range(6):
+                            j = jj + 1 
+                            if ppqq[i][j] != 6914 and ppqq[i][j] != 0:
+                                if inverse_dic[ppqq[i][j]][2] > 1:
+                                    pm[dic1.get(inverse_dic[ppqq[i][j]][0],inverse_dic[ppqq[i][j]][1])][i+inverse_dic[ppqq[i][j]][2]-1] = 2
+                                    pm[dic1.get(inverse_dic[ppqq[i][j]][0],inverse_dic[ppqq[i][j]][1])][i:i+inverse_dic[ppqq[i][j]][2]-1] = 1
+                                if inverse_dic[ppqq[i][j]][2] == 1:
+                                    pm[dic1.get(inverse_dic[ppqq[i][j]][0],inverse_dic[ppqq[i][j]][1])][i+inverse_dic[ppqq[i][j]][2]-1] = 2
+                    zzzz = []
+                    for i in range(len(ppqq)):
+                        zzz=[216,216,216,216,216,216]
+                        l = 0
+                        for j in range(108):
+                            if pm[j][i] != 0:
+                                zzz[l] = dic2.get(j,pm[j][i])
+                                l = l + 1
+                        zzzz.append(zzz)
+
+                            
+                    print(f'Extracted {len(zzzz)} compound words.') 
+                    
+                    training_data.append(zzzz)
                 except Exception as e:
                     print(f"Exception: {e}")
 
