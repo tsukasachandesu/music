@@ -278,7 +278,7 @@ class CompoundWordDataManager(DataManager):
         inverse_dic1 = {v: k for k, v in dic1.items()}
         inverse_dic2 = {v: k for k, v in dic2.items()} 
         
-        pm =[ [ 0  for i in range(len(data)*(16+2)) ]  for j in range(108)]
+        pm =[ [ 0  for i in range(len(data)+32) ]  for j in range(108)]
         for i in range(len(data)):
             if data[i][1] != 216:
                 pm[inverse_dic2[data[i][1]][0]][i]=inverse_dic2[data[i][1]][1]+1
@@ -293,7 +293,7 @@ class CompoundWordDataManager(DataManager):
             if data[i][6] != 216:
                 pm[inverse_dic2[data[i][6]][0]][i]=inverse_dic2[data[i][6]][1]+1
 
-            
+        print(pm)
         q = []
         for a in pm:
             i = 0
@@ -321,7 +321,7 @@ class CompoundWordDataManager(DataManager):
                 for i in range(b[i]-1):
                     c.append(0)
             q.append(c)
-        print(q)
+            
         print(len(q))
         print(len(q[0]))
 
