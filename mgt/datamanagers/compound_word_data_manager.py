@@ -321,13 +321,16 @@ class CompoundWordDataManager(DataManager):
                 for i in range(b[i]-1):
                     c.append(0)
             q.append(c)
+        print(q)
+        print(len(q))
+        print(len(q[0]))
 
         qq = []
         n = 0
         for i in q:
             if n %16 == 0:
                 q.append([2,0,0,0,0,0,0,0])
-            for j in range(108):
+            for j in range(107):
                 if i[j] != 0:
                     q.append([2,n%16+1,0,0,0,0,0,0])
                     q.append([3,0,0,0,inverse_dic1[j][0],inverse_dic1[j][1],i[j],31])
