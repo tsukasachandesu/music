@@ -229,8 +229,7 @@ class CompoundWordDataManager(DataManager):
                             
                     dic2 = {(i, j): index for index, (i, j) in enumerate((i, j) for j in range(108) for i in range(2))}
                     dic1 = {(i, j): index for index, (i, j) in enumerate((i, j) for j in range(9) for i in range(12))}
-                    print(len(pm))
-                    print(len(pm[0]))
+
                     
                     
                     for i in range(len(ppqq)):
@@ -238,15 +237,11 @@ class CompoundWordDataManager(DataManager):
                             j = jj + 1 
                             if ppqq[i][j] != 6913 and ppqq[i][j] != 0:
                                 if inverse_dic[ppqq[i][j]-1][2] > 1:
-                                    print(dic1.get(inverse_dic[ppqq[i][j]-1][0],inverse_dic[ppqq[i][j]][1]-1))
-                                    print(i+inverse_dic[ppqq[i][j]-1][2]-1)
                                     pm[dic1.get(inverse_dic[ppqq[i][j]-1][0],inverse_dic[ppqq[i][j]][1]-1)][i+inverse_dic[ppqq[i][j]-1][2]-1] = 2
-                                    print("b")
-                                    pm[dic1.get(inverse_dic[ppqq[i][j]-1][0],inverse_dic[ppqq[i][j]][1]-1)][i:i+inverse_dic[ppqq[i][j]-1][2]-1] += 1
+                                    for l in range(inverse_dic[ppqq[i][j]-1][2]-1):
+                                        pm[dic1.get(inverse_dic[ppqq[i][j]-1][0],inverse_dic[ppqq[i][j]][1]-1)][i+l] = 1
                                 if inverse_dic[ppqq[i][j]-1][2] == 1:
-                                    print("a")
                                     pm[dic1.get(inverse_dic[ppqq[i][j]-1][0],inverse_dic[ppqq[i][j]][1]-1)][i+inverse_dic[ppqq[i][j]-1][2]-1] = 2
-                    print(pm)
                     zzzz = []
                     for i in range(len(ppqq)):
                         zzz=[216,216,216,216,216,216]
