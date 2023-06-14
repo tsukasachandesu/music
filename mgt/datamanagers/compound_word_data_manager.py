@@ -246,7 +246,7 @@ class CompoundWordDataManager(DataManager):
                         l = 0
                         for j in range(108):
                             if pm[j][i] != 0:
-                                zzz[l] = dic2.get((pm[j][i],j))
+                                zzz[l] = dic2.get((pm[j][i]-1,j))
                                 l = l + 1
                         zzzz.append(zzz)
 
