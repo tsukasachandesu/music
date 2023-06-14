@@ -131,7 +131,7 @@ class CompoundWordDataManager(DataManager):
                         if i == [2, 0, 0]:
                             cur = cur + 1
                     p =[[] * 1 for i in range(cur*16+1)]
-                    pm =[ [ 0  for i in range(cur*16+1) ]  for j in range(108)]
+                    pm =[ [ 0  for i in range(cur*(16+2)) ]  for j in range(108)]
                     ppqq =[[i%16+1,6913,6913,6913,6913,6913,6913,0,0,0,0,0] * 1 for i in range(cur*16+1)]
                     cur = -1
                     for i in d:
@@ -240,13 +240,17 @@ class CompoundWordDataManager(DataManager):
                                     pm[dic1.get(inverse_dic[ppqq[i][j]-1][0],inverse_dic[ppqq[i][j]][1]-1)][i+inverse_dic[ppqq[i][j]-1][2]-1] = 2
                                     for l in range(inverse_dic[ppqq[i][j]-1][2]-1):
                                         pm[dic1.get(inverse_dic[ppqq[i][j]-1][0],inverse_dic[ppqq[i][j]][1]-1)][i+l] = 1
+                                    print(a)
                                 if inverse_dic[ppqq[i][j]-1][2] == 1:
                                     pm[dic1.get(inverse_dic[ppqq[i][j]-1][0],inverse_dic[ppqq[i][j]][1]-1)][i+inverse_dic[ppqq[i][j]-1][2]-1] = 2
+                        print(i)
+                    print(pm)
                     zzzz = []
                     for i in range(len(ppqq)):
                         zzz=[216,216,216,216,216,216]
                         l = 0
                         for j in range(108):
+                            print(j)
                             if pm[j][i] != 0:
                                 zzz[l] = dic2.get(j,pm[j][i])
                                 l = l + 1
