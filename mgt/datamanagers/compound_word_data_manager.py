@@ -280,7 +280,20 @@ class CompoundWordDataManager(DataManager):
         
         pm =[ [ 0  for i in range(len(data)*(16+2)) ]  for j in range(108)]
         for i in range(len(data)):
-            pm[inverse_dic2[i][0]][i]=inverse_dic2[i][1]+1
+            if inverse_dic2[data[i][1]][0] != 216:
+                pm[inverse_dic2[data[i][1]][0]][i]=inverse_dic2[data[i][1]][1]+1
+            if inverse_dic2[data[i][2]][0] != 216:
+                pm[inverse_dic2[data[i][2]][0]][i]=inverse_dic2[data[i][2]][1]+1
+            if inverse_dic2[data[i][3]][0] != 216:
+            pm[inverse_dic2[data[i][3]][0]][i]=inverse_dic2[data[i][3]][1]+1
+            if inverse_dic2[data[i][4]][0] != 216:
+            pm[inverse_dic2[data[i][4]][0]][i]=inverse_dic2[data[i][4]][1]+1
+            if inverse_dic2[data[i][5]][0] != 216:
+            pm[inverse_dic2[data[i][5]][0]][i]=inverse_dic2[data[i][5]][1]+1
+            if inverse_dic2[data[i][6]][0] != 216:
+            pm[inverse_dic2[data[i][6]][0]][i]=inverse_dic2[data[i][6]][1]+1  
+
+            
         q = []
         for a in pm:
             while i < len(a):
