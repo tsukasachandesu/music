@@ -253,7 +253,7 @@ class CompoundWordDataManager(DataManager):
                         zzzz.append(zzz)
                     q = []
                     for i in range(len(ppqq)):
-                        q.append(ppqq[i][0],zzzz[i][0],zzzz[i][1],zzzz[i][2],zzzz[i][3],zzzz[i][4],zzzz[i][5],ppqq[i][7],ppqq[i][8],ppqq[i][9],ppqq[i][10],ppqq[i][11])
+                        q.append([ppqq[i][0],zzzz[i][0],zzzz[i][1],zzzz[i][2],zzzz[i][3],zzzz[i][4],zzzz[i][5],ppqq[i][7],ppqq[i][8],ppqq[i][9],ppqq[i][10],ppqq[i][11]])
 
                             
                     print(f'Extracted {len(zzzz)} compound words.') 
@@ -273,16 +273,49 @@ class CompoundWordDataManager(DataManager):
         dic = {(i, j, k): index for index, (i, j, k) in enumerate((i, j, k) for j in range(9) for i in range(12) for k in range(64))}
         inverse_dic = {v: k for k, v in dic.items()}
         
+        dic2 = {(i, j): index for index, (i, j) in enumerate((i, j) for j in range(108) for i in range(2))}
+        dic1 = {(i, j): index for index, (i, j) in enumerate((i, j) for j in range(9) for i in range(12))}
+        inverse_dic1 = {v: k for k, v in dic1.items()}
+        inverse_dic2 = {v: k for k, v in dic2.items()} 
+        
+        pm =[ [ 0  for i in range(len(data)*(16+2)) ]  for j in range(108)]
+        for i in range(len(data)):
+            pm[inverse_dic2[i][0]][i]=inverse_dic2[i][1]+1
         q = []
+        for a in pm:
+            while i < len(a):
+                if a[i] == 1:
+                    count = 1
+                    while i + 1 < len(a) and (a[i] == a[i + 1] or a[i+1] == 2) and a[i] != 2:
+                        c = a[i]
+                        i = i + 1
+                        count += 1
+                    b.append(count)
+                else:
+                    if a[i] == 0:
+                        b.append(0)
+                    if a[i] == 2:
+                        b.append(-1)
+                i += 1
+            for i in range(len(b)):
+                if b[i] == -1:
+                    b[i] = 1
+            c = []
+            for i in range(len(b)):
+                c.append(b[i])
+                for i in range(b[i]-1):
+                    c.append(0)
+            q.append(c)
+
+        qq = []
         n = 0
-        for i in data:
+        for i in q:
             if n %16 == 0:
                 q.append([2,0,0,0,0,0,0,0])
-            for j in range(6):
-                if i[j+1] != 6913:
-                    if i[j+1] != 0:
-                        q.append([2,n%16+1,0,0,0,0,0,0])
-                        q.append([3,0,0,0,*inverse_dic[int(i[j+1]-1)],31])
+            for j in range(108):
+                if i[j] != 0:
+                    q.append([2,n%16+1,0,0,0,0,0,0])
+                    q.append([3,0,0,0,inverse_dic1[j][0],inverse_dic1[j][1],i[j],31])
             n=n+1
 
         remi = self.compound_word_mapper.map_to_remi(q)
