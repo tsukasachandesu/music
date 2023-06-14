@@ -230,8 +230,6 @@ class CompoundWordDataManager(DataManager):
                     dic2 = {(i, j): index for index, (i, j) in enumerate((i, j) for j in range(108) for i in range(2))}
                     dic1 = {(i, j): index for index, (i, j) in enumerate((i, j) for j in range(9) for i in range(12))}
 
-                    
-                    
                     for i in range(len(ppqq)):
                         for jj in range(6):
                             j = jj + 1 
@@ -249,7 +247,7 @@ class CompoundWordDataManager(DataManager):
                         l = 0
                         for j in range(108):
                             if pm[j][i] != 0:
-                                zzz[l] = dic2.get(j,pm[j][i])
+                                zzz[l] = dic2.get(pm[j][i],j)
                                 l = l + 1
                         zzzz.append(zzz)
 
