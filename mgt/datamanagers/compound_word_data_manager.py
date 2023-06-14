@@ -281,17 +281,17 @@ class CompoundWordDataManager(DataManager):
         pm =[ [ 0  for i in range(len(data)+32) ]  for j in range(108)]
         for i in range(len(data)):
             if data[i][1] != 216:
-                pm[inverse_dic2[data[i][1]][0]][i]=inverse_dic2[data[i][1]][1]+1
+                pm[inverse_dic2[data[i][1]][1]][i]=inverse_dic2[data[i][1]][0]+1
             if data[i][2] != 216:
-                pm[inverse_dic2[data[i][2]][0]][i]=inverse_dic2[data[i][2]][1]+1
+                pm[inverse_dic2[data[i][2]][1]][i]=inverse_dic2[data[i][2]][0]+1
             if data[i][3] != 216:
-                pm[inverse_dic2[data[i][3]][0]][i]=inverse_dic2[data[i][3]][1]+1
+                pm[inverse_dic2[data[i][3]][1]][i]=inverse_dic2[data[i][3]][0]+1
             if data[i][4] != 216:
-                pm[inverse_dic2[data[i][4]][0]][i]=inverse_dic2[data[i][4]][1]+1
+                pm[inverse_dic2[data[i][4]][1]][i]=inverse_dic2[data[i][4]][0]+1
             if data[i][5] != 216:
-                pm[inverse_dic2[data[i][5]][0]][i]=inverse_dic2[data[i][5]][1]+1
+                pm[inverse_dic2[data[i][5]][1]][i]=inverse_dic2[data[i][5]][0]+1
             if data[i][6] != 216:
-                pm[inverse_dic2[data[i][6]][0]][i]=inverse_dic2[data[i][6]][1]+1
+                pm[inverse_dic2[data[i][6]][1]][i]=inverse_dic2[data[i][6]][0]+1
 
         print(pm)
         q = []
@@ -327,13 +327,13 @@ class CompoundWordDataManager(DataManager):
 
         qq = []
         n = 0
-        for i in q:
+        for i in range(len(q[0])):
             if n %16 == 0:
                 q.append([2,0,0,0,0,0,0,0])
-            for j in range(107):
-                if i[j] != 0:
+            for j in range(108):
+                if q[j][i] != 0:
                     q.append([2,n%16+1,0,0,0,0,0,0])
-                    q.append([3,0,0,0,inverse_dic1[j][0],inverse_dic1[j][1],i[j],31])
+                    q.append([3,0,0,0,inverse_dic1[j][0],inverse_dic1[j][1],q[j][i],31])
             n=n+1
 
         remi = self.compound_word_mapper.map_to_remi(q)
