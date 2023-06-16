@@ -53,14 +53,13 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         final_res = prompt.copy()
         last_token = final_res[-self.max_seq_len:]
         input_ = torch.tensor(np.array([last_token])).long().to(get_device())
-        h, y_type,loss = self.net.forward_hidden(input_,1)
+        h = self.net.forward_hidden(input_)
 
         print('------ generate ------')
         for _ in range(output_length):
             # sample others
             next_arr = self.net.forward_output_sampling(
                 h[:, -1:, :],
-                y_type[:, -1:, :],
                 selection_temperatures=selection_temperatures,
                 selection_probability_tresholds=selection_probability_tresholds)
 
@@ -69,7 +68,7 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
             # forward
             last_token = final_res[-self.max_seq_len:]
             input_ = torch.tensor(np.array([last_token])).long().to(get_device())
-            h, y_type,loss = self.net.forward_hidden(input_,1)
+            h = self.net.forward_hidden(input_)
 
         return final_res
 
@@ -77,9 +76,9 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         xi = x[:, :-1, :]
         target = x[:, 1:, :]
 
-        h, proj_type,loss = self.net.forward_hidden(xi,0,**kwargs)
-        proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, proj_velocity, proj_velocity1, proj_velocity2,proj_velocity3,proj_velocity4 ,proj_velocity5= self.net.forward_output(
-            h, target)
+        h = self.net.forward_hidden(xi,**kwargs)
+        
+        proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration = self.net.forward_output(h)
         # Filter padding indices
 
         type_loss = calculate_loss(proj_type, target[..., 0], type_mask(target))
@@ -89,12 +88,5 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         note_name_loss = calculate_loss(proj_note_name, target[..., 4], type_mask(target))
         octave_loss = calculate_loss(proj_octave, target[..., 5], type_mask(target))
         duration_loss = calculate_loss(proj_duration, target[..., 6], type_mask(target))
-        velocity_loss = calculate_loss(proj_velocity, target[..., 7], type_mask(target))
         
-        velocity_loss1 = calculate_loss1(proj_velocity1.squeeze(-1), target[..., 8].float(), type_mask(target))
-        velocity_loss2 = calculate_loss1(proj_velocity2.squeeze(-1), target[..., 9].float(), type_mask(target))
-        velocity_loss3 = calculate_loss1(proj_velocity3.squeeze(-1), target[..., 10].float(), type_mask(target))
-        velocity_loss4 = calculate_loss1(proj_velocity4.squeeze(-1), target[..., 11].float(), type_mask(target))
-        velocity_loss5 = calculate_loss1(proj_velocity5.squeeze(-1), target[..., 12].float(), type_mask(target))
-        
-        return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss, velocity_loss, velocity_loss1*0.20, velocity_loss2*0.10, velocity_loss3*0.10, velocity_loss4*0.10,velocity_loss5*0.20,loss
+        return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss
