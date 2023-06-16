@@ -131,6 +131,7 @@ class CompoundWordDataManager(DataManager):
                         if i == [2, 0, 0]:
                             cur = cur + 1
                     p =[[] * 1 for i in range(cur*16+1)]
+                    ppqq =[[i%16+1,6913,6913,6913,6913,6913,6913,0,0,0,0,0] * 1 for i in range(cur*16+1)]
                     cur = -1
                     for i in d:
                         if i == [2, 0, 0]:
@@ -148,7 +149,7 @@ class CompoundWordDataManager(DataManager):
                         cur = cur + 1
                     p  = []
                     for i in pp:
-                        n =[0,0,-1,-1,-1,-1,-1,-1]
+                        n =[0,0,6913,6913,6913,6913,6913,6913]
                         r = 2
                         for j in i:
                             n[0] = j[0]
@@ -159,24 +160,24 @@ class CompoundWordDataManager(DataManager):
                                 break
                             r = r + 1
                         p.append(n)
-                    if p[-1] == [2, 0, 0, 0, 0, 0, 0, 0]:
+                    if p[-1] == [2, 0, 6913,6913,6913,6913,6913,6913]:
                         del p[-1]
                         
                     q1 = []
                     for i in p:
                         s = []
                         if i[0] == 3:
-                            if i[2] != -1:
+                            if i[2] != 6913:
                                 s.append(inverse_dic[i[2]][0])
-                            if i[3] != -1:
+                            if i[3] != 6913:
                                 s.append(inverse_dic[i[3]][0])
-                            if i[4] != -1:
+                            if i[4] != 6913:
                                 s.append(inverse_dic[i[4]][0])
-                            if i[5] != -1:
+                            if i[5] != 6913:
                                 s.append(inverse_dic[i[5]][0])
-                            if i[6] != -1:
+                            if i[6] != 6913:
                                 s.append(inverse_dic[i[6]][0])
-                            if i[7] != -1:
+                            if i[7] != 6913:
                                 s.append(inverse_dic[i[7]][0])
                             q1.append(s)
                         
@@ -192,24 +193,9 @@ class CompoundWordDataManager(DataManager):
                     for iii in q1:
                         centroids2.append(tiv(iii))                       
                         
-
                     pq = []
                     for i in p:
-                        r = 0
-                        if i[0] == 3:
-                            if i[2] != -1:
-                                r = r + 1
-                            if i[3] != -1:
-                                r = r + 1
-                            if i[4] != -1:
-                                r = r + 1
-                            if i[5] != -1:
-                                r = r + 1
-                            if i[6] != -1:
-                                r = r + 1
-                            if i[7] != -1:
-                                r = r + 1
-                        pq.append([i[0],i[1]]+sorted([i[2],i[3],i[4],i[5],i[6],i[7]], reverse=True)+[r])
+                        pq.append([i[0],i[1]]+sorted([i[2],i[3],i[4],i[5],i[6],i[7]]))
                         
                     pqq =[]
                     n = 0
@@ -219,10 +205,30 @@ class CompoundWordDataManager(DataManager):
                         else:
                             pqq.append([2,pq[i][1],pq[i][2]+1,pq[i][3]+1,pq[i][4]+1,pq[i][5]+1,pq[i][6]+1,pq[i][7]+1,centroids[n][0],centroids[n][1],centroids[n][2],centroids1[n], centroids2[n] ] )
                             n = n + 1
-
-                    print(f'Extracted {len(pqq)} compound words.') 
+                            
+                    cur = -1
+                    for i in range(len(pqq)):
+                        if pqq[i][0] == 1:
+                            cur  = cur + 1
+                        if pqq[i][0] == 2:
+                            ppqq[cur*16+pqq[i][1]-1] = [pqq[i][1],pqq[i][2],pqq[i][3],pqq[i][4],pqq[i][5],pqq[i][6],pqq[i][7],pqq[i][8],pqq[i][9],pqq[i][10],pqq[i][11],pqq[i][12] ] 
+                    for i in ppqq:
+                        if i[1] == 6914:
+                            i[1] = 6913
+                        if i[2] == 6914:
+                            i[2] = 6913
+                        if i[3] == 6914:
+                            i[3] = 6913
+                        if i[4] == 6914:
+                            i[4] = 6913
+                        if i[5] == 6914:
+                            i[5] = 6913
+                        if i[6] == 6914:
+                            i[6] = 6913
+                            
+                    print(f'Extracted {len(ppqq)} compound words.') 
                     
-                    training_data.append(pqq)
+                    training_data.append(ppqq)
                 except Exception as e:
                     print(f"Exception: {e}")
 
@@ -237,15 +243,16 @@ class CompoundWordDataManager(DataManager):
         inverse_dic = {v: k for k, v in dic.items()}
         
         q = []
+        n = 0
         for i in data:
-            n = 0
-            if i[0] == 1:
+            if n %16 == 0:
                 q.append([2,0,0,0,0,0,0,0])
-            else:
-                q.append([2,i[1],0,0,0,0,0,0])
-                for j in range(6):
-                    if i[j+2] != 0:
-                        q.append([3,i[1],0,0,*inverse_dic[int(i[j+2]-1)],31])
+            for j in range(6):
+                if i[j+1] != 6913:
+                    if i[j+1] != 0:
+                        q.append([2,n%16+1,0,0,0,0,0,0])
+                        q.append([3,0,0,0,*inverse_dic[int(i[j+1]-1)],31])
+            n=n+1
 
         remi = self.compound_word_mapper.map_to_remi(q)
         return MidiToolkitWrapper(self.to_midi_mapper.to_midi(remi))
