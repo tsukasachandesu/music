@@ -330,7 +330,7 @@ class CompoundWordTransformerWrapper(nn.Module):
                 q1.append(inverse_dic[cur_word_velocity-1][0])
         
         # collect
-        next_arr = torch.cat((
+        next_arr = np.array([
             cur_word_type,
             cur_word_barbeat,
             cur_word_tempo,
@@ -344,7 +344,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             notes_to_ce(q1)[2],
             largest_distance(q1),
             tiv(q1)
-        ), dim=0)
+        ])
                 
         return next_arr
 
