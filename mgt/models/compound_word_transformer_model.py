@@ -5,6 +5,8 @@ import time
 import numpy as np
 import torch
 from x_transformers import Decoder
+from x_transformers import Encoder
+
 
 from mgt.models import utils
 from mgt.models.compound_word_transformer.compound_word_autoregressive_wrapper import CompoundWordAutoregressiveWrapper
@@ -141,6 +143,16 @@ class CompoundWordTransformerModel(object):
             attn_layers=Decoder(
                 dim=self.dim,
                 depth=self.depth,
+                heads=self.heads,
+                ff_glu = True,
+                ff_swish = True,
+                rel_pos_bias = True,
+                attn_dropout=self.dropout,  # dropout post-attention
+                ff_dropout=self.dropout,  # feedforward dropout
+            ),
+            attn_layers=Encoder(
+                dim=self.dim,
+                depth=6,
                 heads=self.heads,
                 ff_glu = True,
                 ff_swish = True,
