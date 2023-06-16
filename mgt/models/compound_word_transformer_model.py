@@ -150,7 +150,7 @@ class CompoundWordTransformerModel(object):
                 attn_dropout=self.dropout,  # dropout post-attention
                 ff_dropout=self.dropout,  # feedforward dropout
             ),
-            attn_layers=Encoder(
+            attn_layers1=Encoder(
                 dim=self.dim,
                 depth=6,
                 heads=self.heads,
