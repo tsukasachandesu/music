@@ -12,6 +12,7 @@ from mgt.models.utils import get_device
 from einops import rearrange, repeat
 import itertools
 import math
+from einops import rearrange, reduce, repeat
 
 def tiv(q):
     c = [0]*6*2
@@ -214,17 +215,19 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.pos_emb1 = AbsolutePositionalEmbedding(self.compound_word_embedding_size, 16) if (
                 use_pos_emb and not attn_layers.has_pos_emb) else always(0)
         
+        self.start_token = nn.Parameter(torch.randn(512))
+        
         self.norm = nn.LayerNorm(512)
-        self.in_linear1 = nn.Linear(512*6+96+32+32, 512)
         
-        self.in_linear2 = nn.Linear(1, 8)
-        self.in_linear3 = nn.Linear(1, 8)
-        self.in_linear4 = nn.Linear(1, 8)
-        self.in_linear5 = nn.Linear(1, 8)
-        self.in_linear6 = nn.Linear(1, 8)
+        self.in_linear1 = nn.Linear(512*6+96, 512)
+        self.in_linear7 = nn.Linear(512+8, 512)
         
-        self.fc_mu = nn.Linear(40, 32)
-        self.fc_logvar = nn.Linear(40, 32)
+        self.in_linear2 = nn.Linear(1, 2)
+        self.in_linear3 = nn.Linear(1, 2)
+        self.in_linear4 = nn.Linear(1, 2)
+        self.in_linear5 = nn.Linear(1, 2)
+        self.in_linear6 = nn.Linear(1, 2)
+        
         
         self.init_()
 
@@ -432,9 +435,7 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_note_name,
                 emb_octave,
                 emb_duration,
-                emb_velocity,
-                vae_latent
-                
+                emb_velocity
             ], dim = -1)
         
         emb_linear = self.in_linear1(embs1)
@@ -446,10 +447,34 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         if not self.training:
             x.squeeze(0)
-
-        x, intermediates = self.attn_layers(x, mask=mask, return_hiddens=True, **kwargs)
-        x = self.norm(x)
+            
+        b, n, f = x.shape
+        if n <= 16 or n % 16 != 0:
+            padding_size = 16 - (n % 16) if n % 16 != 0 else 0
+            padding = (0, 0, 0, padding_size)
+            tensor = torch.nn.functional.pad(x, padding, "constant", 0)
+        b, n, f = tensor.shape
+        tensor = tensor.reshape(b * n // 16, 16, f)
+        tensor = tensor + self.pos_emb1(tensor)
+        tensor= torch.cat((
+            repeat(self.start_token, 'f -> b 1 f', b = b),
+            tensor
+        ), dim = -2)        
+        tensor, intermediates1 = self.attn_layers1(tensor, mask=mask, return_hiddens=True, **kwargs)
+        tensor = self.norm(tensor)
+        tensor = tensor[:,0,:]
+        tensor = tensor.reshape(b, n, f)
+        tensor1 = torch.zeros(x.size(0), x.size(1), 512).to(tensor.device)
         
+        for n in range(tensor.size(1)):
+            if 16*(n+1) <= x.size(1):
+                tensor1[:, 16*n:16*(n+1), :] = tensor[:, n, :]
+            else:
+                tensor1[:, 16*n:x.size(1), :] = tensor[:, n, :]
+     
+        x, intermediates = self.attn_layers(x, tensor1, mask=mask, return_hiddens=True, **kwargs)
+        x = self.norm(x)
+                
         kl_raw = -0.5 * (1 + logvar - mu ** 2 - logvar.exp()).mean(dim=0)
         kl_before_free_bits = kl_raw.mean()
         kl_after_free_bits = kl_raw.clamp(min=0.25)
