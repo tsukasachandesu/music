@@ -340,7 +340,6 @@ class CompoundWordTransformerWrapper(nn.Module):
     def forward_hidden(
             self,
             x,
-            y,
             mask=None,
             **kwargs
     ):
@@ -407,6 +406,8 @@ class CompoundWordTransformerWrapper(nn.Module):
             repeat(self.start_token, 'f -> b 1 f', b = b),
             tensor
         ), dim = -2)    
+        
+        print(kwargs)
         
         tensor, intermediates1 = self.attn_layers1(tensor, mask=mask, return_hiddens=True, **kwargs)
         tensor = tensor[:,0,:]
