@@ -386,17 +386,20 @@ class CompoundWordTransformerWrapper(nn.Module):
             tensor = torch.nn.functional.pad(x, padding, "constant", 0)
         else:
             tensor = x
+            
         b1, n1, f1 = tensor.shape
         tensor = tensor.reshape(-1, 16, f)
         b, n, f = tensor.shape
+        
         tensor = tensor + self.pos_emb1(tensor)
         
         tensor= torch.cat((
             repeat(self.start_token, 'f -> b 1 f', b = b),
             tensor
         ), dim = -2)    
-                
-        tensor, intermediates1 = self.attn_layers1(tensor, mask=None, return_hiddens=True)
+        
+        mask1 = tensor.bool()     
+        tensor = self.attn_layers1(tensor, mask=mask1, return_hiddens=False)
         tensor = tensor[:,0,:]
         tensor = tensor.reshape(b1, -1, f)
         
@@ -418,7 +421,7 @@ class CompoundWordTransformerWrapper(nn.Module):
                 
         tensor1 = self.in_linear8(tensor1)
              
-        x, intermediates = self.attn_layers(x, tensor1, mask=mask, return_hiddens=True, **kwargs)
+        x = self.attn_layers(x, tensor1, mask=mask, return_hiddens=False, **kwargs)
         x = self.norm(x)     
   
         return x
