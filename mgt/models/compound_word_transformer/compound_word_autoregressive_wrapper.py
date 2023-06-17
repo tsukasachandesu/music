@@ -89,10 +89,10 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         octave_loss = calculate_loss(proj_octave, target[..., 5], type_mask(target))
         duration_loss = calculate_loss(proj_duration, target[..., 6], type_mask(target))
         
-        duration_loss1 = calculate_loss1(proj_duration1, target[..., 7], type_mask(target))
-        duration_loss2 = calculate_loss1(proj_duration2, target[..., 8], type_mask(target))
-        duration_loss3 = calculate_loss1(proj_duration3, target[..., 9], type_mask(target))
-        duration_loss4 = calculate_loss1(proj_duration4, target[..., 10], type_mask(target))
-        duration_loss5 = calculate_loss1(proj_duration5, target[..., 11], type_mask(target))
+        duration_loss1 = calculate_loss1(proj_duration1.squeeze(-1), target[..., 7].float(), type_mask(target))
+        duration_loss2 = calculate_loss1(proj_duration2.squeeze(-1), target[..., 8].float(), type_mask(target))
+        duration_loss3 = calculate_loss1(proj_duration3.squeeze(-1), target[..., 9].float(), type_mask(target))
+        duration_loss4 = calculate_loss1(proj_duration4.squeeze(-1), target[..., 10].float(), type_mask(target))
+        duration_loss5 = calculate_loss1(proj_duration5.squeeze(-1), target[..., 11].float(), type_mask(target))
         
         return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss,duration_loss1,duration_loss2,duration_loss3,duration_loss4,duration_loss5
