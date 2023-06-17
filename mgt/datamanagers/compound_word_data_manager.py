@@ -260,9 +260,9 @@ class CompoundWordDataManager(DataManager):
                         else:
                             sub1.append(sub[i] + [0,0,0,0,0,0,0])
            
-                    print(f'Extracted {len(sub)} compound words.') 
+                    print(f'Extracted {len(sub1)} compound words.') 
                     
-                    training_data.append(sub)
+                    training_data.append(sub1)
                 except Exception as e:
                     print(f"Exception: {e}")
 
