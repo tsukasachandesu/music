@@ -193,7 +193,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.attn_layers = attn_layers
         self.attn_layers1 = attn_layers1
         
-        self.pos_emb1 = AbsolutePositionalEmbedding(512, 16) 
+        self.pos_emb1 = AbsolutePositionalEmbedding(512, 32) 
         
         self.start_token = nn.Parameter(torch.randn(512))
         
