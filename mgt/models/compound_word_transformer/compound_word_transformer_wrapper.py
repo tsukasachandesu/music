@@ -376,7 +376,8 @@ class CompoundWordTransformerWrapper(nn.Module):
             padding = (0, 0, 0, padding_size)
             tensor = torch.nn.functional.pad(x, padding, "constant", 0)
         
-        tensor = tensor.reshape(b * n // 16, 16, f)
+        print(tensor.shape)
+        tensor = tensor.reshape(b * n / 16, 16, f)
         
         b, n, f = tensor.shape
         tensor = tensor + self.pos_emb1(tensor)
