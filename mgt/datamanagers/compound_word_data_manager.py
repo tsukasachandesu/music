@@ -27,7 +27,36 @@ def tiv1(q):
     if count != 0:
         c /= count
     
-    return c.tolist()      
+    return c.tolist()    
+
+
+def tiv2(q):
+    m = []
+    for i in range(len(q)):
+        n = []
+        if i != len(q)-1:
+            j = q[i]
+            k = q[i+1] 
+            for l in k:
+                for m in j:
+                    n.append(abs(l - m))
+        n = sum(n) / len(n)
+        m.append(n)
+            
+        
+    c = [0]*6*2
+    c = np.array(c)
+    count = 0
+    for i in q:
+        a = [math.sin(math.radians(30*-i)),math.cos(math.radians(30*-i)),math.sin(math.radians(60*-i)),math.cos(math.radians(60*-i)),math.sin(math.radians(90*-i)),math.cos(math.radians(90*-i)),math.sin(math.radians(120*-i)),math.cos(math.radians(120*-i)),math.sin(math.radians(150*-i)),math.cos(math.radians(150*-i)),math.sin(math.radians(180*-i)),math.cos(math.radians(180*-i))]
+        a = np.array(a)
+        c = c + a
+        count += 1
+    if count != 0:
+        c /= count
+    
+    return c.tolist()  
+
 
 def notes_to_ce(indices):
   note_index_to_pitch_index = [0, -5, 2, -3, 4, -1, -6, 1, -4, 3, -2, 5]
@@ -178,6 +207,24 @@ class CompoundWordDataManager(DataManager):
                             if i[7] != 6913:
                                 s.append(inverse_dic[i[7]][0])
                             q1.append(s)
+                            
+                    q2 = []
+                    for i in p:
+                        s = []
+                        if i[0] == 3:
+                            if i[2] != 6913:
+                                s.append(inverse_dic[i[2]][0]+inverse_dic[i[2]][1]*12)
+                            if i[3] != 6913:
+                                s.append(inverse_dic[i[3]][0]+inverse_dic[i[3]][1]*12)
+                            if i[4] != 6913:
+                                s.append(inverse_dic[i[4]][0]+inverse_dic[i[4]][1]*12)
+                            if i[5] != 6913:
+                                s.append(inverse_dic[i[5]][0]+inverse_dic[i[5]][1]*12)
+                            if i[6] != 6913:
+                                s.append(inverse_dic[i[6]][0]+inverse_dic[i[6]][1]*12)
+                            if i[7] != 6913:
+                                s.append(inverse_dic[i[7]][0]+inverse_dic[i[7]][1]*12)
+                            q1.append(s)
                         
                     centroids = []
                     for iii in q1:
@@ -189,7 +236,11 @@ class CompoundWordDataManager(DataManager):
                         
                     centroids2 = []
                     for iii in q1:
-                        centroids2.append(tiv1(iii))                       
+                        centroids2.append(tiv1(iii))   
+                        
+                    centroids3 = []
+                    for iii in q2:
+                        centroids3.append(tiv2(iii))   
                         
                     pq = []
                     for i in p:
