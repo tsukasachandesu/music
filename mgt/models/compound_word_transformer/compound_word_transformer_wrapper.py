@@ -125,7 +125,6 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         if emb_sizes is None:
             emb_sizes = [
-                32,  # Type
                 96,  # Bar / Beat
                 512,  # Tempo
                 512,  # Instrument
@@ -150,7 +149,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.word_emb_note_name = CompoundTransformerEmbeddings(self.num_tokens[4], self.emb_sizes[4])
         self.word_emb_octave = CompoundTransformerEmbeddings(self.num_tokens[5], self.emb_sizes[5])
         self.word_emb_duration = CompoundTransformerEmbeddings(self.num_tokens[6], self.emb_sizes[6])
-        self.word_emb_velocity = CompoundTransformerEmbeddings(self.num_tokens[7], self.emb_sizes[7])
         
         # individual output
         self.word_emb_type = CompoundTransformerEmbeddings(self.num_tokens[0], self.emb_sizes[0])
@@ -190,22 +188,6 @@ class CompoundWordTransformerWrapper(nn.Module):
             nn.Linear(dim, self.num_tokens[6])
         )
         
-        self.proj_velocity1 = nn.Sequential(
-            nn.Linear(dim, 1)
-        )
-        self.proj_velocity2 = nn.Sequential(
-            nn.Linear(dim, 1)
-        )
-        self.proj_velocity3 = nn.Sequential(
-            nn.Linear(dim, 1)
-        )
-        self.proj_velocity4 = nn.Sequential(
-            nn.Linear(dim, 1)
-        )
-        self.proj_velocity5 = nn.Sequential(
-            nn.Linear(dim, 1)
-        )
-        
         # in_features is equal to dimension plus dimensions of the type embedding
 
         self.compound_word_embedding_size = np.sum(emb_sizes)
@@ -216,6 +198,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.emb_dropout = nn.Dropout(emb_dropout)
 
         self.project_emb = nn.Linear(emb_dim, dim) if emb_dim != dim else nn.Identity()
+        
         self.attn_layers = attn_layers
         self.attn_layers1 = attn_layers1
         
@@ -357,7 +340,6 @@ class CompoundWordTransformerWrapper(nn.Module):
             self,
             x,
             y,
-        
             mask=None,
             **kwargs
     ):
@@ -400,7 +382,6 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_note_name,
                 emb_octave,
                 emb_duration,
-                emb_velocity
             ], dim = -1)
         
         emb_linear = self.in_linear1(embs1)
@@ -448,4 +429,4 @@ class CompoundWordTransformerWrapper(nn.Module):
         x, intermediates = self.attn_layers(x, tensor1, mask=mask, return_hiddens=True, **kwargs)
         x = self.norm(x)     
   
-        return x, self.proj_type(x)
+        return x
