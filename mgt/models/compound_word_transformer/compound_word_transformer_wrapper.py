@@ -213,7 +213,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         self.norm = nn.LayerNorm(512)
         
-        self.in_linear1 = nn.Linear(512*6 + 96, 512)
+        self.in_linear1 = nn.Linear(512*6+96+16, 512)
                
         self.init_()
 
