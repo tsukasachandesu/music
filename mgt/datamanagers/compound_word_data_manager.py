@@ -10,7 +10,7 @@ import itertools
 import math
 
 defaults = {
-    'transposition_steps': [0],
+    'transposition_steps': [0,1,2,3,4,5,6,7,8,-1,-2,-3,-4,-5,-6,-7,-8],
     'map_tracks_to_instruments': {},
     'instrument_mapping': {}
 }
