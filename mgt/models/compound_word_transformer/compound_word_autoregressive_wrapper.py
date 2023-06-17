@@ -68,7 +68,7 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         target1 = x[:, -2, :]
         print(target.shape)
         print(target1.shape)
-
+        print(type_mask(target).shape)
         h = self.net.forward_hidden(xi,**kwargs)
         
         proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration,proj_type1, proj_barbeat1, proj_tempo1, proj_instrument1, proj_note_name1, proj_octave1, proj_duration1 = self.net.forward_output(h)
@@ -81,13 +81,13 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         octave_loss = calculate_loss(proj_octave, target[..., 5], type_mask(target))
         duration_loss = calculate_loss(proj_duration, target[..., 6], type_mask(target))
         
-        type_loss1 = calculate_loss(proj_type1, target1[..., 0], type_mask(target))
-        barbeat_loss1 = calculate_loss(proj_barbeat1, target1[..., 1], type_mask(target))
+        type_loss1 = calculate_loss(proj_type1, target1[..., 0], type_mask(target1))
+        barbeat_loss1 = calculate_loss(proj_barbeat1, target1[..., 1], type_mask(target1))
         tempo_loss1 = calculate_loss(proj_tempo1, target1[..., 2], type_mask(target))
-        instrument_loss1 = calculate_loss(proj_instrument1, target1[..., 3], type_mask(target))
-        note_name_loss1 = calculate_loss(proj_note_name1, target1[..., 4], type_mask(target))
-        octave_loss1 = calculate_loss(proj_octave1, target1[...,5], type_mask(target))
-        duration_loss1 = calculate_loss(proj_duration1, target1[..., 6], type_mask(target))
+        instrument_loss1 = calculate_loss(proj_instrument1, target1[..., 3], type_mask(target1))
+        note_name_loss1 = calculate_loss(proj_note_name1, target1[..., 4], type_mask(target1))
+        octave_loss1 = calculate_loss(proj_octave1, target1[...,5], type_mask(target1))
+        duration_loss1 = calculate_loss(proj_duration1, target1[..., 6], type_mask(target1))
         
         return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss,type_loss1*0.5, barbeat_loss1*0.5, tempo_loss1*0.5, instrument_loss1*0.5, note_name_loss1*0.5, octave_loss1*0.5, duration_loss1*0.5
 
