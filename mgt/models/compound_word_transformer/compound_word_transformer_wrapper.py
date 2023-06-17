@@ -31,6 +31,19 @@ def tiv(q):
         a = math.sqrt(a)
     return a
 
+def tiv1(q):
+    c = [0]*6*2
+    c = np.array(c)
+    count = 0
+    for i in q:
+        a = [math.sin(math.radians(30*-i)),math.cos(math.radians(30*-i)),math.sin(math.radians(60*-i)),math.cos(math.radians(60*-i)),math.sin(math.radians(90*-i)),math.cos(math.radians(90*-i)),math.sin(math.radians(120*-i)),math.cos(math.radians(120*-i)),math.sin(math.radians(150*-i)),math.cos(math.radians(150*-i)),math.sin(math.radians(180*-i)),math.cos(math.radians(180*-i))]
+        a = np.array(a)
+        c = c + a
+        count += 1
+    c /= count
+    
+    return c.tolist()  
+
 def notes_to_ce(indices):
   note_index_to_pitch_index = [0, -5, 2, -3, 4, -1, -6, 1, -4, 3, -2, 5]
   total = np.zeros(3)
