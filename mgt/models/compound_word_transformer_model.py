@@ -34,7 +34,7 @@ defaults = {
         512,
         512,# Duration
     ],
-    'max_sequence_length': 1024,
+    'max_sequence_length': 756,
     'learning_rate': 1e-4,
     'dropout': 0.1,
     'dim': 512,
