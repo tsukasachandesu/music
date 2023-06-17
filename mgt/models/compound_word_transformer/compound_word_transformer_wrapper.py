@@ -398,8 +398,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             tensor
         ), dim = -2)    
         
-        mask1 = tensor.bool()     
-        tensor = self.attn_layers1(tensor, mask=mask1, return_hiddens=False)
+        tensor = self.attn_layers1(tensor, mask=None, return_hiddens=False)
         tensor = tensor[:,0,:]
         tensor = tensor.reshape(b1, -1, f)
         
