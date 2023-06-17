@@ -124,19 +124,22 @@ class CompoundWordDataManager(DataManager):
                         d.append([3,b,c])
                       else:
                         d.append(i)  
+                        
                     cur = 0
                     for i in d:
                         if i == [2, 0, 0]:
                             cur = cur + 1
+                            
                     p =[[] * 1 for i in range(cur*16+1)]
                     ppqq =[[i%16+1,6913,6913,6913,6913,6913,6913,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] * 1 for i in range(cur*16+1)]
+                    
                     cur = -1
                     for i in d:
                         if i == [2, 0, 0]:
                             cur = cur + 1
                         if i[0] == 3:
                             p[i[1] + cur * 16 -1].append([i[0],i[1],i[2]])
-
+                                   
                     pp = []
                     cur = 0
                     for i in p:
@@ -145,6 +148,7 @@ class CompoundWordDataManager(DataManager):
                         if i:
                             pp.append(i)
                         cur = cur + 1
+                       
                     p  = []
                     for i in pp:
                         n =[0,0,6913,6913,6913,6913,6913,6913]
@@ -225,9 +229,18 @@ class CompoundWordDataManager(DataManager):
                         if i[6] == 6914:
                             i[6] = 6913
                             
-                    print(f'Extracted {len(ppqq)} compound words.') 
+                    sub = []
+                    curi = 0
+                    for i in ppqq:
+                        if curi % 16 == 0:
+                            sub.append([18,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
+                        if i[1] != 6913 and i[2] != 6913 and i[3] != 6913 and i[4] != 6913 and i[5] != 6913 and i[6] != 6913:
+                            sub.append(i)
+                        curi = curi + 1 
+           
+                    print(f'Extracted {len(sub)} compound words.') 
                     
-                    training_data.append(ppqq)
+                    training_data.append(sub)
                 except Exception as e:
                     print(f"Exception: {e}")
 
@@ -242,16 +255,14 @@ class CompoundWordDataManager(DataManager):
         inverse_dic = {v: k for k, v in dic.items()}
         
         q = []
-        n = 0
         for i in data:
-            if n %16 == 0:
+            if i[0] == 18:
                 q.append([2,0,0,0,0,0,0,0])
-            for j in range(6):
-                if i[j+1] != 6913:
-                    if i[j+1] != 0:
-                        q.append([2,n%16+1,0,0,0,0,0,0])
-                        q.append([3,0,0,0,*inverse_dic[int(i[j+1]-1)],31])
-            n=n+1
+            if i[0] != 18 and i[0] != 0:
+                for j in range(6):
+                    if i[j+1] != 6913 and i[j+1] != 0:
+                        q.append([2,i[0],0,0,0,0,0,0])
+                        q.append([3,i[0],0,0,*inverse_dic[int(i[j+1]-1)],31])
 
         remi = self.compound_word_mapper.map_to_remi(q)
         return MidiToolkitWrapper(self.to_midi_mapper.to_midi(remi))
