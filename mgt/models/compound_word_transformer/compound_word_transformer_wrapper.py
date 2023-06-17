@@ -349,8 +349,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         maski = ~torch.zeros_like(x[..., 0]).scatter(1, indices, 1.).bool()
         kwargs.update(self_attn_context_mask = maski)
         
-        print(kwargs)
-
         emb_type = self.word_emb_type(x[..., 0])
         emb_barbeat = self.word_emb_barbeat(x[..., 1])
         emb_tempo = self.word_emb_tempo(x[..., 2])
