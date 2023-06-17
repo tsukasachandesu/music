@@ -246,7 +246,9 @@ class CompoundWordDataManager(DataManager):
                     for i in ppqq:
                         if curi % 16 == 0:
                             sub.append([18,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
-                        if i[1] != 0 and i[2] != 0 and i[3] != 0 and i[4] != 0 and i[5] != 0 and i[6] != 0:
+                        if i[1] == 0 and i[2] == 0 and i[3] == 0 and i[4] == 0 and i[5] == 0 and i[6] == 0:
+                            a = 0
+                        else:
                             sub.append(i)
                         curi = curi + 1 
            
