@@ -193,8 +193,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         self.compound_word_embedding_size = np.sum(emb_sizes)
 
-        self.pos_emb = AbsolutePositionalEmbedding(self.compound_word_embedding_size, max_seq_len) if (
-                use_pos_emb and not attn_layers.has_pos_emb) else always(0)
+        self.pos_emb = AbsolutePositionalEmbedding(self.compound_word_embedding_size, max_seq_len) 
         
         self.emb_dropout = nn.Dropout(emb_dropout)
 
@@ -203,18 +202,16 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.attn_layers = attn_layers
         self.attn_layers1 = attn_layers1
         
-        self.pos_emb1 = AbsolutePositionalEmbedding(self.compound_word_embedding_size, 16) if (
-                use_pos_emb and not attn_layers.has_pos_emb) else always(0)
+        self.pos_emb1 = AbsolutePositionalEmbedding(self.compound_word_embedding_size, 16) 
         
         self.start_token = nn.Parameter(torch.randn(512))
         
         self.norm = nn.LayerNorm(512)
         
-        self.in_linear1 = nn.Linear(512*6+96, 512)
-        self.in_linear8 = nn.Linear(512+10, 512)
+        self.in_linear1 = nn.Linear(512*6 + 96, 512)
         
-        self.fc_mu = nn.Linear(5, 10)
-        
+        self.in_linear8 = nn.Linear(512+5, 512)
+       
         self.init_()
 
     def init_(self):
@@ -351,6 +348,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         indices = rand.topk(num_mask, dim = -1).indices   
         maski = ~torch.zeros_like(x[..., 0]).scatter(1, indices, 1.).bool()
         kwargs.update(self_attn_context_mask = maski)
+        
+        print(kwargs)
 
         emb_type = self.word_emb_type(x[..., 0])
         emb_barbeat = self.word_emb_barbeat(x[..., 1])
@@ -370,9 +369,7 @@ class CompoundWordTransformerWrapper(nn.Module):
                 
             ], dim = -1)
         
-        
-        mu = self.fc_mu(embs2)
-        
+                
         embs1 = torch.cat(
             [
                 emb_type,
@@ -423,12 +420,13 @@ class CompoundWordTransformerWrapper(nn.Module):
         tensor1 = torch.cat(
             [
                 tensor1,
-                mu
+                embs1
             ], dim = -1)
         
         tensor1 = self.in_linear8(tensor1)
      
         x, intermediates = self.attn_layers(x, tensor1, mask=mask, return_hiddens=True, **kwargs)
+        
         x = self.norm(x)     
   
         return x
