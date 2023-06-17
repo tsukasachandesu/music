@@ -144,7 +144,10 @@ class CompoundWordTransformerModel(object):
                 heads=self.heads,
                 ff_glu = True,
                 ff_swish = True,
+                use_rmsnorm = True,
+                rotary_xpos = True,
                 rel_pos_bias = True,
+                layer_dropout = self.dropout,
                 attn_dropout=self.dropout,  # dropout post-attention
                 ff_dropout=self.dropout,  # feedforward dropout
             ),
@@ -152,9 +155,11 @@ class CompoundWordTransformerModel(object):
                 dim=self.dim,
                 depth=6,
                 heads=self.heads,
+                use_rmsnorm = True,
+                rotary_xpos = True,
                 ff_glu = True,
                 ff_swish = True,
-                rel_pos_bias = True,
+                layer_dropout = self.dropout,
                 attn_dropout=self.dropout,  # dropout post-attention
                 ff_dropout=self.dropout,  # feedforward dropout
             )
