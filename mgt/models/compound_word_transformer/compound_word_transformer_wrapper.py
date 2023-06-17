@@ -215,7 +215,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         self.in_linear1 = nn.Linear(512*6 + 96, 512)
         
-        self.in_linear8 = nn.Linear(512+5, 512)
+        self.in_linear8 = nn.Linear(512+16, 512)
        
         self.init_()
 
@@ -321,7 +321,18 @@ class CompoundWordTransformerWrapper(nn.Module):
             notes_to_ce(q1)[1],
             notes_to_ce(q1)[2],
             largest_distance(q1),
-            tiv(q1)
+            tiv1(q1)[0],
+            tiv1(q1)[1], 
+            tiv1(q1)[2],
+            tiv1(q1)[3], 
+            tiv1(q1)[4],
+            tiv1(q1)[5], 
+            tiv1(q1)[6],
+            tiv1(q1)[7],   
+            tiv1(q1)[8],
+            tiv1(q1)[9], 
+            tiv1(q1)[10],
+            tiv1(q1)[11],   
         ])
         return next_arr
 
@@ -386,7 +397,17 @@ class CompoundWordTransformerWrapper(nn.Module):
                 x[..., 9].unsqueeze(-1).to(torch.float32),
                 x[..., 10].unsqueeze(-1).to(torch.float32),
                 x[..., 11].unsqueeze(-1).to(torch.float32),
-                
+                x[..., 12].unsqueeze(-1).to(torch.float32),
+                x[..., 13].unsqueeze(-1).to(torch.float32),
+                x[..., 14].unsqueeze(-1).to(torch.float32),
+                x[..., 15].unsqueeze(-1).to(torch.float32),
+                x[..., 16].unsqueeze(-1).to(torch.float32),
+                x[..., 17].unsqueeze(-1).to(torch.float32),
+                x[..., 18].unsqueeze(-1).to(torch.float32),
+                x[..., 19].unsqueeze(-1).to(torch.float32),
+                x[..., 20].unsqueeze(-1).to(torch.float32),
+                x[..., 21].unsqueeze(-1).to(torch.float32),
+                x[..., 22].unsqueeze(-1).to(torch.float32),                
             ], dim = -1)
 
         if not self.training:
