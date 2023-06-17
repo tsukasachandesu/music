@@ -331,14 +331,6 @@ class CompoundWordTransformerWrapper(nn.Module):
             mask=None,
             **kwargs
     ):
-
-        mask = x[..., 0].bool()
-        rand = torch.randn(x[..., 0].shape, device = x.device)
-        rand[:, 0] = -torch.finfo(rand.dtype).max 
-        num_mask = min(int(x[..., 0].shape[1] * 0.15), x[..., 0].shape[1] - 1)
-        indices = rand.topk(num_mask, dim = -1).indices   
-        maski = ~torch.zeros_like(x[..., 0]).scatter(1, indices, 1.).bool()
-        kwargs.update(self_attn_context_mask = maski)
         
         emb_type = self.word_emb_type(x[..., 0])
         emb_barbeat = self.word_emb_barbeat(x[..., 1])
@@ -373,8 +365,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         x = self.emb_dropout(x)
         x = self.project_emb(x)
-
-        
         
         embs2 = torch.cat(
             [
