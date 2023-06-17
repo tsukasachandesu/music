@@ -317,13 +317,14 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         proj_type = self.proj_type(h)
         proj_barbeat = self.proj_barbeat(h)
-        proj_barbeat = self.proj_barbeat(h)
         proj_tempo = self.proj_tempo(h)
         proj_instrument = self.proj_instrument(h)
         proj_note_name = self.proj_note_name(h)
         proj_octave = self.proj_octave(h)
+        proj_duration = self.proj_duration(h)
         
-        return proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave
+        
+        return proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration
 
     def forward_hidden(
             self,
