@@ -245,7 +245,7 @@ class CompoundWordDataManager(DataManager):
                     curi = 0
                     for i in ppqq:
                         if curi % 16 == 0:
-                            sub.append([18,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
+                            sub.append([17,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
                         if i[1] == 0 and i[2] == 0 and i[3] == 0 and i[4] == 0 and i[5] == 0 and i[6] == 0:
                             a = 0
                         else:
@@ -270,9 +270,9 @@ class CompoundWordDataManager(DataManager):
         
         q = []
         for i in data:
-            if i[0] == 18:
+            if i[0] == 17:
                 q.append([2,0,0,0,0,0,0,0])
-            if i[0] != 18 and i[0] != 0:
+            if i[0] != 17 and i[0] != 0:
                 for j in range(6):
                     if i[j+1] != 0:
                         q.append([2,i[0],0,0,0,0,0,0])
