@@ -73,16 +73,13 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         return final_res
 
     def train_step(self, x, **kwargs):
-        
-        print(kwargs)
-        
+                
         xi = x[:, :-1, :]
         target = x[:, 1:, :]
 
         h = self.net.forward_hidden(xi,**kwargs)
         
         proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration = self.net.forward_output(h)
-        # Filter padding indices
 
         type_loss = calculate_loss(proj_type, target[..., 0], type_mask(target))
         barbeat_loss = calculate_loss(proj_barbeat, target[..., 1], type_mask(target))
