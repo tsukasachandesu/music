@@ -217,24 +217,36 @@ class CompoundWordDataManager(DataManager):
                             ppqq[cur*16+pqq[i][1]-1] = [pqq[i][1],pqq[i][2],pqq[i][3],pqq[i][4],pqq[i][5],pqq[i][6],pqq[i][7],pqq[i][8],pqq[i][9],pqq[i][10],pqq[i][11],pqq[i][12],pqq[i][13],pqq[i][14],pqq[i][15],pqq[i][16],pqq[i][17],pqq[i][18],pqq[i][19],pqq[i][20],pqq[i][21],pqq[i][22],pqq[i][23] ] 
                     for i in ppqq:
                         if i[1] == 6914:
-                            i[1] = 6913
+                            i[1] = 0
                         if i[2] == 6914:
-                            i[2] = 6913
+                            i[2] = 0
                         if i[3] == 6914:
-                            i[3] = 6913
+                            i[3] = 0
                         if i[4] == 6914:
-                            i[4] = 6913
+                            i[4] = 0
                         if i[5] == 6914:
-                            i[5] = 6913
+                            i[5] = 0
                         if i[6] == 6914:
-                            i[6] = 6913
+                            i[6] = 0
+                        if i[1] == 6913:
+                            i[1] = 0
+                        if i[2] == 6913:
+                            i[2] = 0
+                        if i[3] == 6913:
+                            i[3] = 0
+                        if i[4] == 6913:
+                            i[4] = 0
+                        if i[5] == 6913:
+                            i[5] = 0
+                        if i[6] == 6913:
+                            i[6] = 0
                             
                     sub = []
                     curi = 0
                     for i in ppqq:
                         if curi % 16 == 0:
                             sub.append([18,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
-                        if i[1] != 6913 and i[2] != 6913 and i[3] != 6913 and i[4] != 6913 and i[5] != 6913 and i[6] != 6913:
+                        if i[1] != 0 and i[2] != 0 and i[3] != 0 and i[4] != 0 and i[5] != 0 and i[6] != 0:
                             sub.append(i)
                         curi = curi + 1 
            
@@ -260,7 +272,7 @@ class CompoundWordDataManager(DataManager):
                 q.append([2,0,0,0,0,0,0,0])
             if i[0] != 18 and i[0] != 0:
                 for j in range(6):
-                    if i[j+1] != 6913 and i[j+1] != 0:
+                    if i[j+1] != 0:
                         q.append([2,i[0],0,0,0,0,0,0])
                         q.append([3,i[0],0,0,*inverse_dic[int(i[j+1]-1)],31])
 
