@@ -184,7 +184,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         self.compound_word_embedding_size = np.sum(emb_sizes)
 
-        self.pos_emb = AbsolutePositionalEmbedding(self.compound_word_embedding_size, max_seq_len) 
+        self.pos_emb = AbsolutePositionalEmbedding(512, max_seq_len) 
         
         self.emb_dropout = nn.Dropout(emb_dropout)
 
@@ -193,7 +193,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.attn_layers = attn_layers
         self.attn_layers1 = attn_layers1
         
-        self.pos_emb1 = AbsolutePositionalEmbedding(self.compound_word_embedding_size, 16) 
+        self.pos_emb1 = AbsolutePositionalEmbedding(512, 16) 
         
         self.start_token = nn.Parameter(torch.randn(512))
         
