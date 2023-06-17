@@ -340,8 +340,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_octave = self.word_emb_octave(x[..., 5])
         emb_duration = self.word_emb_duration(x[..., 6])
         
-        print(emb_type)
-        
         embs1 = torch.cat(
             [
                 emb_type,
@@ -353,16 +351,9 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_duration                
             ], dim = -1)
         
-        print(emb1)
-        
         emb_linear = self.in_linear1(embs1)
         
-        print(emb_linear)
-
         x = emb_linear + self.pos_emb(emb_linear)
-        
-        print(x)
-        
         x = self.emb_dropout(x)
         x = self.project_emb(x)
         
@@ -375,10 +366,6 @@ class CompoundWordTransformerWrapper(nn.Module):
                 x[..., 11].unsqueeze(-1).to(torch.float32),
                 
             ], dim = -1)
-         
-        
-        print(embs2)
-        
 
         if not self.training:
             x.squeeze(0)
@@ -395,9 +382,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             repeat(self.start_token, 'f -> b 1 f', b = b),
             tensor
         ), dim = -2)    
-        
-        print(kwargs)
-        
+                
         tensor, intermediates1 = self.attn_layers1(tensor, mask=mask, return_hiddens=True, **kwargs)
         tensor = tensor[:,0,:]
         tensor = tensor.reshape(b, n, f)
