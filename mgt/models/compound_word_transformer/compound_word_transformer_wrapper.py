@@ -279,17 +279,17 @@ class CompoundWordTransformerWrapper(nn.Module):
         dic = {(i, j, k): index for index, (i, j, k) in enumerate((i, j, k) for j in range(9) for i in range(12) for k in range(64))}
         inverse_dic = {v: k for k, v in dic.items()}
         q1 = []
-        if cur_word_barbeat != 0 and cur_word_barbeat != 6913:
+        if cur_word_barbeat != 0 and cur_word_barbeat != 0:
             q1.append(inverse_dic[cur_word_barbeat-1][0])
-        if cur_word_tempo != 0 and cur_word_tempo != 6913:
+        if cur_word_tempo != 0 and cur_word_tempo != 0:
             q1.append(inverse_dic[cur_word_tempo-1][0])
-        if cur_word_instrument  != 0 and cur_word_instrument  != 6913:
+        if cur_word_instrument  != 0 and cur_word_instrument  != 0:
             q1.append(inverse_dic[cur_word_instrument-1][0])
-        if cur_word_note_name != 0 and cur_word_note_name != 6913:
+        if cur_word_note_name != 0 and cur_word_note_name != 0:
             q1.append(inverse_dic[cur_word_note_name-1][0])
-        if cur_word_octave != 0 and cur_word_octave != 6913:
+        if cur_word_octave != 0 and cur_word_octave != 0:
             q1.append(inverse_dic[cur_word_octave-1][0])
-        if cur_word_duration != 0 and cur_word_duration != 6913:
+        if cur_word_duration != 0 and cur_word_duration != 0:
             q1.append(inverse_dic[cur_word_duration-1][0])
 
         
