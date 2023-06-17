@@ -394,9 +394,12 @@ class CompoundWordTransformerWrapper(nn.Module):
         print(tensor.shape)
         for n in range(tensor.size(1)):
             if 16*(n+1) <= x.size(1):
-                tensor1[:, 16*n:16*(n+1), :] = tensor[:, n, :]
+                for m in range(16):
+                    tensor1[:, n*16+m, :] = tensor[:, n, :]
+                    
             else:
-                tensor1[:, 16*n:x.size(1), :] = tensor[:, n, :]
+                for m in range(x.size(1)-n*16):
+                    tensor1[:, n*16+m, :] = tensor[:, n, :]
                 
         tensor1 = torch.cat(
             [
