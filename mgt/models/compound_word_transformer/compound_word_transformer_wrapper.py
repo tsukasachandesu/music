@@ -194,37 +194,6 @@ class CompoundWordTransformerWrapper(nn.Module):
             nn.Linear(dim, self.num_tokens[6])
         )
         
-        self.proj_duration1 = nn.Sequential(
-            nn.Linear(dim, dim),
-            nn.GELU(),
-            nn.Linear(dim, 1)
-        )
-        
-        self.proj_duration2 = nn.Sequential(
-            nn.Linear(dim, dim),
-            nn.GELU(),
-            nn.Linear(dim, 1)
-        )
-        
-        self.proj_duration3 = nn.Sequential(
-            nn.Linear(dim, dim),
-            nn.GELU(),
-            nn.Linear(dim, 1)
-        )
-        
-        self.proj_duration4 = nn.Sequential(
-            nn.Linear(dim, dim),
-            nn.GELU(),
-            nn.Linear(dim, 1)
-        )
-        
-        self.proj_duration5 = nn.Sequential(
-            nn.Linear(dim, dim),
-            nn.GELU(),
-            nn.Linear(dim, 1)
-        )
-        
-        
         # in_features is equal to dimension plus dimensions of the type embedding
 
         self.compound_word_embedding_size = np.sum(emb_sizes)
@@ -368,14 +337,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         proj_octave = self.proj_octave(h)
         proj_duration = self.proj_duration(h)
         
-        proj_duration1 = self.proj_duration1(h)
-        proj_duration2 = self.proj_duration2(h)
-        proj_duration3 = self.proj_duration3(h)
-        proj_duration4 = self.proj_duration4(h)
-        proj_duration5 = self.proj_duration5(h)
-        
-        
-        return proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration,proj_duration1,proj_duration2,proj_duration3,proj_duration4,proj_duration5
+        return proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration
 
     def forward_hidden(
             self,
