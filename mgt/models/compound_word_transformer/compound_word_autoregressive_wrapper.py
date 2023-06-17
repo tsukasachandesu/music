@@ -23,18 +23,6 @@ def calculate_loss(predicted, target, loss_mask):
 
     return loss
 
-def calculate_loss1(predicted, target, loss_mask):
-    trainable_values = torch.sum(loss_mask)
-    if trainable_values == 0:
-        return 0
-
-    loss = F.mse_loss(predicted[:, ...], target, reduction = 'none')
-    loss = loss * loss_mask
-    loss = torch.sum(loss) / trainable_values
-
-    return loss
-
-
 class CompoundWordAutoregressiveWrapper(nn.Module):
     def __init__(self, net: CompoundWordTransformerWrapper, ignore_index=-100, pad_value=None):
         super().__init__()
@@ -79,7 +67,7 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
 
         h = self.net.forward_hidden(xi,**kwargs)
         
-        proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration,proj_duration1,proj_duration2,proj_duration3,proj_duration4,proj_duration5 = self.net.forward_output(h)
+        proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration = self.net.forward_output(h)
 
         type_loss = calculate_loss(proj_type, target[..., 0], type_mask(target))
         barbeat_loss = calculate_loss(proj_barbeat, target[..., 1], type_mask(target))
@@ -89,10 +77,4 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         octave_loss = calculate_loss(proj_octave, target[..., 5], type_mask(target))
         duration_loss = calculate_loss(proj_duration, target[..., 6], type_mask(target))
         
-        duration_loss1 = calculate_loss1(proj_duration1.squeeze(-1), target[..., 7].float(), type_mask(target))
-        duration_loss2 = calculate_loss1(proj_duration2.squeeze(-1), target[..., 8].float(), type_mask(target))
-        duration_loss3 = calculate_loss1(proj_duration3.squeeze(-1), target[..., 9].float(), type_mask(target))
-        duration_loss4 = calculate_loss1(proj_duration4.squeeze(-1), target[..., 10].float(), type_mask(target))
-        duration_loss5 = calculate_loss1(proj_duration5.squeeze(-1), target[..., 11].float(), type_mask(target))
-        
-        return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss,duration_loss1,duration_loss2,duration_loss3,duration_loss4,duration_loss5
+        return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss
