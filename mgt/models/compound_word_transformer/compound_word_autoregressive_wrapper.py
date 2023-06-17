@@ -62,12 +62,13 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
 
     def train_step(self, x, **kwargs):
                 
-        xi = x[:, :-1, :]
+        xi = x[:, :-2, :]
         target = x[:, 1:, :]
+        target1 = x[:, 2:, :]
 
         h = self.net.forward_hidden(xi,**kwargs)
         
-        proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration = self.net.forward_output(h)
+        proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration,proj_type1, proj_barbeat1, proj_tempo1, proj_instrument1, proj_note_name1, proj_octave1, proj_duration1 = self.net.forward_output(h)
 
         type_loss = calculate_loss(proj_type, target[..., 0], type_mask(target))
         barbeat_loss = calculate_loss(proj_barbeat, target[..., 1], type_mask(target))
@@ -77,4 +78,13 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         octave_loss = calculate_loss(proj_octave, target[..., 5], type_mask(target))
         duration_loss = calculate_loss(proj_duration, target[..., 6], type_mask(target))
         
-        return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss
+        type_loss1 = calculate_loss(proj_type1, target1[..., 0], type_mask(target))
+        barbeat_loss1 = calculate_loss(proj_barbeat1, target1[..., 1], type_mask(target))
+        tempo_loss1 = calculate_loss(proj_tempo1, target1[..., 2], type_mask(target))
+        instrument_loss1 = calculate_loss(proj_instrument1, target1[..., 3], type_mask(target))
+        note_name_loss1 = calculate_loss(proj_note_name1, target1[..., 4], type_mask(target))
+        octave_loss1 = calculate_loss(proj_octave1, target1[..., 5], type_mask(target))
+        duration_loss1 = calculate_loss(proj_duration1, target1[..., 6], type_mask(target))
+        
+        return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss,type_loss1*0.5, barbeat_loss1*0.5, tempo_loss1*0.5, instrument_loss1*0.5, note_name_loss1*0.5, octave_loss1*0.5, duration_loss1*0.5
+
