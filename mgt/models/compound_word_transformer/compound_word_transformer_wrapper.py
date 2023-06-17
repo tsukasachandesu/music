@@ -115,6 +115,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             num_tokens,
             max_seq_len,
             attn_layers,
+            attn_layers1,
             emb_dim=None,
             emb_dropout=0.,
             use_pos_emb=True,
