@@ -375,11 +375,9 @@ class CompoundWordTransformerWrapper(nn.Module):
             padding_size = 16 - (n % 16) if n % 16 != 0 else 0
             padding = (0, 0, 0, padding_size)
             tensor = torch.nn.functional.pad(x, padding, "constant", 0)
-        
+        b1, n1, f1 = tensor.shape
         tensor = tensor.reshape(-1, 16, f)
-        
         b, n, f = tensor.shape
-        
         tensor = tensor + self.pos_emb1(tensor)
         
         tensor= torch.cat((
@@ -389,7 +387,7 @@ class CompoundWordTransformerWrapper(nn.Module):
                 
         tensor, intermediates1 = self.attn_layers1(tensor, mask=mask, return_hiddens=True, **kwargs)
         tensor = tensor[:,0,:]
-        tensor = tensor.reshape(b, n, f)
+        tensor = tensor.reshape(b1, -1, f)
         tensor1 = torch.zeros(x.size(0), x.size(1), 512).to(tensor.device)
         
         for n in range(tensor.size(1)):
