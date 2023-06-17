@@ -376,6 +376,8 @@ class CompoundWordTransformerWrapper(nn.Module):
             padding_size = 16 - (n % 16) if n % 16 != 0 else 0
             padding = (0, 0, 0, padding_size)
             tensor = torch.nn.functional.pad(x, padding, "constant", 0)
+        if else:
+            tensor = x
         b1, n1, f1 = tensor.shape
         tensor = tensor.reshape(-1, 16, f)
         b, n, f = tensor.shape
@@ -395,8 +397,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         for n in range(tensor.size(1)):
             if 16*(n+1) <= x.size(1):
                 for m in range(16):
-                    tensor1[:, n*16+m, :] = tensor[:, n, :]
-                    
+                    tensor1[:, n*16+m, :] = tensor[:, n, :]    
             else:
                 for m in range(x.size(1)-n*16):
                     tensor1[:, n*16+m, :] = tensor[:, n, :]
