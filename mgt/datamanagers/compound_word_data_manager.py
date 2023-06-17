@@ -15,22 +15,6 @@ defaults = {
     'instrument_mapping': {}
 }
 
-def tiv(q):
-    c = [0]*6*2
-    c = np.array(c)
-    count = 0
-    for i in q:
-        a = [math.sin(math.radians(30*-i)),math.cos(math.radians(30*-i)),math.sin(math.radians(60*-i)),math.cos(math.radians(60*-i)),math.sin(math.radians(90*-i)),math.cos(math.radians(90*-i)),math.sin(math.radians(120*-i)),math.cos(math.radians(120*-i)),math.sin(math.radians(150*-i)),math.cos(math.radians(150*-i)),math.sin(math.radians(180*-i)),math.cos(math.radians(180*-i))]
-        a = np.array(a)
-        c = c + a
-        count += 1
-    c /= count
-    a = 0
-    for i in c:
-        a = a + i * i
-        a = math.sqrt(a)
-    return a
-
 def tiv1(q):
     c = [0]*6*2
     c = np.array(c)
@@ -144,7 +128,7 @@ class CompoundWordDataManager(DataManager):
                         if i == [2, 0, 0]:
                             cur = cur + 1
                     p =[[] * 1 for i in range(cur*16+1)]
-                    ppqq =[[i%16+1,6913,6913,6913,6913,6913,6913,0,0,0,0,0] * 1 for i in range(cur*16+1)]
+                    ppqq =[[i%16+1,6913,6913,6913,6913,6913,6913,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] * 1 for i in range(cur*16+1)]
                     cur = -1
                     for i in d:
                         if i == [2, 0, 0]:
