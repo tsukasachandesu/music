@@ -388,10 +388,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         tensor, intermediates1 = self.attn_layers1(tensor, mask=mask, return_hiddens=True, **kwargs)
         tensor = tensor[:,0,:]
         tensor = tensor.reshape(b1, -1, f)
-        tensor1 = torch.zeros(x.size(0), x.size(1), 512).to(tensor.device)
         
-        print(tensor1.shape)
-        print(tensor.shape)
+        tensor1 = torch.zeros(x.size(0), x.size(1), 512).to(tensor.device)
+
         for n in range(tensor.size(1)):
             if 16*(n+1) <= x.size(1):
                 for m in range(16):
@@ -400,17 +399,16 @@ class CompoundWordTransformerWrapper(nn.Module):
             else:
                 for m in range(x.size(1)-n*16):
                     tensor1[:, n*16+m, :] = tensor[:, n, :]
-                
+                 
         tensor1 = torch.cat(
             [
                 tensor1,
-                embs1
+                embs2
             ], dim = -1)
-        
+                
         tensor1 = self.in_linear8(tensor1)
-     
+             
         x, intermediates = self.attn_layers(x, tensor1, mask=mask, return_hiddens=True, **kwargs)
-        
         x = self.norm(x)     
   
         return x
