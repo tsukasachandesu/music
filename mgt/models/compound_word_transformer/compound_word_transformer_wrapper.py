@@ -29,21 +29,7 @@ def tiv(q):
     for i in c:
         a = a + i * i
         a = math.sqrt(a)
-    return a
-
-def tiv1(q):
-    c = [0]*6*2
-    c = np.array(c)
-    count = 0
-    for i in q:
-        a = [math.sin(math.radians(30*-i)),math.cos(math.radians(30*-i)),math.sin(math.radians(60*-i)),math.cos(math.radians(60*-i)),math.sin(math.radians(90*-i)),math.cos(math.radians(90*-i)),math.sin(math.radians(120*-i)),math.cos(math.radians(120*-i)),math.sin(math.radians(150*-i)),math.cos(math.radians(150*-i)),math.sin(math.radians(180*-i)),math.cos(math.radians(180*-i))]
-        a = np.array(a)
-        c = c + a
-        count += 1
-    if count != 0:
-        c /= count
-    
-    return c.tolist()  
+    return a 
 
 def notes_to_ce(indices):
   note_index_to_pitch_index = [0, -5, 2, -3, 4, -1, -6, 1, -4, 3, -2, 5]
@@ -228,9 +214,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.norm = nn.LayerNorm(512)
         
         self.in_linear1 = nn.Linear(512*6 + 96, 512)
-        
-        self.in_linear8 = nn.Linear(512+16, 512)
-       
+               
         self.init_()
 
     def init_(self):
@@ -241,15 +225,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         nn.init.normal_(self.word_emb_note_name.weight(), std=0.02)
         nn.init.normal_(self.word_emb_octave.weight(), std=0.02)
         nn.init.normal_(self.word_emb_duration.weight(), std=0.02)
-        
-    def reparameterize(self, mu, logvar, use_sampling=True, sampling_var=1.):
-        std = torch.exp(0.5 * logvar).to(mu.device)
-        if use_sampling:
-            eps = torch.randn_like(std).to(mu.device) * sampling_var
-        else:
-            eps = torch.zeros_like(std).to(mu.device)
-        return eps * std + mu
-        
 
     def forward_output_sampling(self, h, selection_temperatures=None, selection_probability_tresholds=None):
         # sample type
@@ -395,17 +370,7 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_instrument,
                 emb_note_name,
                 emb_octave,
-                emb_duration                
-            ], dim = -1)
-        
-        emb_linear = self.in_linear1(embs1)
-        
-        x = emb_linear + self.pos_emb(emb_linear)
-        x = self.emb_dropout(x)
-        x = self.project_emb(x)
-        
-        embs2 = torch.cat(
-            [
+                emb_duration,
                 x[..., 7].unsqueeze(-1).to(torch.float32),
                 x[..., 8].unsqueeze(-1).to(torch.float32),
                 x[..., 9].unsqueeze(-1).to(torch.float32),
@@ -421,8 +386,15 @@ class CompoundWordTransformerWrapper(nn.Module):
                 x[..., 19].unsqueeze(-1).to(torch.float32),
                 x[..., 20].unsqueeze(-1).to(torch.float32),
                 x[..., 21].unsqueeze(-1).to(torch.float32),
-                x[..., 22].unsqueeze(-1).to(torch.float32),                
+                x[..., 22].unsqueeze(-1).to(torch.float32),      
+                
             ], dim = -1)
+        
+        emb_linear = self.in_linear1(embs1)
+        
+        x = emb_linear + self.pos_emb(emb_linear)
+        x = self.emb_dropout(x)
+        x = self.project_emb(x)
 
         if not self.training:
             x.squeeze(0)
@@ -460,14 +432,6 @@ class CompoundWordTransformerWrapper(nn.Module):
                 for m in range(x.size(1)-n*32):
                     tensor1[:, n*32+m, :] = tensor[:, n, :]
                  
-        tensor1 = torch.cat(
-            [
-                tensor1,
-                embs2
-            ], dim = -1)
-                
-        tensor1 = self.in_linear8(tensor1)
-             
         x = self.attn_layers(x, tensor1, mask=mask, return_hiddens=False, **kwargs)
         x = self.norm(x)     
   
