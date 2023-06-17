@@ -193,7 +193,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.proj_type1 = nn.Sequential(
             nn.Linear(dim, dim),
             nn.GELU(),
-            nn.Linear(dim, self.num_tokens[0])
+            nn.Linear(dim, self.num_tokens[1])
         )
         
         self.proj_barbeat1 = nn.Sequential(
@@ -202,35 +202,6 @@ class CompoundWordTransformerWrapper(nn.Module):
             nn.Linear(dim, self.num_tokens[1])
         )
         
-        self.proj_tempo1 = nn.Sequential(
-            nn.Linear(dim, dim),
-            nn.GELU(),
-            nn.Linear(dim, self.num_tokens[2])
-        )
-        
-        self.proj_instrument1 = nn.Sequential(
-            nn.Linear(dim, dim),
-            nn.GELU(),
-            nn.Linear(dim, self.num_tokens[3])
-        )
-        
-        self.proj_note_name1 = nn.Sequential(
-            nn.Linear(dim, dim),
-            nn.GELU(),
-            nn.Linear(dim, self.num_tokens[4])
-        )
-        
-        self.proj_octave1 = nn.Sequential(
-            nn.Linear(dim, dim),
-            nn.GELU(),
-            nn.Linear(dim, self.num_tokens[5])
-        )
-        
-        self.proj_duration1 = nn.Sequential(
-            nn.Linear(dim, dim),
-            nn.GELU(),
-            nn.Linear(dim, self.num_tokens[6])
-        )
         
         # in_features is equal to dimension plus dimensions of the type embedding
 
@@ -380,13 +351,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         proj_type1 = self.proj_type1(h)
         proj_barbeat1 = self.proj_barbeat1(h)
-        proj_tempo1 = self.proj_tempo1(h)
-        proj_instrument1 = self.proj_instrument1(h)
-        proj_note_name1 = self.proj_note_name1(h)
-        proj_octave1 = self.proj_octave1(h)
-        proj_duration1 = self.proj_duration1(h)
-        
-        return proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, proj_type1, proj_barbeat1, proj_tempo1, proj_instrument1, proj_note_name1, proj_octave1, proj_duration1
+
+        return proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, proj_type1, proj_barbeat1
 
     def forward_hidden(
             self,
