@@ -63,12 +63,9 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
     def train_step(self, x, **kwargs):
                 
         xi = x[:, :-2, :]
-        print(xi.shape)
-        target = x[:, 1:, :]
-        target1 = x[:, -2, :]
-        print(target.shape)
-        print(target1.shape)
-        print(type_mask(target).shape)
+        target = x[:, 1:-1, :]
+        target1 = x[:, 2:, :]
+
         h = self.net.forward_hidden(xi,**kwargs)
         
         proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration,proj_type1, proj_barbeat1, proj_tempo1, proj_instrument1, proj_note_name1, proj_octave1, proj_duration1 = self.net.forward_output(h)
