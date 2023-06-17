@@ -399,15 +399,15 @@ class CompoundWordTransformerWrapper(nn.Module):
             x.squeeze(0)
             
         b, n, f = x.shape
-        if n <= 32 or n % 32 != 0:
-            padding_size = 32 - (n % 32) if n % 32 != 0 else 0
+        if n <= 8 or n % 8 != 0:
+            padding_size = 8 - (n % 8) if n % 8 != 0 else 0
             padding = (0, 0, 0, padding_size)
             tensor = torch.nn.functional.pad(x, padding, "constant", 0)
         else:
             tensor = x
             
         b1, n1, f1 = tensor.shape
-        tensor = tensor.reshape(-1, 32, f)
+        tensor = tensor.reshape(-1, 8, f)
         b, n, f = tensor.shape
         
         tensor = tensor + self.pos_emb1(tensor)
@@ -424,12 +424,12 @@ class CompoundWordTransformerWrapper(nn.Module):
         tensor1 = torch.zeros(x.size(0), x.size(1), 512).to(tensor.device)
 
         for n in range(tensor.size(1)):
-            if 32*(n+1) <= x.size(1):
-                for m in range(32):
-                    tensor1[:, n*32+m, :] = tensor[:, n, :]    
+            if 8*(n+1) <= x.size(1):
+                for m in range(8):
+                    tensor1[:, n*8+m, :] = tensor[:, n, :]    
             else:
-                for m in range(x.size(1)-n*32):
-                    tensor1[:, n*32+m, :] = tensor[:, n, :]
+                for m in range(x.size(1)-n*8):
+                    tensor1[:, n*8+m, :] = tensor[:, n, :]
                  
         x = self.attn_layers(x, tensor1, mask=mask, return_hiddens=False, **kwargs)
         x = self.norm(x)     
