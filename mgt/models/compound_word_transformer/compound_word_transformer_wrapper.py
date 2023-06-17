@@ -190,19 +190,6 @@ class CompoundWordTransformerWrapper(nn.Module):
             nn.Linear(dim, self.num_tokens[6])
         )
         
-        self.proj_type1 = nn.Sequential(
-            nn.Linear(dim, dim),
-            nn.GELU(),
-            nn.Linear(dim, self.num_tokens[1])
-        )
-        
-        self.proj_barbeat1 = nn.Sequential(
-            nn.Linear(dim, dim),
-            nn.GELU(),
-            nn.Linear(dim, self.num_tokens[1])
-        )
-        
-        
         # in_features is equal to dimension plus dimensions of the type embedding
 
         self.compound_word_embedding_size = np.sum(emb_sizes)
@@ -348,11 +335,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         proj_note_name = self.proj_note_name(h)
         proj_octave = self.proj_octave(h)
         proj_duration = self.proj_duration(h)
-        
-        proj_type1 = self.proj_type1(h)
-        proj_barbeat1 = self.proj_barbeat1(h)
 
-        return proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, proj_type1, proj_barbeat1
+        return proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration
 
     def forward_hidden(
             self,
