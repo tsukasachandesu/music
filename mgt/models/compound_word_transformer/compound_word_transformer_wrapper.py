@@ -14,7 +14,7 @@ import itertools
 import math
 from einops import rearrange, reduce, repeat
 
-def tiv(q):
+def tiv1(q):
     c = [0]*6*2
     c = np.array(c)
     count = 0
@@ -25,11 +25,7 @@ def tiv(q):
         count += 1
     if count != 0:
         c /= count
-    a = 0
-    for i in c:
-        a = a + i * i
-        a = math.sqrt(a)
-    return a 
+    return c
 
 def notes_to_ce(indices):
   note_index_to_pitch_index = [0, -5, 2, -3, 4, -1, -6, 1, -4, 3, -2, 5]
