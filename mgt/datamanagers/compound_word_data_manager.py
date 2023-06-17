@@ -31,6 +31,18 @@ def tiv(q):
         a = math.sqrt(a)
     return a
 
+def tiv1(q):
+    c = [0]*6*2
+    c = np.array(c)
+    count = 0
+    for i in q:
+        a = [math.sin(math.radians(30*-i)),math.cos(math.radians(30*-i)),math.sin(math.radians(60*-i)),math.cos(math.radians(60*-i)),math.sin(math.radians(90*-i)),math.cos(math.radians(90*-i)),math.sin(math.radians(120*-i)),math.cos(math.radians(120*-i)),math.sin(math.radians(150*-i)),math.cos(math.radians(150*-i)),math.sin(math.radians(180*-i)),math.cos(math.radians(180*-i))]
+        a = np.array(a)
+        c = c + a
+        count += 1
+    c /= count
+    
+    return c.tolist()      
 
 def notes_to_ce(indices):
   note_index_to_pitch_index = [0, -5, 2, -3, 4, -1, -6, 1, -4, 3, -2, 5]
@@ -57,6 +69,7 @@ def pitch_index_to_position(pitch_index) :
     if c == 3:
         pos[0] = -1*radius
     pos[2] = pitch_index * verticalStep
+    
     return np.array(pos)
 
 def largest_distance(pitches):
@@ -191,7 +204,7 @@ class CompoundWordDataManager(DataManager):
                         
                     centroids2 = []
                     for iii in q1:
-                        centroids2.append(tiv(iii))                       
+                        centroids2.append(tiv1(iii))                       
                         
                     pq = []
                     for i in p:
@@ -203,7 +216,7 @@ class CompoundWordDataManager(DataManager):
                         if pq[i][0] == 2:
                             pqq.append([1,0,0,0,0,0,0,0,0,0,0,0,0])
                         else:
-                            pqq.append([2,pq[i][1],pq[i][2]+1,pq[i][3]+1,pq[i][4]+1,pq[i][5]+1,pq[i][6]+1,pq[i][7]+1,centroids[n][0],centroids[n][1],centroids[n][2],centroids1[n], centroids2[n] ] )
+                            pqq.append([2,pq[i][1],pq[i][2]+1,pq[i][3]+1,pq[i][4]+1,pq[i][5]+1,pq[i][6]+1,pq[i][7]+1,centroids[n][0],centroids[n][1],centroids[n][2],centroids1[n], centroids2[n][0],centroids2[n][1],centroids2[n][2],centroids2[n][3],centroids2[n][4],centroids2[n][5],centroids2[n][6],centroids2[n][7],centroids2[n][8],centroids2[n][9],centroids2[n][10],centroids2[n][11] ] )
                             n = n + 1
                             
                     cur = -1
@@ -211,7 +224,7 @@ class CompoundWordDataManager(DataManager):
                         if pqq[i][0] == 1:
                             cur  = cur + 1
                         if pqq[i][0] == 2:
-                            ppqq[cur*16+pqq[i][1]-1] = [pqq[i][1],pqq[i][2],pqq[i][3],pqq[i][4],pqq[i][5],pqq[i][6],pqq[i][7],pqq[i][8],pqq[i][9],pqq[i][10],pqq[i][11],pqq[i][12] ] 
+                            ppqq[cur*16+pqq[i][1]-1] = [pqq[i][1],pqq[i][2],pqq[i][3],pqq[i][4],pqq[i][5],pqq[i][6],pqq[i][7],pqq[i][8],pqq[i][9],pqq[i][10],pqq[i][11],pqq[i][12],pqq[i][13],pqq[i][14],pqq[i][15],pqq[i][16],pqq[i][17],pqq[i][18],pqq[i][19],pqq[i][20],pqq[i][21],pqq[i][22],pqq[i][23] ] 
                     for i in ppqq:
                         if i[1] == 6914:
                             i[1] = 6913
