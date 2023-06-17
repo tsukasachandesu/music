@@ -73,6 +73,9 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         return final_res
 
     def train_step(self, x, **kwargs):
+        
+        print(kwargs)
+        
         xi = x[:, :-1, :]
         target = x[:, 1:, :]
 
