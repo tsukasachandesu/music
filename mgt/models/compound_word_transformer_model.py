@@ -157,7 +157,7 @@ class CompoundWordTransformerModel(object):
                 heads=self.heads,
                 use_rmsnorm = True,
                 dynamic_pos_bias = True,               
-                dynamic_pos_bias_log_distance = False  
+                dynamic_pos_bias_log_distance = False,  
                 ff_glu = True,
                 ff_swish = True,
                 layer_dropout = self.dropout,
