@@ -24,7 +24,8 @@ def tiv1(q):
         a = np.array(a)
         c = c + a
         count += 1
-    c /= count
+    if count != 0:
+        c /= count
     
     return c.tolist()      
 
