@@ -381,9 +381,15 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_duration,
             ], dim = -1)
         
+        print(embs1)
+        
         emb_linear = self.in_linear1(embs1)
+        
+        print(emb_linear)
 
         x = emb_linear + self.pos_emb(emb_linear)
+        
+        print(x)
         
         x = self.emb_dropout(x)
         x = self.project_emb(x)
