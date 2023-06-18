@@ -11,6 +11,17 @@ from mgt.models.utils import get_device
 def type_mask(target):
     return target[..., 0] != 0
 
+def calculate_loss1(predicted, target, loss_mask):
+    trainable_values = torch.sum(loss_mask)
+    if trainable_values == 0:
+        return 0
+
+    loss = F.mse_loss(predicted[:, ...], target, reduction = 'none')
+    loss = loss * loss_mask
+    loss = torch.sum(loss) / trainable_values
+
+    return loss
+
 
 def calculate_loss(predicted, target, loss_mask):
     trainable_values = torch.sum(loss_mask)
@@ -96,17 +107,20 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         dic = {(i, j, k): index for index, (i, j, k) in enumerate((i, j, k) for j in range(9) for i in range(12) for k in range(64))}
         inverse_dic = {v: k for k, v in dic.items()}
         sha = proj_barbeat.shape[0]
+        
         proj_barbeat1 = temps(proj_barbeat.reshape([1,-1,6913]))
+        proj_tempo1 = temps(proj_tempo.reshape([1,-1,6913]))
+        proj_instrument1 = temps(proj_instrument.reshape([1,-1,6913]))
+        proj_note_name1 = temps(proj_note_name.reshape([1,-1,6913]))
+        proj_octave1 = temps(proj_octave.reshape([1,-1,6913]))
+        proj_duration1 = temps(proj_duration.reshape([1,-1,6913]))
+        
         d = torch.tensor([]).to(proj_barbeat.device)
         e = temp()
-        print(e.shape)
-        print(proj_barbeat1[0,0,:-1].unsqueeze(1).shape)
         for k in range(proj_barbeat1.shape[1]):
-            f = e * proj_barbeat1[0,k,:-1].unsqueeze(1)
-            d = torch.cat([d, torch.sum(f, 0)])
-        print(d.shape)
+            f = e * proj_barbeat1[0,k,:-1].unsqueeze(1) + e * proj_tempo1[0,k,:-1].unsqueeze(1) + e * proj_instrument1[0,k,:-1].unsqueeze(1) + e * proj_note_name1[0,k,:-1].unsqueeze(1) + e * proj_octave1[0,k,:-1].unsqueeze(1) +e * proj_duration1[0,k,:-1].unsqueeze(1)
+            d = torch.cat([d, torch.sum(f/6, 0)])
         d = d.reshape([sha,-1,12])
-        print(d.shape)
         
-        return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss
+        return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss, calculate_loss1(d[..., 0], target[..., 11].float(), type_mask(target))
 
