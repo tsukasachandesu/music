@@ -85,11 +85,13 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         rm = torch.tensor([]).to(get_device())
         for i in range(6912):
             a = torch.tensor(notes_to_ce([self.inverse_dic[i][0]])).to(get_device())
-            rm = torch.cat([rr,a])
+            rm = torch.cat([rm,a])
+        print(rm.shape)
         rm = rm.reshape(-1,3)
         rm = repeat(rm, 'c b -> a c b', a = 511)
         rm = repeat(rm, 'c b d-> a c b d', a = 6)
         self.ee = rm
+        print(rm.shape)
         
 
     @torch.no_grad()
