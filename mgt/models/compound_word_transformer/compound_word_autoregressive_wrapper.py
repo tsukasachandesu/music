@@ -95,7 +95,7 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         for k in range(proj_barbeat1.shape[1]):
             b = torch.zeros(12)
             for i in range(6912):
-                b = b + temp(inverse_dic[i][0]) * proj_barbeat1[1,k,i+1]
+                b = b + temp(inverse_dic[i][0]) * proj_barbeat1[0,k,i+1]
             d = torch.cat([d,b])
         print(d.shape)
         d = d.reshape([sha,-1,12])
