@@ -285,23 +285,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             cur_word_instrument,
             cur_word_note_name,
             cur_word_octave,
-            cur_word_duration,
-            notes_to_ce(q1)[0],
-            notes_to_ce(q1)[1],
-            notes_to_ce(q1)[2],
-            largest_distance(q1),
-            tiv1(q1)[0],
-            tiv1(q1)[1], 
-            tiv1(q1)[2],
-            tiv1(q1)[3], 
-            tiv1(q1)[4],
-            tiv1(q1)[5], 
-            tiv1(q1)[6],
-            tiv1(q1)[7],   
-            tiv1(q1)[8],
-            tiv1(q1)[9], 
-            tiv1(q1)[10],
-            tiv1(q1)[11],   
+            cur_word_duration 
         ])
         return next_arr
 
