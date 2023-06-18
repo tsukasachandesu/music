@@ -150,19 +150,6 @@ class CompoundWordTransformerModel(object):
                 layer_dropout = self.dropout,
                 attn_dropout=self.dropout,  # dropout post-attention
                 ff_dropout=self.dropout,  # feedforward dropout
-            ),
-            attn_layers1=Encoder(
-                dim=self.dim,
-                depth=6,
-                heads=self.heads,
-                use_rmsnorm = True,
-                dynamic_pos_bias = True,               
-                dynamic_pos_bias_log_distance = False,  
-                ff_glu = True,
-                ff_swish = True,
-                layer_dropout = self.dropout,
-                attn_dropout=self.dropout,  # dropout post-attention
-                ff_dropout=self.dropout,  # feedforward dropout
             )
         )).to(get_device())
 
