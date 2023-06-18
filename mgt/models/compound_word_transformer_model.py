@@ -17,7 +17,7 @@ from mgt.models.utils import get_device
 
 defaults = {
     'num_tokens': [
-        18,   # Bar / Beat
+        17,   # Bar / Beat
         6913,  # Tempo
         6913,  # Instrument
         6913,   # Note name
