@@ -44,7 +44,7 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         self.net = net
         self.max_seq_len = net.max_seq_len        
         self.dic = {(i, j, k): index for index, (i, j, k) in enumerate((i, j, k) for j in range(9) for i in range(12) for k in range(64))}
-        self.inverse_dic = {v: k for k, v in dic.items()}
+        self.inverse_dic = {v: k for k, v in self.dic.items()}
         r = []
         rr = torch.tensor([]).to(get_device())
         for i in range(6912):
