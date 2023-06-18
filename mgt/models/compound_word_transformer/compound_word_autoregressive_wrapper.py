@@ -108,7 +108,7 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         proj_duration1 = torch.softmax(proj_duration, dim=0)
         ex = self.ex 
         f = proj_barbeat1[:,:,:-1].unsqueeze(-1) + proj_tempo1[:,:,:-1].unsqueeze(-1) + proj_instrument1[:,:,:-1].unsqueeze(-1) + proj_note_name1[:,:,:-1].unsqueeze(-1)+ proj_octave1[:,:,:-1].unsqueeze(-1)+proj_duration1[:,:,:-1].unsqueeze(-1)
-        f = torch.sum(temp()*f, 2)
+        f = torch.sum(self.ex()*f, 2)
         f = f / 6
         f= f.squeeze(2)
         
