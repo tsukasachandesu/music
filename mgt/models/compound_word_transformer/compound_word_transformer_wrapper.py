@@ -351,7 +351,6 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_note_name,
                 emb_octave,
                 emb_duration,
-                embs2   
             ], dim = -1)
         
         emb_linear = self.in_linear1(embs1)
