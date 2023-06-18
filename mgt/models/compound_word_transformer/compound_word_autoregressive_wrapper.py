@@ -49,9 +49,8 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         for i in range(6912):
             i_tensor = torch.tensor(self.inverse_dic[i][0]*-np.pi/6).to(get_device())
             a = torch.stack([torch.sin(i_tensor),torch.cos(i_tensor),torch.sin(2*i_tensor),torch.cos(2*i_tensor),torch.sin(3*i_tensor),torch.cos(3*i_tensor),torch.sin(4*i_tensor),torch.cos(4*i_tensor),torch.sin(5*i_tensor),torch.cos(5*i_tensor),torch.sin(6*i_tensor),torch.cos(6*i_tensor)])
-        rr = torch.cat([rr,a])
+            rr = torch.cat([rr,a])
         rr = rr.reshape(-1,12)
-        print(rr.shape)
         rr = repeat(rr, 'c b -> a c b', a = 511)
         rr = repeat(rr, 'c b d-> a c b d', a = 6)
         print(rr.shape)
@@ -109,7 +108,7 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         proj_octave1 = torch.softmax(proj_octave, dim=0)
         proj_duration1 = torch.softmax(proj_duration, dim=0)
         ex = self.ex 
-        f = proj_barbeat1[:,:,:-1].unsqueeze(-1) + proj_tempo1[:,:,:-1].unsqueeze(-1) + proj_instrument1[:,:,:-1].unsqueeze(-1) + proj_note_name1[:,:,:-1].unsqueeze(-1)+ proj_octave1[:,:,:-1].unsqueeze(-1)+proj_duration1[:,:,:-1].unsqueeze(-1)
+        f = proj_barbeat1[:,:,1:].unsqueeze(-1) + proj_tempo1[:,:,1:].unsqueeze(-1) + proj_instrument1[:,:,1:].unsqueeze(-1) + proj_note_name1[:,:,1:].unsqueeze(-1)+ proj_octave1[:,:,1:].unsqueeze(-1)+proj_duration1[:,:,1:].unsqueeze(-1)
         f = torch.sum(ex*f, 2)
         f = f / 6
         f= f.squeeze(2)
