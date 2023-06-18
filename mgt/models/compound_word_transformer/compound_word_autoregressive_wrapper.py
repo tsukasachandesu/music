@@ -34,11 +34,7 @@ def calculate_loss(predicted, target, loss_mask):
 
     return loss
 
-def temps(logits, temperature=1.0):
-    logits = logits / temperature
-    return torch.softmax(logits, dim=0)
-
-def temp(p):
+def temp():
     dic = {(i, j, k): index for index, (i, j, k) in enumerate((i, j, k) for j in range(9) for i in range(12) for k in range(64))}
     inverse_dic = {v: k for k, v in dic.items()}
     d = torch.tensor([]).to(get_device())
@@ -48,7 +44,7 @@ def temp(p):
         a = torch.stack([torch.sin(i_tensor),torch.cos(i_tensor),torch.sin(2*i_tensor),torch.cos(2*i_tensor),torch.sin(3*i_tensor),torch.cos(3*i_tensor),torch.sin(4*i_tensor),torch.cos(4*i_tensor),torch.sin(5*i_tensor),torch.cos(5*i_tensor),torch.sin(6*i_tensor),torch.cos(6*i_tensor)])
         d = torch.cat([d,a])
     d = d.reshape(-1,12)
-    d = repeat(d, 'c b -> a c b', a = p)
+    d = repeat(d, 'c b -> a d c b', a,d = 6,511)
     return d
 
 class CompoundWordAutoregressiveWrapper(nn.Module):
@@ -60,6 +56,7 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         self.ignore_index = ignore_index
         self.net = net
         self.max_seq_len = net.max_seq_len
+        self.q = temp()
 
     @torch.no_grad()
     def generate(self, prompt, output_length=100, selection_temperatures=None, selection_probability_tresholds=None):
@@ -105,21 +102,29 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         octave_loss = calculate_loss(proj_octave, target[..., 5], type_mask(target))
         duration_loss = calculate_loss(proj_duration, target[..., 6], type_mask(target))
         
-        dic = {(i, j, k): index for index, (i, j, k) in enumerate((i, j, k) for j in range(9) for i in range(12) for k in range(64))}
-        inverse_dic = {v: k for k, v in dic.items()}
-        sha = proj_barbeat.shape[0]
+        proj_barbeat1 = torch.softmax(proj_barbeat, dim=0)
+        proj_tempo1 = torch.softmax(proj_tempo, dim=0)
+        proj_instrument1 = torch.softmax(proj_instrument, dim=0)
+        proj_note_name1 = torch.softmax(proj_note_name, dim=0)
+        proj_octave1 = torch.softmax(proj_octave, dim=0)
+        proj_duration1 = torch.softmax(proj_duration, dim=0)
         
-        proj_barbeat1 = temps(proj_barbeat.reshape([1,-1,6913]))
-        proj_tempo1 = temps(proj_tempo.reshape([1,-1,6913]))
-        proj_instrument1 = temps(proj_instrument.reshape([1,-1,6913]))
-        proj_note_name1 = temps(proj_note_name.reshape([1,-1,6913]))
-        proj_octave1 = temps(proj_octave.reshape([1,-1,6913]))
-        proj_duration1 = temps(proj_duration.reshape([1,-1,6913]))
+        f = proj_barbeat1[:,:,:-1].unsqueeze(-1) + proj_tempo1[:,:,:-1].unsqueeze(-1) + proj_instrument1[:,:,:-1].unsqueeze(-1) + proj_note_name1[:,:,:-1].unsqueeze(-1)+ proj_octave1[:,:,:-1].unsqueeze(-1)+proj_duration1[:,:,:-1].unsqueeze(-1)
+        f = torch.sum(self.q*f, 1)
+        f = f / 6
         
-        e = temp(proj_barbeat1.shape[1])
-        f=proj_barbeat1[0,:,:-1].unsqueeze(-1) + proj_tempo1[0,:,:-1].unsqueeze(-1) + proj_instrument1[0,:,:-1].unsqueeze(-1) + proj_note_name1[0,:,:-1].unsqueeze(-1)+ proj_octave1[0,:,:-1].unsqueeze(-1)+proj_duration1[0,:,:-1].unsqueeze(-1)
-        f=torch.sum(e*f/6, 1)
-        f = f.reshape([sha,-1,12])
+        loss1 = calculate_loss1(f[..., 0], target[..., 11].float(), type_mask(target))
+        loss2 = calculate_loss1(f[..., 1], target[..., 12].float(), type_mask(target))
+        loss3 = calculate_loss1(f[..., 2], target[..., 13].float(), type_mask(target))
+        loss4 = calculate_loss1(f[..., 3], target[..., 14].float(), type_mask(target))
+        loss5 = calculate_loss1(f[..., 4], target[..., 15].float(), type_mask(target))
+        loss6 = calculate_loss1(f[..., 5], target[..., 16].float(), type_mask(target))
+        loss7 = calculate_loss1(f[..., 6], target[..., 17].float(), type_mask(target))
+        loss8 = calculate_loss1(f[..., 7], target[..., 18].float(), type_mask(target))
+        loss9 = calculate_loss1(f[..., 8], target[..., 19].float(), type_mask(target))
+        loss10= calculate_loss1(f[..., 9], target[..., 20].float(), type_mask(target))
+        loss11 = calculate_loss1(f[..., 10], target[..., 21].float(), type_mask(target))
+        loss12 = calculate_loss1(f[..., 11], target[..., 22].float(), type_mask(target))        
         
-        return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss, calculate_loss1(f[..., 0], target[..., 11].float(), type_mask(target))
+        return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss, loss1,loss2,loss3,loss4,loss5,loss6,loss7,loss8,loss9,loss10,loss11,loss12,
 
