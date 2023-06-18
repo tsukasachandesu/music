@@ -23,6 +23,15 @@ def calculate_loss(predicted, target, loss_mask):
 
     return loss
 
+def temps(logits, temperature=1.0):
+  logits = logits / temperature
+  return torch.softmax(logits, dim=0)
+
+def temp(i):
+  i_tensor = torch.tensor(i*-np.pi/6, requires_grad=True)
+  a = torch.stack([c_tensor * torch.sin(i_tensor),c_tensor * torch.cos(i_tensor),c_tensor * torch.sin(2*i_tensor),c_tensor * torch.cos(2*i_tensor),c_tensor * torch.sin(3*i_tensor),c_tensor * torch.cos(3*i_tensor),c_tensor * torch.sin(4*i_tensor),c_tensor * torch.cos(4*i_tensor),c_tensor * torch.sin(5*i_tensor),c_tensor * torch.cos(5*i_tensor),c_tensor * torch.sin(6*i_tensor),c_tensor * torch.cos(6*i_tensor)])
+  return a
+
 class CompoundWordAutoregressiveWrapper(nn.Module):
     def __init__(self, net: CompoundWordTransformerWrapper, ignore_index=-100, pad_value=None):
         super().__init__()
@@ -76,6 +85,18 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         note_name_loss = calculate_loss(proj_note_name, target[..., 4], type_mask(target))
         octave_loss = calculate_loss(proj_octave, target[..., 5], type_mask(target))
         duration_loss = calculate_loss(proj_duration, target[..., 6], type_mask(target))
+        
+        sha = proj_barbeat.shape[0]
+        proj_barbeat1 = temps(proj_barbeat.reshape([1,-1,6913]))
+        print(proj_barbeat1.shape)
+        d = torch.tensor([])
+        for k in proj_barbeat1.shape[1]):
+            b = torch.zeros(12)
+            for i in range(6912):
+                b = b + temp(inverse_dic[i][0]) * proj_barbeat1[1,k,i+1]
+            d = torch.cat([d,b])
+        d = d.reshape([sha,-1,12])
+        print(d)
                 
         return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss
 
