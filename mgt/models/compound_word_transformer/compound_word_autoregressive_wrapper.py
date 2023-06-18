@@ -6,7 +6,7 @@ import torch.nn.functional as F
 from mgt.models.compound_word_transformer.compound_word_transformer_utils import COMPOUND_WORD_PADDING, pad
 from mgt.models.compound_word_transformer.compound_word_transformer_wrapper import CompoundWordTransformerWrapper
 from mgt.models.utils import get_device
-
+from einops import rearrange, reduce, repeat
 
 def type_mask(target):
     return target[..., 0] != 0
@@ -38,7 +38,7 @@ def temps(logits, temperature=1.0):
     logits = logits / temperature
     return torch.softmax(logits, dim=0)
 
-def temp():
+def temp(p):
     dic = {(i, j, k): index for index, (i, j, k) in enumerate((i, j, k) for j in range(9) for i in range(12) for k in range(64))}
     inverse_dic = {v: k for k, v in dic.items()}
     d = torch.tensor([]).to(get_device())
@@ -48,6 +48,7 @@ def temp():
         a = torch.stack([torch.sin(i_tensor),torch.cos(i_tensor),torch.sin(2*i_tensor),torch.cos(2*i_tensor),torch.sin(3*i_tensor),torch.cos(3*i_tensor),torch.sin(4*i_tensor),torch.cos(4*i_tensor),torch.sin(5*i_tensor),torch.cos(5*i_tensor),torch.sin(6*i_tensor),torch.cos(6*i_tensor)])
         d = torch.cat([d,a])
     d = d.reshape(-1,12)
+    d = repeat(d, 'c b -> a c b', a = p)
     return d
 
 class CompoundWordAutoregressiveWrapper(nn.Module):
@@ -116,10 +117,9 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         proj_duration1 = temps(proj_duration.reshape([1,-1,6913]))
         
         d = torch.tensor([]).to(proj_barbeat.device)
-        e = temp()
-        for k in range(proj_barbeat1.shape[1]):
-            f = e * proj_barbeat1[0,k,:-1].unsqueeze(1) + e * proj_tempo1[0,k,:-1].unsqueeze(1) + e * proj_instrument1[0,k,:-1].unsqueeze(1) + e * proj_note_name1[0,k,:-1].unsqueeze(1) + e * proj_octave1[0,k,:-1].unsqueeze(1) +e * proj_duration1[0,k,:-1].unsqueeze(1)
-            d = torch.cat([d, torch.sum(f/6, 0)])
+        e = temp(proj_barbeat1.shape[1])
+        proj_barbeat1[0,:,:-1].unsqueeze(-1) + proj_tempo1[0,:,:-1].unsqueeze(-1) + proj_instrument1[0,:,:-1].unsqueeze(-1) + proj_note_name1[0,:,:-1].unsqueeze(-1)+ proj_octave1[0,:,:-1].unsqueeze(-1)+proj_duration1[0,:,:-1].unsqueeze(-1)
+        d = torch.cat([d, torch.sum(e*f/6, 0)])
         d = d.reshape([sha,-1,12])
         
         return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss, calculate_loss1(d[..., 0], target[..., 11].float(), type_mask(target))
