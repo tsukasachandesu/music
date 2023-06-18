@@ -34,19 +34,6 @@ def calculate_loss(predicted, target, loss_mask):
 
     return loss
 
-def temp():
-    dic = {(i, j, k): index for index, (i, j, k) in enumerate((i, j, k) for j in range(9) for i in range(12) for k in range(64))}
-    inverse_dic = {v: k for k, v in dic.items()}
-    d = torch.tensor([]).to(get_device())
-    for i in range(6912):
-        i = inverse_dic[i][0]
-        i_tensor = torch.tensor(i*-np.pi/6, requires_grad=True).to(get_device())
-        a = torch.stack([torch.sin(i_tensor),torch.cos(i_tensor),torch.sin(2*i_tensor),torch.cos(2*i_tensor),torch.sin(3*i_tensor),torch.cos(3*i_tensor),torch.sin(4*i_tensor),torch.cos(4*i_tensor),torch.sin(5*i_tensor),torch.cos(5*i_tensor),torch.sin(6*i_tensor),torch.cos(6*i_tensor)])
-        d = torch.cat([d,a])
-    d = d.reshape(-1,12)
-    d = repeat(d, 'c b -> a w c b', a= 6,w=511)
-    return d
-
 class CompoundWordAutoregressiveWrapper(nn.Module):
     def __init__(self, net: CompoundWordTransformerWrapper, ignore_index=-100, pad_value=None):
         super().__init__()
@@ -56,6 +43,18 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         self.ignore_index = ignore_index
         self.net = net
         self.max_seq_len = net.max_seq_len        
+        self.dic = {(i, j, k): index for index, (i, j, k) in enumerate((i, j, k) for j in range(9) for i in range(12) for k in range(64))}
+        self.inverse_dic = {v: k for k, v in dic.items()}
+        r = []
+        rr = torch.tensor([]).to(get_device())
+        for i in range(6912):
+            r.append(inverse_dic[i][0])
+        for i in range(6912):
+            i_tensor = torch.tensor(r[i]*-np.pi/6).to(get_device())
+            a = torch.stack([torch.sin(i_tensor),torch.cos(i_tensor),torch.sin(2*i_tensor),torch.cos(2*i_tensor),torch.sin(3*i_tensor),torch.cos(3*i_tensor),torch.sin(4*i_tensor),torch.cos(4*i_tensor),torch.sin(5*i_tensor),torch.cos(5*i_tensor),torch.sin(6*i_tensor),torch.cos(6*i_tensor)])
+        rr = torch.cat([rr,a])
+        rr = rr.reshape(-1,12)
+        self.ex = repeat(rr, 'c b -> a w c b', a = 6, w = 511)
 
     @torch.no_grad()
     def generate(self, prompt, output_length=100, selection_temperatures=None, selection_probability_tresholds=None):
@@ -107,7 +106,7 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         proj_note_name1 = torch.softmax(proj_note_name, dim=0)
         proj_octave1 = torch.softmax(proj_octave, dim=0)
         proj_duration1 = torch.softmax(proj_duration, dim=0)
-        
+        ex = self.ex 
         f = proj_barbeat1[:,:,:-1].unsqueeze(-1) + proj_tempo1[:,:,:-1].unsqueeze(-1) + proj_instrument1[:,:,:-1].unsqueeze(-1) + proj_note_name1[:,:,:-1].unsqueeze(-1)+ proj_octave1[:,:,:-1].unsqueeze(-1)+proj_duration1[:,:,:-1].unsqueeze(-1)
         f = torch.sum(temp()*f, 2)
         f = f / 6
