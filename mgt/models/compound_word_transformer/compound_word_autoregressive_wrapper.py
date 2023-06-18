@@ -28,7 +28,7 @@ def temps(logits, temperature=1.0):
   return torch.softmax(logits, dim=0)
 
 def temp(i):
-  i_tensor = torch.tensor(i*-np.pi/6, requires_grad=True).to(proj_barbeat.device)
+  i_tensor = torch.tensor(i*-np.pi/6, requires_grad=True).to(utils.get_device())
   a = torch.stack([torch.sin(i_tensor),torch.cos(i_tensor),torch.sin(2*i_tensor),torch.cos(2*i_tensor),torch.sin(3*i_tensor),torch.cos(3*i_tensor),torch.sin(4*i_tensor),torch.cos(4*i_tensor),torch.sin(5*i_tensor),torch.cos(5*i_tensor),torch.sin(6*i_tensor),torch.cos(6*i_tensor)])
   return a
 
