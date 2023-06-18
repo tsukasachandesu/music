@@ -244,8 +244,6 @@ class CompoundWordDataManager(DataManager):
                     sub = []
                     curi = 0
                     for i in ppqq:
-                        if curi % 16 == 0:
-                            sub.append([17,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
                         if i[1] == 0 and i[2] == 0 and i[3] == 0 and i[4] == 0 and i[5] == 0 and i[6] == 0:
                             a = 0
                         else:
@@ -269,14 +267,19 @@ class CompoundWordDataManager(DataManager):
         inverse_dic = {v: k for k, v in dic.items()}
         
         q = []
-        for i in data:
-            if i[0] == 17:
+        y = 0
+        for i in range(len(data)):
+            k = data[i]
+            t = data[i][0]
+            if i>0:
+                y = data[i-1][0]
+            if t < y:
                 q.append([2,0,0,0,0,0,0,0])
-            if i[0] != 17 and i[0] != 0:
+            if k[0] != 0:
                 for j in range(6):
-                    if i[j+1] != 0:
-                        q.append([2,i[0],0,0,0,0,0,0])
-                        q.append([3,i[0],0,0,*inverse_dic[int(i[j+1]-1)],31])
+                    if k[j+1] != 0:
+                        q.append([2,k[0],0,0,0,0,0,0])
+                        q.append([3,k[0],0,0,*inverse_dic[int(k[j+1]-1)],31])
 
         remi = self.compound_word_mapper.map_to_remi(q)
         return MidiToolkitWrapper(self.to_midi_mapper.to_midi(remi))
