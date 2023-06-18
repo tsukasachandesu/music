@@ -164,23 +164,22 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         ff2 = ff2.squeeze(2)
         ff2 = ff2/6
         
-        loss1 = calculate_loss1(f1[..., 0], ff1[..., 0].float(), type_mask(target)) *0.1
-        loss2 = calculate_loss1(f1[..., 1], ff1[..., 1].float(), type_mask(target)) *0.1
-        loss3 = calculate_loss1(f1[..., 2], ff1[..., 2].float(), type_mask(target)) *0.1
-        loss4 = calculate_loss1(f1[..., 3], ff1[..., 3].float(), type_mask(target)) *0.1
-        loss5 = calculate_loss1(f1[..., 4], ff1[..., 4].float(), type_mask(target)) *0.1
-        loss6 = calculate_loss1(f1[..., 5], ff1[..., 5].float(), type_mask(target)) *0.1
-        loss7 = calculate_loss1(f1[..., 6], ff1[..., 6].float(), type_mask(target)) *0.1
-        loss8 = calculate_loss1(f1[..., 7], ff1[..., 7].float(), type_mask(target)) *0.1 
-        loss9 = calculate_loss1(f1[..., 8], ff1[..., 8].float(), type_mask(target)) *0.1
-        loss10= calculate_loss1(f1[..., 9], ff1[..., 9].float(), type_mask(target)) *0.1
-        loss11 = calculate_loss1(f1[..., 10], ff1[..., 10].float(), type_mask(target)) *0.1
-        loss12 = calculate_loss1(f1[..., 11], ff1[..., 11].float(), type_mask(target))   *0.1
+        loss1 = calculate_loss1(f1[..., 0], ff1[..., 0].float(), type_mask(target)) *0.03
+        loss2 = calculate_loss1(f1[..., 1], ff1[..., 1].float(), type_mask(target)) *0.03
+        loss3 = calculate_loss1(f1[..., 2], ff1[..., 2].float(), type_mask(target)) *0.03
+        loss4 = calculate_loss1(f1[..., 3], ff1[..., 3].float(), type_mask(target)) *0.03
+        loss5 = calculate_loss1(f1[..., 4], ff1[..., 4].float(), type_mask(target)) *0.03
+        loss6 = calculate_loss1(f1[..., 5], ff1[..., 5].float(), type_mask(target)) *0.03
+        loss7 = calculate_loss1(f1[..., 6], ff1[..., 6].float(), type_mask(target)) *0.03
+        loss8 = calculate_loss1(f1[..., 7], ff1[..., 7].float(), type_mask(target)) *0.03
+        loss9 = calculate_loss1(f1[..., 8], ff1[..., 8].float(), type_mask(target)) *0.03
+        loss10= calculate_loss1(f1[..., 9], ff1[..., 9].float(), type_mask(target)) *0.03
+        loss11 = calculate_loss1(f1[..., 10], ff1[..., 10].float(), type_mask(target)) *0.03
+        loss12 = calculate_loss1(f1[..., 11], ff1[..., 11].float(), type_mask(target)) *0.03
         
-        loss13 = calculate_loss1(fff[..., 0], ff2[..., 0].float(), type_mask(target)) *0.1
-        loss14 = calculate_loss1(fff[..., 1], ff2[..., 1].float(), type_mask(target)) *0.1
-        loss15 = calculate_loss1(fff[..., 2], ff2[..., 2].float(), type_mask(target)) *0.1
-        
+        loss13 = calculate_loss1(fff[..., 0], ff2[..., 0].float(), type_mask(target)) *0.06
+        loss14 = calculate_loss1(fff[..., 1], ff2[..., 1].float(), type_mask(target)) *0.06
+        loss15 = calculate_loss1(fff[..., 2], ff2[..., 2].float(), type_mask(target)) **0.06
         
         return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss, loss1,loss2,loss3,loss4,loss5,loss6,loss7,loss8,loss9,loss10,loss11,loss12
    
