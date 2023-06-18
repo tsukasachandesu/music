@@ -100,9 +100,9 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         d = torch.tensor([]).to(proj_barbeat.device)
         e = temp()
         print(e.shape)
-        print(proj_barbeat1[0,0,:-1].shape)
+        print(proj_barbeat1[0,0,:-1].unsqueeze(1).shape)
         for k in range(proj_barbeat1.shape[1]):
-            f = e * proj_barbeat1[0,k,:-1]
+            f = e * proj_barbeat1[0,k,:-1].unsqueeze(1)
             d = torch.cat([d, torch.sum(f, 0)])
         print(d.shape)
         d = d.reshape([sha,-1,12])
