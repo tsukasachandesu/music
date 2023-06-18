@@ -116,10 +116,9 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         proj_octave1 = temps(proj_octave.reshape([1,-1,6913]))
         proj_duration1 = temps(proj_duration.reshape([1,-1,6913]))
         
-        d = torch.tensor([]).to(proj_barbeat.device)
         e = temp(proj_barbeat1.shape[1])
-        proj_barbeat1[0,:,:-1].unsqueeze(-1) + proj_tempo1[0,:,:-1].unsqueeze(-1) + proj_instrument1[0,:,:-1].unsqueeze(-1) + proj_note_name1[0,:,:-1].unsqueeze(-1)+ proj_octave1[0,:,:-1].unsqueeze(-1)+proj_duration1[0,:,:-1].unsqueeze(-1)
-        d = torch.cat([d, torch.sum(e*f/6, 0)])
+        f=proj_barbeat1[0,:,:-1].unsqueeze(-1) + proj_tempo1[0,:,:-1].unsqueeze(-1) + proj_instrument1[0,:,:-1].unsqueeze(-1) + proj_note_name1[0,:,:-1].unsqueeze(-1)+ proj_octave1[0,:,:-1].unsqueeze(-1)+proj_duration1[0,:,:-1].unsqueeze(-1)
+        f=torch.sum(e*f/6, 1)
         d = d.reshape([sha,-1,12])
         
         return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss, calculate_loss1(d[..., 0], target[..., 11].float(), type_mask(target))
