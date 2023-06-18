@@ -149,44 +149,30 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         # individual output
         self.proj_type = nn.Sequential(
-            nn.Linear(dim, dim),
-            nn.GELU(),
             nn.Linear(dim, self.num_tokens[0])
         )
         
         self.proj_barbeat = nn.Sequential(
-            nn.Linear(dim, dim),
-            nn.GELU(),
             nn.Linear(dim, self.num_tokens[1])
         )
         
         self.proj_tempo = nn.Sequential(
-            nn.Linear(dim, dim),
-            nn.GELU(),
             nn.Linear(dim, self.num_tokens[2])
         )
         
         self.proj_instrument = nn.Sequential(
-            nn.Linear(dim, dim),
-            nn.GELU(),
             nn.Linear(dim, self.num_tokens[3])
         )
         
         self.proj_note_name = nn.Sequential(
-            nn.Linear(dim, dim),
-            nn.GELU(),
             nn.Linear(dim, self.num_tokens[4])
         )
         
         self.proj_octave = nn.Sequential(
-            nn.Linear(dim, dim),
-            nn.GELU(),
             nn.Linear(dim, self.num_tokens[5])
         )
         
         self.proj_duration = nn.Sequential(
-            nn.Linear(dim, dim),
-            nn.GELU(),
             nn.Linear(dim, self.num_tokens[6])
         )
         
@@ -201,12 +187,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.project_emb = nn.Linear(emb_dim, dim) if emb_dim != dim else nn.Identity()
         
         self.attn_layers = attn_layers
-        self.attn_layers1 = attn_layers1
-        
-        self.pos_emb1 = AbsolutePositionalEmbedding(512, 32) 
-        
-        self.start_token = nn.Parameter(torch.randn(512))
-        
+         
         self.norm = nn.LayerNorm(512)
         
         self.in_linear1 = nn.Linear(512*6+96+16, 512)
@@ -398,40 +379,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         if not self.training:
             x.squeeze(0)
             
-        b, n, f = x.shape
-        if n <= 8 or n % 8 != 0:
-            padding_size = 8 - (n % 8) if n % 8 != 0 else 0
-            padding = (0, 0, 0, padding_size)
-            tensor = torch.nn.functional.pad(x, padding, "constant", 0)
-        else:
-            tensor = x
-            
-        b1, n1, f1 = tensor.shape
-        tensor = tensor.reshape(-1, 8, f)
-        b, n, f = tensor.shape
-        
-        tensor = tensor + self.pos_emb1(tensor)
-        
-        tensor= torch.cat((
-            repeat(self.start_token, 'f -> b 1 f', b = b),
-            tensor
-        ), dim = -2)    
-        
-        tensor = self.attn_layers1(tensor, mask=None, return_hiddens=False)
-        tensor = tensor[:,0,:]
-        tensor = tensor.reshape(b1, -1, f)
-        
-        tensor1 = torch.zeros(x.size(0), x.size(1), 512).to(tensor.device)
-
-        for n in range(tensor.size(1)):
-            if 8*(n+1) <= x.size(1):
-                for m in range(8):
-                    tensor1[:, n*8+m, :] = tensor[:, n, :]    
-            else:
-                for m in range(x.size(1)-n*8):
-                    tensor1[:, n*8+m, :] = tensor[:, n, :]
-                 
-        x = self.attn_layers(x, tensor1, mask=mask, return_hiddens=False, **kwargs)
+        x = self.attn_layers(x, mask=mask, return_hiddens=False, **kwargs)
         x = self.norm(x)     
   
         return x
