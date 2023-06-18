@@ -86,12 +86,10 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         for i in range(6912):
             a = torch.tensor(notes_to_ce([self.inverse_dic[i][0]])).to(get_device())
             rm = torch.cat([rm,a])
-        print(rm.shape)
         rm = rm.reshape(-1,3)
         rm = repeat(rm, 'c b -> a c b', a = 511)
         rm = repeat(rm, 'c b d-> a c b d', a = 6)
         self.ee = rm
-        print(rm.shape)
         
 
     @torch.no_grad()
@@ -148,40 +146,42 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         f = proj_barbeat1[:,:,1:].unsqueeze(-1) + proj_tempo1[:,:,1:].unsqueeze(-1) + proj_instrument1[:,:,1:].unsqueeze(-1) + proj_note_name1[:,:,1:].unsqueeze(-1)+ proj_octave1[:,:,1:].unsqueeze(-1)+proj_duration1[:,:,1:].unsqueeze(-1)
         f = torch.sum(ex*f, 2)
         f = f.squeeze(2)
+        f = f/6
 
         ff = torch.nn.functional.one_hot(x[:, 1:, 1], num_classes=6913)[:,:,1:].unsqueeze(-1)+torch.nn.functional.one_hot(x[:, 1:, 2], num_classes=6913)[:,:,1:].unsqueeze(-1)+torch.nn.functional.one_hot(x[:, 1:, 3], num_classes=6913)[:,:,1:].unsqueeze(-1)+torch.nn.functional.one_hot(x[:, 1:, 4], num_classes=6913)[:,:,1:].unsqueeze(-1)+torch.nn.functional.one_hot(x[:, 1:, 5], num_classes=6913)[:,:,1:].unsqueeze(-1)+torch.nn.functional.one_hot(x[:, 1:, 6], num_classes=6913)[:,:,1:].unsqueeze(-1)
         ff1 = torch.sum(ex*ff, 2)
         ff1 = ff1.squeeze(2)
+        ff1 = ff1/6
         
         ee = self.ee 
         fff = proj_barbeat1[:,:,1:].unsqueeze(-1) + proj_tempo1[:,:,1:].unsqueeze(-1) + proj_instrument1[:,:,1:].unsqueeze(-1) + proj_note_name1[:,:,1:].unsqueeze(-1)+ proj_octave1[:,:,1:].unsqueeze(-1)+proj_duration1[:,:,1:].unsqueeze(-1)
         fff = torch.sum(ee*fff, 2)
         fff = fff.squeeze(2)
+        fff = fff/6
         
         ff3 = torch.nn.functional.one_hot(x[:, 1:, 1], num_classes=6913)[:,:,1:].unsqueeze(-1)+torch.nn.functional.one_hot(x[:, 1:, 2], num_classes=6913)[:,:,1:].unsqueeze(-1)+torch.nn.functional.one_hot(x[:, 1:, 3], num_classes=6913)[:,:,1:].unsqueeze(-1)+torch.nn.functional.one_hot(x[:, 1:, 4], num_classes=6913)[:,:,1:].unsqueeze(-1)+torch.nn.functional.one_hot(x[:, 1:, 5], num_classes=6913)[:,:,1:].unsqueeze(-1)+torch.nn.functional.one_hot(x[:, 1:, 6], num_classes=6913)[:,:,1:].unsqueeze(-1)
         ff2 = torch.sum(ee*ff3, 2)
         ff2 = ff2.squeeze(2)
+        ff2 = ff2/6
         
-        loss1 = calculate_loss1(f[..., 0], ff1[..., 0].float(), type_mask(target))/12
-        loss2 = calculate_loss1(f[..., 1], ff1[..., 1].float(), type_mask(target))/12
-        loss3 = calculate_loss1(f[..., 2], ff1[..., 2].float(), type_mask(target))/12
-        loss4 = calculate_loss1(f[..., 3], ff1[..., 3].float(), type_mask(target))/12
-        loss5 = calculate_loss1(f[..., 4], ff1[..., 4].float(), type_mask(target))/12
-        loss6 = calculate_loss1(f[..., 5], ff1[..., 5].float(), type_mask(target))/12
-        loss7 = calculate_loss1(f[..., 6], ff1[..., 6].float(), type_mask(target))/12
-        loss8 = calculate_loss1(f[..., 7], ff1[..., 7].float(), type_mask(target))/12
-        loss9 = calculate_loss1(f[..., 8], ff1[..., 8].float(), type_mask(target))/12
-        loss10= calculate_loss1(f[..., 9], ff1[..., 9].float(), type_mask(target))/12
-        loss11 = calculate_loss1(f[..., 10], ff1[..., 10].float(), type_mask(target))/12
-        loss12 = calculate_loss1(f[..., 11], ff1[..., 11].float(), type_mask(target))/12   
+        loss1 = calculate_loss1(f[..., 0], ff1[..., 0].float(), type_mask(target))
+        loss2 = calculate_loss1(f[..., 1], ff1[..., 1].float(), type_mask(target))
+        loss3 = calculate_loss1(f[..., 2], ff1[..., 2].float(), type_mask(target))
+        loss4 = calculate_loss1(f[..., 3], ff1[..., 3].float(), type_mask(target))
+        loss5 = calculate_loss1(f[..., 4], ff1[..., 4].float(), type_mask(target))
+        loss6 = calculate_loss1(f[..., 5], ff1[..., 5].float(), type_mask(target))
+        loss7 = calculate_loss1(f[..., 6], ff1[..., 6].float(), type_mask(target))
+        loss8 = calculate_loss1(f[..., 7], ff1[..., 7].float(), type_mask(target))
+        loss9 = calculate_loss1(f[..., 8], ff1[..., 8].float(), type_mask(target))
+        loss10= calculate_loss1(f[..., 9], ff1[..., 9].float(), type_mask(target))
+        loss11 = calculate_loss1(f[..., 10], ff1[..., 10].float(), type_mask(target))
+        loss12 = calculate_loss1(f[..., 11], ff1[..., 11].float(), type_mask(target))  
         
-        loss13 = calculate_loss1(fff[..., 0], ff2[..., 0].float(), type_mask(target))/12
-        loss14 = calculate_loss1(fff[..., 1], ff2[..., 1].float(), type_mask(target))/12
-        loss15 = calculate_loss1(fff[..., 2], ff2[..., 2].float(), type_mask(target))/12
+        loss13 = calculate_loss1(fff[..., 0], ff2[..., 0].float(), type_mask(target))
+        loss14 = calculate_loss1(fff[..., 1], ff2[..., 1].float(), type_mask(target))
+        loss15 = calculate_loss1(fff[..., 2], ff2[..., 2].float(), type_mask(target))
         
-        print(loss13)
-        print(loss1)
         
-        return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss, loss1,loss2,loss3,loss4,loss5,loss6,loss7,loss8,loss9,loss10,loss11,loss12,loss13,loss14,loss15
+        return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss, loss1*0.05,loss2*0.05,loss3*0.05,loss4*0.05,loss5*0.05,loss6*0.05,loss7*0.05,loss8*0.05,loss9*0.05,loss10*0.05,loss11*0.05,loss12*0.05,loss13*0.05,loss14*0.05,loss15*0.05
    
 
