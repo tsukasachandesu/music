@@ -44,7 +44,7 @@ def temp():
         a = torch.stack([torch.sin(i_tensor),torch.cos(i_tensor),torch.sin(2*i_tensor),torch.cos(2*i_tensor),torch.sin(3*i_tensor),torch.cos(3*i_tensor),torch.sin(4*i_tensor),torch.cos(4*i_tensor),torch.sin(5*i_tensor),torch.cos(5*i_tensor),torch.sin(6*i_tensor),torch.cos(6*i_tensor)])
         d = torch.cat([d,a])
     d = d.reshape(-1,12)
-    d = repeat(d, 'c b -> a d c b', a,d = 6,511)
+    d = repeat(d, 'c b -> a w c b', a= 6,w=511)
     return d
 
 class CompoundWordAutoregressiveWrapper(nn.Module):
@@ -110,8 +110,12 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         proj_duration1 = torch.softmax(proj_duration, dim=0)
         
         f = proj_barbeat1[:,:,:-1].unsqueeze(-1) + proj_tempo1[:,:,:-1].unsqueeze(-1) + proj_instrument1[:,:,:-1].unsqueeze(-1) + proj_note_name1[:,:,:-1].unsqueeze(-1)+ proj_octave1[:,:,:-1].unsqueeze(-1)+proj_duration1[:,:,:-1].unsqueeze(-1)
-        f = torch.sum(self.q*f, 1)
+        print(f.shape)
+        f = torch.sum(self.q*f, 2)
         f = f / 6
+        print(f.shape)
+        f= f.squeeze(2)
+        print(f.shape)
         
         loss1 = calculate_loss1(f[..., 0], target[..., 11].float(), type_mask(target))
         loss2 = calculate_loss1(f[..., 1], target[..., 12].float(), type_mask(target))
