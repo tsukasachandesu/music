@@ -145,7 +145,7 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         
         ex = self.ex 
         f = proj_barbeat1[:,:,1:].unsqueeze(-1) + proj_tempo1[:,:,1:].unsqueeze(-1) + proj_instrument1[:,:,1:].unsqueeze(-1) + proj_note_name1[:,:,1:].unsqueeze(-1)+ proj_octave1[:,:,1:].unsqueeze(-1)+proj_duration1[:,:,1:].unsqueeze(-1)
-        f1 = torch.sum(ex*f1, 2)
+        f1 = torch.sum(ex*f, 2)
         f1 = f1.squeeze(2)
         f1 = f1/6
 
