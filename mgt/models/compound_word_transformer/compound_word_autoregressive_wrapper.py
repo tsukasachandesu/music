@@ -53,7 +53,6 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         rr = rr.reshape(-1,12)
         rr = repeat(rr, 'c b -> a c b', a = 511)
         rr = repeat(rr, 'c b d-> a c b d', a = 6)
-        print(rr.shape)
         self.ex = rr
         
 
@@ -111,20 +110,25 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         f = proj_barbeat1[:,:,1:].unsqueeze(-1) + proj_tempo1[:,:,1:].unsqueeze(-1) + proj_instrument1[:,:,1:].unsqueeze(-1) + proj_note_name1[:,:,1:].unsqueeze(-1)+ proj_octave1[:,:,1:].unsqueeze(-1)+proj_duration1[:,:,1:].unsqueeze(-1)
         f = torch.sum(ex*f, 2)
         f = f / 6
-        f= f.squeeze(2)
+        f = f.squeeze(2)
+
+        ff = torch.nn.functional.one_hot(x[:, 1:, 1], num_classes=6913)[:,:,1:].unsqueeze(-1)+torch.nn.functional.one_hot(x[:, 1:, 2], num_classes=6913)[:,:,1:].unsqueeze(-1)+torch.nn.functional.one_hot(x[:, 1:, 3], num_classes=6913)[:,:,1:].unsqueeze(-1)+torch.nn.functional.one_hot(x[:, 1:, 4], num_classes=6913)[:,:,1:].unsqueeze(-1)+torch.nn.functional.one_hot(x[:, 1:, 5], num_classes=6913)[:,:,1:].unsqueeze(-1)+torch.nn.functional.one_hot(x[:, 1:, 6], num_classes=6913)[:,:,1:].unsqueeze(-1)
+        ff = torch.sum(ex*ff, 2)
+        ff = ff / 6
+        ff = ff.squeeze(2)
         
-        loss1 = calculate_loss1(f[..., 0], target[..., 11].float(), type_mask(target))
-        loss2 = calculate_loss1(f[..., 1], target[..., 12].float(), type_mask(target))
-        loss3 = calculate_loss1(f[..., 2], target[..., 13].float(), type_mask(target))
-        loss4 = calculate_loss1(f[..., 3], target[..., 14].float(), type_mask(target))
-        loss5 = calculate_loss1(f[..., 4], target[..., 15].float(), type_mask(target))
-        loss6 = calculate_loss1(f[..., 5], target[..., 16].float(), type_mask(target))
-        loss7 = calculate_loss1(f[..., 6], target[..., 17].float(), type_mask(target))
-        loss8 = calculate_loss1(f[..., 7], target[..., 18].float(), type_mask(target))
-        loss9 = calculate_loss1(f[..., 8], target[..., 19].float(), type_mask(target))
-        loss10= calculate_loss1(f[..., 9], target[..., 20].float(), type_mask(target))
-        loss11 = calculate_loss1(f[..., 10], target[..., 21].float(), type_mask(target))
-        loss12 = calculate_loss1(f[..., 11], target[..., 22].float(), type_mask(target))        
+        loss1 = calculate_loss1(f[..., 0], ff[..., 0].float(), type_mask(target))
+        loss2 = calculate_loss1(f[..., 1], ff[..., 1].float(), type_mask(target))
+        loss3 = calculate_loss1(f[..., 2], ff[..., 2].float(), type_mask(target))
+        loss4 = calculate_loss1(f[..., 3], ff[..., 3].float(), type_mask(target))
+        loss5 = calculate_loss1(f[..., 4], ff[..., 4].float(), type_mask(target))
+        loss6 = calculate_loss1(f[..., 5], ff[..., 5].float(), type_mask(target))
+        loss7 = calculate_loss1(f[..., 6], ff[..., 6].float(), type_mask(target))
+        loss8 = calculate_loss1(f[..., 7], ff[..., 7].float(), type_mask(target))
+        loss9 = calculate_loss1(f[..., 8], ff[..., 8].float(), type_mask(target))
+        loss10= calculate_loss1(f[..., 9], ff[..., 9].float(), type_mask(target))
+        loss11 = calculate_loss1(f[..., 10], ff[..., 10].float(), type_mask(target))
+        loss12 = calculate_loss1(f[..., 11], ff[..., 11].float(), type_mask(target))        
         
         return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss, loss1,loss2,loss3,loss4,loss5,loss6,loss7,loss8,loss9,loss10,loss11,loss12,
 
