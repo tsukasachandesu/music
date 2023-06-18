@@ -82,14 +82,14 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         rr = repeat(rr, 'c b d-> a c b d', a = 6)
         self.ex = rr
                 
-        rr = torch.tensor([]).to(get_device())
+        rm = torch.tensor([]).to(get_device())
         for i in range(6912):
             a = torch.tensor(notes_to_ce([self.inverse_dic[i][0]])).to(get_device())
-            rr = torch.cat([rr,a])
-        rr = rr.reshape(-1,3)
-        rr = repeat(rr, 'c b -> a c b', a = 511)
-        rr = repeat(rr, 'c b d-> a c b d', a = 6)
-        self.ee = rr
+            rm = torch.cat([rr,a])
+        rm = rm.reshape(-1,3)
+        rm = repeat(rm, 'c b -> a c b', a = 511)
+        rm = repeat(rm, 'c b d-> a c b d', a = 6)
+        self.ee = rm
         
 
     @torch.no_grad()
@@ -155,11 +155,12 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         fff = proj_barbeat1[:,:,1:].unsqueeze(-1) + proj_tempo1[:,:,1:].unsqueeze(-1) + proj_instrument1[:,:,1:].unsqueeze(-1) + proj_note_name1[:,:,1:].unsqueeze(-1)+ proj_octave1[:,:,1:].unsqueeze(-1)+proj_duration1[:,:,1:].unsqueeze(-1)
         fff = torch.sum(ee*fff, 2)
         fff = fff.squeeze(2)
-
-        ff2 = torch.sum(ee*ff, 2)
+        
+        ff3 = torch.nn.functional.one_hot(x[:, 1:, 1], num_classes=6913)[:,:,1:].unsqueeze(-1)+torch.nn.functional.one_hot(x[:, 1:, 2], num_classes=6913)[:,:,1:].unsqueeze(-1)+torch.nn.functional.one_hot(x[:, 1:, 3], num_classes=6913)[:,:,1:].unsqueeze(-1)+torch.nn.functional.one_hot(x[:, 1:, 4], num_classes=6913)[:,:,1:].unsqueeze(-1)+torch.nn.functional.one_hot(x[:, 1:, 5], num_classes=6913)[:,:,1:].unsqueeze(-1)+torch.nn.functional.one_hot(x[:, 1:, 6], num_classes=6913)[:,:,1:].unsqueeze(-1)
+        ff2 = torch.sum(ee*ff3, 2)
         ff2 = ff2.squeeze(2)
         
-        loss1 = calculate_loss1(f[..., 0], ff1[..., 0].float(), type_mask(target)) /12
+        loss1 = calculate_loss1(f[..., 0], ff1[..., 0].float(), type_mask(target))/12
         loss2 = calculate_loss1(f[..., 1], ff1[..., 1].float(), type_mask(target))/12
         loss3 = calculate_loss1(f[..., 2], ff1[..., 2].float(), type_mask(target))/12
         loss4 = calculate_loss1(f[..., 3], ff1[..., 3].float(), type_mask(target))/12
@@ -175,6 +176,9 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         loss13 = calculate_loss1(fff[..., 0], ff2[..., 0].float(), type_mask(target))/12
         loss14 = calculate_loss1(fff[..., 1], ff2[..., 1].float(), type_mask(target))/12
         loss15 = calculate_loss1(fff[..., 2], ff2[..., 2].float(), type_mask(target))/12
+        
+        print(loss13)
+        print(loss1)
         
         return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss, loss1,loss2,loss3,loss4,loss5,loss6,loss7,loss8,loss9,loss10,loss11,loss12,loss13,loss14,loss15
    
