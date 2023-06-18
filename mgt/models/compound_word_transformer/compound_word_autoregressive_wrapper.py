@@ -55,8 +55,7 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         self.pad_value = pad_value
         self.ignore_index = ignore_index
         self.net = net
-        self.max_seq_len = net.max_seq_len
-        self.q = temp()
+        self.max_seq_len = net.max_seq_len        
 
     @torch.no_grad()
     def generate(self, prompt, output_length=100, selection_temperatures=None, selection_probability_tresholds=None):
@@ -110,12 +109,9 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         proj_duration1 = torch.softmax(proj_duration, dim=0)
         
         f = proj_barbeat1[:,:,:-1].unsqueeze(-1) + proj_tempo1[:,:,:-1].unsqueeze(-1) + proj_instrument1[:,:,:-1].unsqueeze(-1) + proj_note_name1[:,:,:-1].unsqueeze(-1)+ proj_octave1[:,:,:-1].unsqueeze(-1)+proj_duration1[:,:,:-1].unsqueeze(-1)
-        print(f.shape)
-        f = torch.sum(self.q*f, 2)
+        f = torch.sum(temp()*f, 2)
         f = f / 6
-        print(f.shape)
         f= f.squeeze(2)
-        print(f.shape)
         
         loss1 = calculate_loss1(f[..., 0], target[..., 11].float(), type_mask(target))
         loss2 = calculate_loss1(f[..., 1], target[..., 12].float(), type_mask(target))
