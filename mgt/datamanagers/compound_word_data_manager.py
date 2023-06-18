@@ -192,7 +192,7 @@ class CompoundWordDataManager(DataManager):
                         if i[6] == 6914:
                             i[6] = 6913
 
-                    print(f'Extracted {len(sub)} compound words.') 
+                    print(f'Extracted {len(ppqq)} compound words.') 
                     
                     training_data.append(ppqq)
                 except Exception as e:
