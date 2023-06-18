@@ -45,18 +45,18 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         self.max_seq_len = net.max_seq_len        
         self.dic = {(i, j, k): index for index, (i, j, k) in enumerate((i, j, k) for j in range(9) for i in range(12) for k in range(64))}
         self.inverse_dic = {v: k for k, v in self.dic.items()}
-        r = []
         rr = torch.tensor([]).to(get_device())
         for i in range(6912):
-            r.append(self.inverse_dic[i][0])
-        for i in range(6912):
-            i_tensor = torch.tensor(r[i]*-np.pi/6).to(get_device())
+            i_tensor = torch.tensor(self.inverse_dic[i][0]*-np.pi/6).to(get_device())
             a = torch.stack([torch.sin(i_tensor),torch.cos(i_tensor),torch.sin(2*i_tensor),torch.cos(2*i_tensor),torch.sin(3*i_tensor),torch.cos(3*i_tensor),torch.sin(4*i_tensor),torch.cos(4*i_tensor),torch.sin(5*i_tensor),torch.cos(5*i_tensor),torch.sin(6*i_tensor),torch.cos(6*i_tensor)])
         rr = torch.cat([rr,a])
         rr = rr.reshape(-1,12)
-        rr = repeat(rr, 'c b -> a w c b', a = 6, w = 511)
-        self.ex = rr
         print(rr.shape)
+        rr = repeat(rr, 'c b -> a c b', a = 511)
+        rr = repeat(rr, 'c b d-> a c b d', a = 6)
+        print(rr.shape)
+        self.ex = rr
+        
 
     @torch.no_grad()
     def generate(self, prompt, output_length=100, selection_temperatures=None, selection_probability_tresholds=None):
