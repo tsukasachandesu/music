@@ -190,7 +190,8 @@ class CompoundWordTransformerWrapper(nn.Module):
          
         self.norm = nn.LayerNorm(512)
         
-        self.in_linear1 = nn.Linear(512*6+96+16, 512)
+        self.in_linear1 = nn.Linear(512*6+96+96, 512)
+        self.in_linear2 = nn.Linear(16, 96)
                
         self.init_()
 
@@ -342,15 +343,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_octave = self.word_emb_octave(x[..., 5])
         emb_duration = self.word_emb_duration(x[..., 6])
         
-        embs1 = torch.cat(
+        embs2 = torch.cat(
             [
-                emb_type,
-                emb_barbeat,
-                emb_tempo,
-                emb_instrument,
-                emb_note_name,
-                emb_octave,
-                emb_duration,
                 x[..., 7].unsqueeze(-1).to(torch.float32),
                 x[..., 8].unsqueeze(-1).to(torch.float32),
                 x[..., 9].unsqueeze(-1).to(torch.float32),
@@ -367,7 +361,20 @@ class CompoundWordTransformerWrapper(nn.Module):
                 x[..., 20].unsqueeze(-1).to(torch.float32),
                 x[..., 21].unsqueeze(-1).to(torch.float32),
                 x[..., 22].unsqueeze(-1).to(torch.float32),      
-                
+            ], dim = -1)
+        
+        embs2 = self.in_linear2(embs2)
+        
+        embs1 = torch.cat(
+            [
+                emb_type,
+                emb_barbeat,
+                emb_tempo,
+                emb_instrument,
+                emb_note_name,
+                emb_octave,
+                emb_duration,
+                embs2   
             ], dim = -1)
         
         emb_linear = self.in_linear1(embs1)
