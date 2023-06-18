@@ -210,7 +210,7 @@ class CompoundWordDataManager(DataManager):
         q = []
         for i in data:
             for j in range(6):
-                if i[j+1] != 0:
+                if i[j+1] != 0 and i[j+1] != 6913:
                     q.append([2,i[0],0,0,0,0,0,0])
                     q.append([3,i[0],0,0,*inverse_dic[int(i[j+1]-1)],31])
             if i[0] == 16:
