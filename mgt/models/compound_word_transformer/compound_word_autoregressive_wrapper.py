@@ -48,7 +48,7 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         r = []
         rr = torch.tensor([]).to(get_device())
         for i in range(6912):
-            r.append(inverse_dic[i][0])
+            r.append(self.inverse_dic[i][0])
         for i in range(6912):
             i_tensor = torch.tensor(r[i]*-np.pi/6).to(get_device())
             a = torch.stack([torch.sin(i_tensor),torch.cos(i_tensor),torch.sin(2*i_tensor),torch.cos(2*i_tensor),torch.sin(3*i_tensor),torch.cos(3*i_tensor),torch.sin(4*i_tensor),torch.cos(4*i_tensor),torch.sin(5*i_tensor),torch.cos(5*i_tensor),torch.sin(6*i_tensor),torch.cos(6*i_tensor)])
