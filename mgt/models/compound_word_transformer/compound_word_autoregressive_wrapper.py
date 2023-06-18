@@ -182,6 +182,6 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         loss15 = calculate_loss1(fff[..., 2], ff2[..., 2].float(), type_mask(target))
         
         
-        return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss, loss1*0.05,loss2*0.05,loss3*0.05,loss4*0.05,loss5*0.05,loss6*0.05,loss7*0.05,loss8*0.05,loss9*0.05,loss10*0.05,loss11*0.05,loss12*0.05,loss13*0.05,loss14*0.05,loss15*0.05
+        return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss, loss1*0.05,loss2*0.05,loss3*0.05,loss4*0.05,loss5*0.05,loss6*0.05,loss7*0.05,loss8*0.05,loss9*0.05,loss10*0.05,loss11*0.05,loss12*0.05
    
 
