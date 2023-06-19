@@ -317,6 +317,10 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         emb_linear = self.in_linear1(embs1)
         
+        emb = torch.empty(0)
+        for i in emb_linear.shape[1]:
+            emb = torch.stack([emb, emb_linear[:,i:i+16,:]])
+        
         x = emb_linear + self.pos_emb(emb_linear)
         x = self.emb_dropout(x)
         x = self.project_emb(x)
