@@ -6,10 +6,9 @@ import numpy as np
 import torch
 from torch import nn
 from x_transformers.x_transformers import AttentionLayers, default, AbsolutePositionalEmbedding, always
-
 from mgt.models.compound_word_transformer.compound_transformer_embeddings import CompoundTransformerEmbeddings
 from mgt.models.utils import get_device
-from einops import rearrange, repeat
+from torch.nn.functional import pad
 import itertools
 import math
 from einops import rearrange, reduce, repeat
@@ -307,6 +306,12 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_duration,
             ], dim = -1)
         
+        b, n, f = embs1.shape
+        if n <= 16 or n % 16 != 0:
+            padding_size = 16 - (n % 16) if n % 16 != 0 else 0
+            padding = (0, 0, 0, padding_size)
+            embs1 = pad(embs1, padding, "constant", 0)
+        
         emb_linear = self.in_linear1(embs1)
         
         emb2 = emb_linear.reshape(:,-1,512*16)
@@ -334,5 +339,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb3 = self.emb_dropout(emb3)
         emb3 = self.attn_layers1(emb3, mask=None, return_hiddens=False)
         emb3 = self.norm(emb3)
+        emb3 = emb3.reshape(b,-1,:)
   
         return emb3
