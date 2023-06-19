@@ -288,14 +288,6 @@ class CompoundWordTransformerWrapper(nn.Module):
             **kwargs
     ):
         
-        mask = x[..., 0].bool()
-        rand = torch.randn(x[..., 0].shape, device = x.device)
-        rand[:, 0] = -torch.finfo(rand.dtype).max 
-        num_mask = min(int(x[..., 0].shape[1] * 0.15), x[..., 0].shape[1] - 1)
-        indices = rand.topk(num_mask, dim = -1).indices   
-        maski = ~torch.zeros_like(x[..., 0]).scatter(1, indices, 1.).bool()
-        kwargs.update(self_attn_context_mask = maski)
-        
         emb_type = self.word_emb_type(x[..., 0])
         emb_barbeat = self.word_emb_barbeat(x[..., 1])
         emb_tempo = self.word_emb_tempo(x[..., 2])
@@ -317,18 +309,30 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         emb_linear = self.in_linear1(embs1)
         
-        emb = torch.empty(0)
-        for i in emb_linear.shape[1]:
-            emb = torch.stack([emb, emb_linear[:,i:i+16,:]])
+        emb2 = emb_linear.reshape(:,-1,512*16)
+        emb2 = self.in_linear2(emb2)
         
-        x = emb_linear + self.pos_emb(emb_linear)
+        x = emb2 + self.pos_emb(emb2)
         x = self.emb_dropout(x)
         x = self.project_emb(x)
 
         if not self.training:
             x.squeeze(0)
             
-        x = self.attn_layers(x, mask=mask, return_hiddens=False, **kwargs)
-        x = self.norm(x)     
+        x = self.attn_layers(x, mask=None, return_hiddens=False)
+        x = self.norm(x)
+        x = x.reshape(-1,1,:)
+        
+        emb3 = emb_linear.reshape(-1,16,512)
+        embs3 = torch.cat(
+            [
+                x,
+                emb3
+            ], dim = 1)
+        
+        emb3 = emb3 + self.pos_emb1(emb3)
+        emb3 = self.emb_dropout(emb3)
+        emb3 = self.attn_layers1(emb3, mask=None, return_hiddens=False)
+        emb3 = self.norm(emb3)
   
-        return x
+        return emb3
