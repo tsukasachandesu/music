@@ -110,7 +110,6 @@ class CompoundWordTransformerWrapper(nn.Module):
             num_tokens,
             max_seq_len,
             attn_layers,
-            attn_layers1,
             attn_layers2,
             emb_dim=None,
             emb_dropout=0.,
@@ -189,13 +188,11 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.project_emb = nn.Linear(emb_dim, dim) if emb_dim != dim else nn.Identity()
         
         self.attn_layers = attn_layers
-        self.attn_layers1 = attn_layers1
         self.attn_layers2 = attn_layers2
          
         self.norm = nn.LayerNorm(512)
         
-        self.in_linear1 = nn.Linear(512*7, 512)
-        self.in_linear2 = nn.Linear(512*16*7, 512)
+        self.in_linear2 = nn.Linear(512*7*16, 512)
                
         self.init_()
 
@@ -321,17 +318,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_linear = F.pad(emb_linear, (0, 0, window_size - 1, 0), mode='constant', value=0)
         emb_linear = emb_linear.unfold(1,16,1)
         emb_linear = torch.permute(emb_linear, (0,1,3,2))        
-        emb_linear = emb_linear.reshape(-1,1,16,512*7)
-        emb_linear = emb_linear.squeeze(1)
-        emb_linear = emb_linear.reshape(-1,16*7,512)
-
-        emb_linear = emb_linear + self.pos_emb1(emb_linear)
-
-        emb_linear = self.attn_layers1(emb_linear, mask=None, return_hiddens=False)
-        emb_linear = emb_linear.reshape(-1,1,512*16*7)
-        x = self.in_linear2(emb_linear)
-        x = x.reshape(z[0],z[1],512)
-        
+        emb_linear = emb_linear.reshape(-1,-1,1,512*7*16)
+        emb_linear = emb_linear.squeeze(2)
+        x = self.in_linear2(emb_linear)        
         x = x + self.pos_emb(x)
         x = self.project_emb(x)
 
@@ -351,7 +340,9 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_octave.reshape(-1,1,512),
                 emb_duration.reshape(-1,1,512),
             ], dim = 1)
+        
         x = x + self.pos_emb2(x)
+        
         x = self.attn_layers2(x, mask=None, return_hiddens=False)
         
         x = x.reshape(-1,1,512*8)
