@@ -148,31 +148,31 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         # individual output
         self.proj_type = nn.Sequential(
-            nn.Linear(dim*8, self.num_tokens[0])
+            nn.Linear(dim*16, self.num_tokens[0])
         )
         
         self.proj_barbeat = nn.Sequential(
-            nn.Linear(dim*8, self.num_tokens[1])
+            nn.Linear(dim*16, self.num_tokens[1])
         )
         
         self.proj_tempo = nn.Sequential(
-            nn.Linear(dim*8, self.num_tokens[2])
+            nn.Linear(dim*16, self.num_tokens[2])
         )
         
         self.proj_instrument = nn.Sequential(
-            nn.Linear(dim*8, self.num_tokens[3])
+            nn.Linear(dim*16, self.num_tokens[3])
         )
         
         self.proj_note_name = nn.Sequential(
-            nn.Linear(dim*8, self.num_tokens[4])
+            nn.Linear(dim*16, self.num_tokens[4])
         )
         
         self.proj_octave = nn.Sequential(
-            nn.Linear(dim*8, self.num_tokens[5])
+            nn.Linear(dim*16, self.num_tokens[5])
         )
         
         self.proj_duration = nn.Sequential(
-            nn.Linear(dim*8, self.num_tokens[6])
+            nn.Linear(dim*16, self.num_tokens[6])
         )
         
         # in_features is equal to dimension plus dimensions of the type embedding
@@ -180,7 +180,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.compound_word_embedding_size = np.sum(emb_sizes)
 
         self.pos_emb = AbsolutePositionalEmbedding(512, max_seq_len) 
-        self.pos_emb2 = AbsolutePositionalEmbedding(512, 8)
+        self.pos_emb2 = AbsolutePositionalEmbedding(512, 16)
         
         self.emb_dropout = nn.Dropout(emb_dropout)
 
@@ -339,12 +339,19 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_octave.reshape(-1,1,512),
                 emb_duration.reshape(-1,1,512),
             ], dim = 1)
+
+        window_size = 2
+        emb_linear = F.pad(x, (0, 0, window_size - 1, 0), mode='constant', value=0)
+        emb_linear = emb_linear.unfold(1,2,1)
+        emb_linear = torch.permute(emb_linear, (0,1,3,2))  
+        emb_linear = emb_linear.reshape(-1,1,16,512)
+        emb_linear = emb_linear.squeeze(1)
         
         x = x + self.pos_emb2(x)
         
         x = self.attn_layers2(x, mask=None, return_hiddens=False)
         
-        x = x.reshape(-1,1,512*8)
-        x = x.reshape(z[0],z[1],512*8)
+        x = x.reshape(-1,1,512*16)
+        x = x.reshape(z[0],z[1],512*16)
         
         return x
