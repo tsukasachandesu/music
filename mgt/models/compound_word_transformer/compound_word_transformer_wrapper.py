@@ -317,16 +317,15 @@ class CompoundWordTransformerWrapper(nn.Module):
         window_size = 16
         padded_tensor = F.pad(emb_linear, (0, 0, window_size - 1, 0), mode='constant', value=0)
         unfolded_tensor = padded_tensor.unfold(1,16,1)
-        unfolded_tensor = torch.permute(unfolded_tensor, (0,1,3,2))
-        print(unfolded_tensor.shape)
-        
+        unfolded_tensor = torch.permute(unfolded_tensor, (0,1,3,2))        
         unfolded_tensor = unfolded_tensor.reshape(-1,1,16,512)
         unfolded_tensor = unfolded_tensor.squeeze(1)
 
         unfolded_tensor = unfolded_tensor + self.pos_emb1(unfolded_tensor)
         unfolded_tensor = self.attn_layers1(unfolded_tensor, mask=None, return_hiddens=False)
+        unfolded_tensor = unfolded_tensor.reshape(:,1,512*16)
         x = self.in_linear2(unfolded_tensor)
-        x = x.reshape(z[0],z[1],z[2])
+        x = x.reshape(z[0],z[1],512)
         
         x = x + self.pos_emb(x)
         x = self.emb_dropout(x)
