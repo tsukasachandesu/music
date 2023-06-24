@@ -315,7 +315,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         
 
         z = embs1.shape
-
         emb_linear = embs1
         
         window_size = 16
@@ -324,9 +323,10 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_linear = torch.permute(emb_linear, (0,1,3,2))        
         emb_linear = emb_linear.reshape(-1,1,16,512*7)
         emb_linear = emb_linear.squeeze(1)
-        emb_linear = emb_linear.reshape(-1,1,16*7,512)
+        emb_linear = emb_linear.reshape(-1,16*7,512)
 
         emb_linear = emb_linear + self.pos_emb1(emb_linear)
+
         emb_linear = self.attn_layers1(emb_linear, mask=None, return_hiddens=False)
         emb_linear = self.norm(emb_linear)
         emb_linear = emb_linear.reshape(-1,1,512*16*7)
