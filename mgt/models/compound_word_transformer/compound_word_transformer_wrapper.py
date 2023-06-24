@@ -8,7 +8,7 @@ from torch import nn
 from x_transformers.x_transformers import AttentionLayers, default, AbsolutePositionalEmbedding, always
 from mgt.models.compound_word_transformer.compound_transformer_embeddings import CompoundTransformerEmbeddings
 from mgt.models.utils import get_device
-from torch.nn.functional import pad
+import torch.nn.functional as F
 import itertools
 import math
 from einops import rearrange, reduce, repeat
@@ -189,6 +189,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.norm = nn.LayerNorm(512)
         
         self.in_linear1 = nn.Linear(512*6+96, 512)
+
+        self.in_linear2 = nn.Linear(512*16, 512)
                
         self.init_()
 
@@ -306,26 +308,28 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_duration,
             ], dim = -1)
         
-        b, n, f = embs1.shape
-        if n <= 16 or n % 16 != 0:
-            padding_size = 16 - (n % 16) if n % 16 != 0 else 0
-            padding = (0, 0, 0, padding_size)
-            embs1 = pad(embs1, padding, "constant", 0)
-        
         emb_linear = self.in_linear1(embs1)
         
-        emb2 = emb_linear.reshape(:,-1,512*16)
-        emb2 = self.in_linear2(emb2)
+        window_size = 16
+        padded_tensor = F.pad(emb_linear, (0, 0, window_size - 1, 0), mode='constant', value=0)
+        unfolded_tensor = padded_tensor.unfold(1,3,1)
+        unfolded_tensor = unfolded_tensor.reshape(:,:,512*16)
+        
+        emb2 = self.in_linear2(unfolded_tensor)
         
         x = emb2 + self.pos_emb(emb2)
+        
         x = self.emb_dropout(x)
+        
         x = self.project_emb(x)
 
         if not self.training:
             x.squeeze(0)
             
         x = self.attn_layers(x, mask=None, return_hiddens=False)
+        
         x = self.norm(x)
+        
         x = x.reshape(-1,1,:)
         
         emb3 = emb_linear.reshape(-1,16,512)
