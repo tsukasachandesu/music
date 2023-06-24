@@ -316,8 +316,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         window_size = 16
         emb_linear = F.pad(emb_linear, (0, 0, window_size - 1, 0), mode='constant', value=0)
         emb_linear = emb_linear.unfold(1,16,1)
-        emb_linear = torch.permute(emb_linear, (0,1,3,2))        
-        emb_linear = emb_linear.reshape(-1,-1,1,512*7*16)
+        emb_linear = torch.permute(emb_linear, (0,1,3,2))  
+        emb_linear = emb_linear.reshape(z[0],z[1],1,512*7*16)
         emb_linear = emb_linear.squeeze(2)
         x = self.in_linear2(emb_linear)        
         x = x + self.pos_emb(x)
