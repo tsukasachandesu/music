@@ -111,6 +111,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             max_seq_len,
             attn_layers,
             attn_layers1,
+            attn_layers2,
             emb_dim=None,
             emb_dropout=0.,
             use_pos_emb=True,
@@ -121,7 +122,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         if emb_sizes is None:
             emb_sizes = [
-                96,  # Bar / Beat
+                512,  # Bar / Beat
                 512,  # Tempo
                 512,  # Instrument
                 512,  # Note Name
@@ -148,31 +149,31 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         # individual output
         self.proj_type = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[0])
+            nn.Linear(dim*8, self.num_tokens[0])
         )
         
         self.proj_barbeat = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[1])
+            nn.Linear(dim*8, self.num_tokens[1])
         )
         
         self.proj_tempo = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[2])
+            nn.Linear(dim*8, self.num_tokens[2])
         )
         
         self.proj_instrument = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[3])
+            nn.Linear(dim*8, self.num_tokens[3])
         )
         
         self.proj_note_name = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[4])
+            nn.Linear(dim*8, self.num_tokens[4])
         )
         
         self.proj_octave = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[5])
+            nn.Linear(dim*8, self.num_tokens[5])
         )
         
         self.proj_duration = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[6])
+            nn.Linear(dim*8, self.num_tokens[6])
         )
         
         # in_features is equal to dimension plus dimensions of the type embedding
@@ -188,10 +189,11 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         self.attn_layers = attn_layers
         self.attn_layers1 = attn_layers1
+        self.attn_layers2 = attn_layers2
          
         self.norm = nn.LayerNorm(512)
         
-        self.in_linear1 = nn.Linear(512*6+96, 512)
+        self.in_linear1 = nn.Linear(512*7, 512)
         self.in_linear2 = nn.Linear(512*16, 512)
                
         self.init_()
@@ -323,6 +325,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         emb_linear = emb_linear + self.pos_emb1(emb_linear)
         emb_linear = self.attn_layers1(emb_linear, mask=None, return_hiddens=False)
+        emb_linear = self.norm(emb_linear)
         emb_linear = emb_linear.reshape(-1,1,512*16)
         x = self.in_linear2(emb_linear)
         x = x.reshape(z[0],z[1],512)
@@ -335,6 +338,21 @@ class CompoundWordTransformerWrapper(nn.Module):
             x.squeeze(0)
             
         x = self.attn_layers(x, mask=None, return_hiddens=False)
+        x = self.norm(x)
+
+        x = torch.cat(
+            [
+                x.reshape(-1,1,512),
+                emb_type.reshape(-1,1,512),
+                emb_barbeat.reshape(-1,1,512),
+                emb_tempo.reshape(-1,1,512),
+                emb_instrument.reshape(-1,1,512),
+                emb_note_name.reshape(-1,1,512),
+                emb_octave.reshape(-1,1,512),
+                emb_duration.reshape(-1,1,512),
+            ], dim = 1)
+
+        x = self.attn_layers2(x, mask=None, return_hiddens=False)
         x = self.norm(x)
 
         return x
