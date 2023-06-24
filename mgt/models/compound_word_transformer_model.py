@@ -26,7 +26,7 @@ defaults = {
         6914,# Duration
     ],
     'emb_sizes': [
-        96,   # Bar / Beat
+        512,   # Bar / Beat
         512,  # Tempo
         512,  # Instrument
         512,  # Note Name
