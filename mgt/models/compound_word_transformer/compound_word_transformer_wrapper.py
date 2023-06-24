@@ -323,7 +323,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         unfolded_tensor = unfolded_tensor + self.pos_emb1(unfolded_tensor)
         unfolded_tensor = self.attn_layers1(unfolded_tensor, mask=None, return_hiddens=False)
-        unfolded_tensor = unfolded_tensor.reshape(:,1,512*16)
+        unfolded_tensor = unfolded_tensor.reshape(-1,1,512*16)
         x = self.in_linear2(unfolded_tensor)
         x = x.reshape(z[0],z[1],512)
         
