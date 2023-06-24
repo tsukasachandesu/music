@@ -356,6 +356,5 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         x = x.reshape(-1,1,512*8)
         x = x.reshape(z[0],z[1],512*8)
-        x = self.norm(x)
-
+        
         return x
