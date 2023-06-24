@@ -153,7 +153,7 @@ class CompoundWordTransformerModel(object):
             ),
             attn_layers1=Encoder(
                 dim=512,
-                depth=4,
+                depth=2,
                 heads=8,
                 ff_glu = True,
                 ff_swish = True,
@@ -165,7 +165,7 @@ class CompoundWordTransformerModel(object):
             ),
             attn_layers2=Encoder(
                 dim=512,
-                depth=4,
+                depth=2,
                 heads=8,
                 ff_glu = True,
                 ff_swish = True,
