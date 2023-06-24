@@ -352,7 +352,7 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_octave.reshape(-1,1,512),
                 emb_duration.reshape(-1,1,512),
             ], dim = 1)
-        x = x + self.pos_emb3(x)
+        x = x + self.pos_emb2(x)
         x = self.attn_layers2(x, mask=None, return_hiddens=False)
         x = self.norm(x)
         x = x.reshape(-1,1,512*8)
