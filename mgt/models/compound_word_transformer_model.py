@@ -173,7 +173,7 @@ class CompoundWordTransformerModel(object):
                 rel_pos_bias = True,
                 layer_dropout = self.dropout,
                 attn_dropout=self.dropout,  # dropout post-attention
-                ff_dropout=self.dropout,  # feedforward dropout
+                ff_dropout=self.dropout)  # feedforward dropout
         )).to(get_device())
 
         return model
