@@ -328,20 +328,17 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_linear = emb_linear + self.pos_emb1(emb_linear)
 
         emb_linear = self.attn_layers1(emb_linear, mask=None, return_hiddens=False)
-        emb_linear = self.norm(emb_linear)
         emb_linear = emb_linear.reshape(-1,1,512*16*7)
         x = self.in_linear2(emb_linear)
         x = x.reshape(z[0],z[1],512)
         
         x = x + self.pos_emb(x)
-        x = self.emb_dropout(x)
         x = self.project_emb(x)
 
         if not self.training:
             x.squeeze(0)
             
         x = self.attn_layers(x, mask=None, return_hiddens=False)
-        x = self.norm(x)
 
         x = torch.cat(
             [
@@ -356,8 +353,9 @@ class CompoundWordTransformerWrapper(nn.Module):
             ], dim = 1)
         x = x + self.pos_emb2(x)
         x = self.attn_layers2(x, mask=None, return_hiddens=False)
-        x = self.norm(x)
+        
         x = x.reshape(-1,1,512*8)
         x = x.reshape(z[0],z[1],512*8)
+        x = self.norm(x)
 
         return x
