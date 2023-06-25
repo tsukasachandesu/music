@@ -175,7 +175,7 @@ if yes1:
 
 
 prompt = [COMPOUND_WORD_BAR] 
-sample = model.generate(output_length=512, prompt=prompt)
+sample = model.generate(output_length=1024, prompt=prompt)
 datamanager = CompoundWordDataManager()
 midi = datamanager.to_midi(sample)
 midi.save("1.midi")
