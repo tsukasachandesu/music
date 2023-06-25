@@ -82,8 +82,8 @@ def add_argument():
 
 # constants
 
-EPOCHS = 2
-GRADIENT_ACCUMULATE_EVERY = 4
+EPOCHS = 1
+GRADIENT_ACCUMULATE_EVERY = 5
 GENERATE_EVERY = 1800
 GENERATE_LENGTH = 1024
 yes = None
@@ -124,7 +124,7 @@ model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
     max_seq_len=defaults['max_sequence_length'],
     attn_layers=Decoder(
         dim=512,
-        depth=16,
+        depth=24,
         heads=8,
         ff_glu = True,
         ff_swish = True,
@@ -132,7 +132,8 @@ model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
         alibi_pos_bias = True,
         alibi_num_heads = 4,   
         attn_dropout=0.1,  
-        ff_dropout=0.1
+        ff_dropout=0.1,
+        ff_no_bias = True
     ),
     attn_layers2=Encoder(
         dim=512,
