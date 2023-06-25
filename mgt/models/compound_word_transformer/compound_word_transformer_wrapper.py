@@ -180,7 +180,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.compound_word_embedding_size = np.sum(emb_sizes)
 
         self.pos_emb = AbsolutePositionalEmbedding(512, max_seq_len) 
-        self.pos_emb2 = AbsolutePositionalEmbedding(512, 16)
+        self.pos_emb2 = AbsolutePositionalEmbedding(512, 24)
         
         self.emb_dropout = nn.Dropout(emb_dropout)
 
@@ -340,19 +340,19 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_duration.reshape(-1,1,512),
             ], dim = 1)
 
-        window_size = 2
+        window_size = 3
         emb_linear = F.pad(x, (0, 0, window_size - 1, 0), mode='constant', value=0)
-        emb_linear = emb_linear.unfold(1,2,1)
+        emb_linear = emb_linear.unfold(1,3,1)
         emb_linear = torch.permute(emb_linear, (0,1,3,2))  
-        emb_linear = emb_linear.reshape(-1,1,16,512)
+        emb_linear = emb_linear.reshape(-1,1,24,512)
         emb_linear = emb_linear.squeeze(1)
         
         emb_linear = emb_linear + self.pos_emb2(emb_linear)
         
         emb_linear = self.attn_layers2(emb_linear, mask=None, return_hiddens=False)
         
-        emb_linear = emb_linear.reshape(-1,1,512*16)
+        emb_linear = emb_linear.reshape(-1,1,512*24)
 
-        emb_linear = emb_linear.reshape(z[0],z[1],512*16)
+        emb_linear = emb_linear.reshape(z[0],z[1],512*24)
         
         return emb_linear
