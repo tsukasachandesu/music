@@ -5,7 +5,7 @@ import deepspeed
 import time
 import numpy as np
 import torch
-from x_transformers import Decoder
+from x_transformers import Decoder, Encoder
 
 from mgt.models import utils
 from mgt.models.compound_word_transformer.compound_word_autoregressive_wrapper import CompoundWordAutoregressiveWrapper
@@ -31,8 +31,8 @@ datamanager = CompoundWordDataManager()
 from typing import List
 import random
 
-COMPOUND_WORD_PADDING = [0, 0, 0, 0, 0, 0, 0, 0]
-COMPOUND_WORD_BAR = [2, 0, 0, 0, 0, 0, 0, 0]
+COMPOUND_WORD_PADDING = [0, 0, 0, 0, 0, 0, 0]
+COMPOUND_WORD_BAR = [0, 0, 0, 0, 0, 0, 0]
 
 def pad(array: np.ndarray, max_sequence_length: int, padding_compound_word: np.ndarray = None) -> np.ndarray:
     if padding_compound_word is None:
@@ -94,18 +94,16 @@ yes1 = "a"
 
 defaults = {
     'num_tokens': [
-        4,    # Type
         17,   # Bar / Beat
-        6912,  # Tempo
-        6912,  # Instrument
-        6912,   # Note name
-        6912,    # Octave
-        6912,   # Duration
-        6912    # Velocity
+        6914,  # Tempo
+        6914,  # Instrument
+        6914,   # Note name
+        6914,    # Octave
+        6914,   # Duration
+        6914    # Velocity
     ],
     'emb_sizes': [
-        32,   # Type
-        96,   # Bar / Beat
+        512,   # Bar / Beat
         512,  # Tempo
         512,  # Instrument
         512,  # Note Name
@@ -122,23 +120,36 @@ defaults = {
 }
 
 model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
-    num_tokens=defaults["num_tokens"],
-    emb_sizes=defaults["emb_sizes"],
-    max_seq_len=defaults["max_sequence_length"],
+    num_tokens=self.num_tokens,
+    emb_sizes=self.emb_sizes,
+    max_seq_len=self.max_sequence_length,
     attn_layers=Decoder(
-        dim=defaults["dim"],
-        depth=defaults["depth"],
-        heads=defaults["heads"],
+        dim=512,
+        depth=16,
+        heads=8,
         ff_glu = True,
         ff_swish = True,
-        rotary_xpos = True,
-        use_rmsnorm = True, 
-        attn_dropout=defaults["dropout"],  
-        ff_dropout=defaults["dropout"],  
-    ))).cuda()
+        use_rmsnorm = True,
+        alibi_pos_bias = True,
+        alibi_num_heads = 4,   
+        attn_dropout=0.1,  
+        ff_dropout=0.1
+    ),
+    attn_layers2=Encoder(
+        dim=512,
+        depth=6,
+        heads=8,
+        ff_glu = True,
+        ff_swish = True,
+        use_rmsnorm = True,
+        rel_pos_bias = True,
+        attn_dropout=0.1,  
+        ff_dropout=0.1
+    )  
+)).cuda()
 
 # setup deepspeed
-data_train = DataHelper.load('/content/drive/MyDrive/test_dataset')
+data_train = DataHelper.load('/content/drive/MyDrive/muse_dataset')
 train_dataset = Dataset(data_train.data)
 
 cmd_args = add_argument()
