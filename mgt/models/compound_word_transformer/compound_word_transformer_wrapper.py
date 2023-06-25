@@ -347,15 +347,12 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_linear = emb_linear.reshape(-1,1,16,512)
         emb_linear = emb_linear.squeeze(1)
         
-        x = x + self.pos_emb2(x)
+        emb_linear = emb_linear + self.pos_emb2(emb_linear)
         
-        x = self.attn_layers2(x, mask=None, return_hiddens=False)
+        emb_linear = self.attn_layers2(emb_linear, mask=None, return_hiddens=False)
+        
+        emb_linear = emb_linear.reshape(-1,1,512*16)
 
-        print(x.shape)
+        emb_linear = emb_linear.reshape(z[0],z[1],512*16)
         
-        x = x.reshape(-1,1,512*16)
-
-        print(x.shape)
-        x = x.reshape(z[0],z[1],512*16)
-        
-        return x
+        return emb_linear
