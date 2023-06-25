@@ -17,7 +17,7 @@ def calculate_loss1(predicted, target, loss_mask):
         return 0
 
     loss = F.mse_loss(predicted[:, ...], target, reduction = 'none')
-    loss = loss * loss_mask
+    loss = loss * loss_mask.unsqueeze(-1)
     loss = torch.sum(loss) / trainable_values
 
     return loss
