@@ -183,8 +183,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.pos_emb2 = AbsolutePositionalEmbedding(512, 24)
         
         self.emb_dropout = nn.Dropout(emb_dropout)
-
-        self.project_emb = nn.Linear(emb_dim, dim) if emb_dim != dim else nn.Identity()
         
         self.attn_layers = attn_layers
         self.attn_layers2 = attn_layers2
@@ -290,7 +288,6 @@ class CompoundWordTransformerWrapper(nn.Module):
             **kwargs
     ):
         
-        
         mask = x[..., 0].bool()
         emb_type = self.word_emb_type(x[..., 0])
         emb_barbeat = self.word_emb_barbeat(x[..., 1])
@@ -310,7 +307,6 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_octave,
                 emb_duration,
             ], dim = -1)
-        
 
         z = embs1.shape
         emb_linear = embs1
@@ -323,7 +319,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_linear = emb_linear.squeeze(2)
         x = self.in_linear2(emb_linear)        
         x = x + self.pos_emb(x)
-        x = self.project_emb(x)
 
         if not self.training:
             x.squeeze(0)
