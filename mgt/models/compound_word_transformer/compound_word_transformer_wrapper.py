@@ -350,8 +350,12 @@ class CompoundWordTransformerWrapper(nn.Module):
         x = x + self.pos_emb2(x)
         
         x = self.attn_layers2(x, mask=None, return_hiddens=False)
+
+        print(x.shape)
         
         x = x.reshape(-1,1,512*16)
+
+        print(x.shape)
         x = x.reshape(z[0],z[1],512*16)
         
         return x
