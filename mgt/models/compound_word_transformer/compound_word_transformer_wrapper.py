@@ -148,31 +148,31 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         # individual output
         self.proj_type = nn.Sequential(
-            nn.Linear(dim*16, self.num_tokens[0])
+            nn.Linear(dim*24, self.num_tokens[0])
         )
         
         self.proj_barbeat = nn.Sequential(
-            nn.Linear(dim*16, self.num_tokens[1])
+            nn.Linear(dim*24, self.num_tokens[1])
         )
         
         self.proj_tempo = nn.Sequential(
-            nn.Linear(dim*16, self.num_tokens[2])
+            nn.Linear(dim*24, self.num_tokens[2])
         )
         
         self.proj_instrument = nn.Sequential(
-            nn.Linear(dim*16, self.num_tokens[3])
+            nn.Linear(dim*24, self.num_tokens[3])
         )
         
         self.proj_note_name = nn.Sequential(
-            nn.Linear(dim*16, self.num_tokens[4])
+            nn.Linear(dim*24, self.num_tokens[4])
         )
         
         self.proj_octave = nn.Sequential(
-            nn.Linear(dim*16, self.num_tokens[5])
+            nn.Linear(dim*24, self.num_tokens[5])
         )
         
         self.proj_duration = nn.Sequential(
-            nn.Linear(dim*16, self.num_tokens[6])
+            nn.Linear(dim*24, self.num_tokens[6])
         )
         
         # in_features is equal to dimension plus dimensions of the type embedding
