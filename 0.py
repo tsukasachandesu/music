@@ -70,7 +70,7 @@ def add_argument():
                         help='use CPU in case there\'s no GPU support')
     parser.add_argument('--use_ema', default=False, action='store_true',
                         help='whether use exponential moving average')
-    parser.add_argument('-b', '--batch_size', default=6, type=int,
+    parser.add_argument('-b', '--batch_size', default=4, type=int,
                         help='mini-batch size (default: 32)')
     parser.add_argument('-e', '--epochs', default=2, type=int,
                         help='number of total epochs (default: 30)')
