@@ -123,7 +123,7 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         proj_duration1 = torch.softmax(proj_duration, dim=0)
         
         f = proj_barbeat1[:,:,1:] + proj_tempo1[:,:,1:] + proj_instrument1[:,:,1:] + proj_note_name1[:,:,1:] + proj_octave1[:,:,1:] + proj_duration1[:,:,1:]
-        ff = torch.nn.functional.one_hot(x[:, 1:, 1], num_classes=6913)[:,:,1:] + torch.nn.functional.one_hot(x[:, 1:, 2], num_classes=6913)[:,:,1:] + torch.nn.functional.one_hot(x[:, 1:, 3], num_classes=6913)[:,:,1:] + torch.nn.functional.one_hot(x[:, 1:, 4], num_classes=6913)[:,:,1:]. + torch.nn.functional.one_hot(x[:, 1:, 5], num_classes=6913)[:,:,1:] + torch.nn.functional.one_hot(x[:, 1:, 6], num_classes=6913)[:,:,1:]
+        ff = torch.nn.functional.one_hot(x[:, 1:, 1], num_classes=6913)[:,:,1:] + torch.nn.functional.one_hot(x[:, 1:, 2], num_classes=6913)[:,:,1:] + torch.nn.functional.one_hot(x[:, 1:, 3], num_classes=6913)[:,:,1:] + torch.nn.functional.one_hot(x[:, 1:, 4], num_classes=6913)[:,:,1:] + torch.nn.functional.one_hot(x[:, 1:, 5], num_classes=6913)[:,:,1:] + torch.nn.functional.one_hot(x[:, 1:, 6], num_classes=6913)[:,:,1:]
         loss1 = calculate_loss1(f, ff.float(), type_mask(target)) *0.5
         
         return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss, loss1
