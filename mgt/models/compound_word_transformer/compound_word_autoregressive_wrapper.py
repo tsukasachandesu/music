@@ -16,7 +16,7 @@ def calculate_loss1(predicted, target, loss_mask):
     if trainable_values == 0:
         return 0
 
-    loss = F.BCE_loss(predicted[:, ...], target, reduction = 'none')
+    loss = F.BCEloss(predicted[:, ...], target, reduction = 'none')
     loss = loss * loss_mask.unsqueeze(-1)
     loss = torch.sum(loss) / trainable_values
 
