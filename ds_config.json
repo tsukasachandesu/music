@@ -1,5 +1,5 @@
 {
-    "train_batch_size": 4,
+    "train_batch_size": 5,
     "gradient_accumulation_steps": 5,
     "steps_per_print": 2000,
     "max_grad_norm": 0.5,
