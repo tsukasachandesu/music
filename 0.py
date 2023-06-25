@@ -20,7 +20,6 @@ import tqdm
 import gzip
 
 import torch.optim as optim
-from einops import rearrange
 from torch import einsum, nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset
@@ -142,7 +141,8 @@ model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
         ff_glu = True,
         ff_swish = True,
         use_rmsnorm = True,
-        rel_pos_bias = True,
+        dynamic_pos_bias = True,  
+        dynamic_pos_bias_log_distance = False,
         attn_dropout=0.1,  
         ff_dropout=0.1
     )  
@@ -174,7 +174,7 @@ if yes1:
 
 
 prompt = [COMPOUND_WORD_BAR] 
-sample = model.generate(output_length=256, prompt=prompt)
+sample = model.generate(output_length=512, prompt=prompt)
 datamanager = CompoundWordDataManager()
 midi = datamanager.to_midi(sample)
 midi.save("1.midi")
