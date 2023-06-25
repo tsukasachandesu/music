@@ -119,9 +119,9 @@ defaults = {
 }
 
 model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
-    num_tokens=self.num_tokens,
-    emb_sizes=self.emb_sizes,
-    max_seq_len=self.max_sequence_length,
+    num_tokens=defaults['num_tokens'],
+    emb_sizes=defaults['emb_sizes'],
+    max_seq_len=defaults['max_sequence_length'],
     attn_layers=Decoder(
         dim=512,
         depth=16,
