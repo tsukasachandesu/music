@@ -290,6 +290,8 @@ class CompoundWordTransformerWrapper(nn.Module):
             **kwargs
     ):
         
+        
+        mask = x[..., 0].bool()
         emb_type = self.word_emb_type(x[..., 0])
         emb_barbeat = self.word_emb_barbeat(x[..., 1])
         emb_tempo = self.word_emb_tempo(x[..., 2])
@@ -326,7 +328,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         if not self.training:
             x.squeeze(0)
             
-        x = self.attn_layers(x, mask=None, return_hiddens=False)
+        x = self.attn_layers(x, mask=mask, return_hiddens=False)
 
         x = torch.cat(
             [
@@ -348,8 +350,14 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_linear = emb_linear.squeeze(1)
         
         emb_linear = emb_linear + self.pos_emb2(emb_linear)
+        print(mask.shape)
+
+        mask = mask.reshape(-1,1)
+        print(mask.shape)
+
+        print(emb_linear.shape)
         
-        emb_linear = self.attn_layers2(emb_linear, mask=None, return_hiddens=False)
+        emb_linear = self.attn_layers2(emb_linear, mask=mask, return_hiddens=False)
         
         emb_linear = emb_linear.reshape(-1,1,512*24)
 
