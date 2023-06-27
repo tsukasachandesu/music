@@ -13,6 +13,8 @@ import itertools
 import math
 from einops import rearrange, reduce, repeat
 
+import deepspeed
+
 def tiv1(q):
     c = [0]*6*2
     c = np.array(c)
@@ -145,9 +147,16 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.word_emb_note_name = CompoundTransformerEmbeddings(self.num_tokens[4], self.emb_sizes[4])
         self.word_emb_octave = CompoundTransformerEmbeddings(self.num_tokens[5], self.emb_sizes[5])
         self.word_emb_duration = CompoundTransformerEmbeddings(self.num_tokens[6], self.emb_sizes[6])
+
+        self.moe = deepspeed.moe.layer.MoE(
+            hidden_size = dim*24,
+            expert=self.lin(),
+            num_experts=8
+        )
         
         # individual output
         self.proj_type = nn.Sequential(
+            self.moe()
             nn.Linear(dim*24, self.num_tokens[0])
         )
         
@@ -190,6 +199,10 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.norm = nn.LayerNorm(512)
         
         self.in_linear2 = nn.Linear(512*7*16, 512)
+
+        self.lin = nn.Linear(dim*24, dim*24)
+
+
                
         self.init_()
 
