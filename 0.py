@@ -74,12 +74,6 @@ def add_argument():
                         help='mini-batch size (default: 32)')
     parser.add_argument('-e', '--epochs', default=1, type=int,
                         help='number of total epochs (default: 30)')
-    parser.add_argument('--local_rank', type=int, default=-1,
-                       help='local rank passed from distributed launcher')
-    parser.add_argument('--tensor-model-parallel-size', type=int, default=1,
-                       help='local rank passed from distributed launcher')
-    parser.add_argument('--num-experts', type=int, default=8,
-                       help='local rank passed from distributed launcher')
 
     parser = deepspeed.add_config_arguments(parser)
     args=parser.parse_args()
