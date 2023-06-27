@@ -148,15 +148,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.word_emb_octave = CompoundTransformerEmbeddings(self.num_tokens[5], self.emb_sizes[5])
         self.word_emb_duration = CompoundTransformerEmbeddings(self.num_tokens[6], self.emb_sizes[6])
 
-        self.moe = deepspeed.moe.layer.MoE(
-            hidden_size = dim*24,
-            expert=self.lin(),
-            num_experts=8
-        )
-        
         # individual output
         self.proj_type = nn.Sequential(
-            self.moe()
             nn.Linear(dim*24, self.num_tokens[0])
         )
         
