@@ -13,8 +13,6 @@ import itertools
 import math
 from einops import rearrange, reduce, repeat
 
-import deepspeed
-
 def tiv1(q):
     c = [0]*6*2
     c = np.array(c)
@@ -189,14 +187,10 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.attn_layers = attn_layers
         self.attn_layers2 = attn_layers2
          
-        self.norm = nn.LayerNorm(512)
+        self.norm = nn.LayerNorm(512*24)
         
         self.in_linear2 = nn.Linear(512*7*16, 512)
 
-        self.lin = nn.Linear(dim*24, dim*24)
-
-
-               
         self.init_()
 
     def init_(self):
@@ -325,6 +319,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_linear = emb_linear.squeeze(2)
         x = self.in_linear2(emb_linear)        
         x = x + self.pos_emb(x)
+        x = self.emb_dropout(x)
+        
 
         if not self.training:
             x.squeeze(0)
@@ -359,5 +355,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_linear = emb_linear.reshape(-1,1,512*24)
 
         emb_linear = emb_linear.reshape(z[0],z[1],512*24)
+
+         emb_linear = self.norm(emb_linear)
         
         return emb_linear
