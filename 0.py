@@ -30,7 +30,6 @@ datamanager = CompoundWordDataManager()
 from typing import List
 import random
 
-
 COMPOUND_WORD_PADDING = [0, 0, 0, 0, 0, 0, 0]
 COMPOUND_WORD_BAR = [0, 0, 0, 0, 0, 0, 0]
 
@@ -74,6 +73,8 @@ def add_argument():
                         help='mini-batch size (default: 32)')
     parser.add_argument('-e', '--epochs', default=1, type=int,
                         help='number of total epochs (default: 30)')
+    parser.add_argument('--local_rank', type=int, default=-1,
+                       help='local rank passed from distributed launcher')
 
     parser = deepspeed.add_config_arguments(parser)
     args=parser.parse_args()
@@ -148,25 +149,12 @@ model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
     )  
 )).cuda()
 
-def create_moe_param_groups(model):
-    from deepspeed.moe.utils import split_params_into_different_moe_groups_for_optimizer
-
-    parameters = {
-        'params': [p for p in model.parameters()],
-        'name': 'parameters'
-    }
-
-    return split_params_into_different_moe_groups_for_optimizer(parameters)
-
-
-parameters = create_moe_param_groups(model)
-
 # setup deepspeed
 data_train = DataHelper.load('/content/drive/MyDrive/muse_dataset')
 train_dataset = Dataset(data_train.data)
 
 cmd_args = add_argument()
-model_engine, optimizer, trainloader, _ = deepspeed.initialize(args=cmd_args, model=model, model_parameters=parameters, training_data=train_dataset)
+model_engine, optimizer, trainloader, _ = deepspeed.initialize(args=cmd_args, model=model, model_parameters=model.parameters(), training_data=train_dataset)
 if yes:
     _, client_sd = model_engine.load_checkpoint("/")
 
