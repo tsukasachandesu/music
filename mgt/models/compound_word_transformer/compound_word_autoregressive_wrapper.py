@@ -141,7 +141,7 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         ff = torch.nn.functional.one_hot(x[:, 1:, 1], num_classes=6914) + torch.nn.functional.one_hot(x[:, 1:, 2], num_classes=6914) + torch.nn.functional.one_hot(x[:, 1:, 3], num_classes=6914) + torch.nn.functional.one_hot(x[:, 1:, 4], num_classes=6914) + torch.nn.functional.one_hot(x[:, 1:, 5], num_classes=6914) + torch.nn.functional.one_hot(x[:, 1:, 6], num_classes=6914)
         ff = ff/6
         
-        loss1 = calculate_loss1(f, ff.float(), type_mask(target)) *0.05
+        loss1 = calculate_loss1(f, ff.float(), type_mask(target)) *0.01
 
         loss2 = calculate_loss2(pro, fff.float(), type_mask(target))
         
