@@ -8,6 +8,65 @@ from mgt.models.compound_word_transformer.compound_word_transformer_wrapper impo
 from mgt.models.utils import get_device
 from einops import rearrange, reduce, repeat
 
+class AsymmetricLossOptimized(nn.Module):
+    ''' Notice - optimized version, minimizes memory allocation and gpu uploading,
+    favors inplace operations'''
+
+    def __init__(self, gamma_neg=4, gamma_pos=1, clip=0.05, eps=1e-8, disable_torch_grad_focal_loss=False):
+        super(AsymmetricLossOptimized, self).__init__()
+
+        self.gamma_neg = gamma_neg
+        self.gamma_pos = gamma_pos
+        self.clip = clip
+        self.disable_torch_grad_focal_loss = disable_torch_grad_focal_loss
+        self.eps = eps
+
+        # prevent memory allocation and gpu uploading every iteration, and encourages inplace operations
+        self.targets = self.anti_targets = self.xs_pos = self.xs_neg = self.asymmetric_w = self.loss = None
+
+    def forward(self, x, y,loss_mask):
+        """"
+        Parameters
+        ----------
+        x: input logits
+        y: targets (multi-label binarized vector)
+        """
+
+        self.targets = y
+        self.anti_targets = 1 - y
+
+        # Calculating Probabilities
+        self.xs_pos = torch.sigmoid(x)
+        self.xs_neg = 1.0 - self.xs_pos
+
+        # Asymmetric Clipping
+        if self.clip is not None and self.clip > 0:
+            self.xs_neg.add_(self.clip).clamp_(max=1)
+
+        # Basic CE calculation
+        self.loss = self.targets * torch.log(self.xs_pos.clamp(min=self.eps))
+        self.loss.add_(self.anti_targets * torch.log(self.xs_neg.clamp(min=self.eps)))
+
+        # Asymmetric Focusing
+        if self.gamma_neg > 0 or self.gamma_pos > 0:
+            if self.disable_torch_grad_focal_loss:
+                torch.set_grad_enabled(False)
+            self.xs_pos = self.xs_pos * self.targets
+            self.xs_neg = self.xs_neg * self.anti_targets
+            self.asymmetric_w = torch.pow(1 - self.xs_pos - self.xs_neg,
+                                          self.gamma_pos * self.targets + self.gamma_neg * self.anti_targets)
+            if self.disable_torch_grad_focal_loss:
+                torch.set_grad_enabled(True)
+            self.loss *= self.asymmetric_w
+
+            self.loss = self.loss * loss_mask.unsqueeze(-1)
+            trainable_values = torch.sum(loss_mask)
+            if trainable_values == 0:
+              return 0
+
+        return -self.loss.sum()/ trainable_values
+
+
 def type_mask(target):
     return target[..., 0] != 0
 
@@ -27,7 +86,7 @@ def calculate_loss2(predicted, target, loss_mask):
     if trainable_values == 0:
         return 0
 
-    loss = F.binary_cross_entropy(torch.sigmoid(predicted[:, ...]), target, reduction = 'none')
+    loss = F.binary_cross_entropy(predicted[:, ...], target, reduction = 'none')
     loss = loss * loss_mask.unsqueeze(-1)
     loss = torch.sum(loss) / trainable_values
 
@@ -81,7 +140,8 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         self.pad_value = pad_value
         self.ignore_index = ignore_index
         self.net = net
-        self.max_seq_len = net.max_seq_len        
+        self.max_seq_len = net.max_seq_len
+        self.criterion = AsymmetricLossOptimized(gamma_neg=4, gamma_pos=1, clip=0.05, disable_torch_grad_focal_loss=False)        
 
     @torch.no_grad()
     def generate(self, prompt, output_length=100, selection_temperatures=None, selection_probability_tresholds=None):
@@ -133,18 +193,16 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         proj_note_name1 = torch.softmax(proj_note_name, dim=0)
         proj_octave1 = torch.softmax(proj_octave, dim=0)
         proj_duration1 = torch.softmax(proj_duration, dim=0)
-
-        fff = torch.nn.functional.one_hot(target[..., 1], num_classes=6914) + torch.nn.functional.one_hot(target[..., 2], num_classes=6914) + torch.nn.functional.one_hot(target[..., 3], num_classes=6914) + torch.nn.functional.one_hot(target[..., 4], num_classes=6914) + torch.nn.functional.one_hottarget[..., 5], num_classes=6914) + torch.nn.functional.one_hot(target[..., 6], num_classes=6914)
+        
+        ff = torch.nn.functional.one_hot(x[:, 1:, 1], num_classes=6914) + torch.nn.functional.one_hot(x[:, 1:, 2], num_classes=6914) + torch.nn.functional.one_hot(x[:, 1:, 3], num_classes=6914) + torch.nn.functional.one_hot(x[:, 1:, 4], num_classes=6914) + torch.nn.functional.one_hot(x[:, 1:, 5], num_classes=6914) + torch.nn.functional.one_hot(x[:, 1:, 6], num_classes=6914)
+        ff = ff[:,:,1:-1]
         
         f = proj_barbeat1 + proj_tempo1 + proj_instrument1 + proj_note_name1 + proj_octave1 + proj_duration1
-        f = f/6
-        ff = torch.nn.functional.one_hot(x[:, 1:, 1], num_classes=6914) + torch.nn.functional.one_hot(x[:, 1:, 2], num_classes=6914) + torch.nn.functional.one_hot(x[:, 1:, 3], num_classes=6914) + torch.nn.functional.one_hot(x[:, 1:, 4], num_classes=6914) + torch.nn.functional.one_hot(x[:, 1:, 5], num_classes=6914) + torch.nn.functional.one_hot(x[:, 1:, 6], num_classes=6914)
-        ff = ff/6
-        
-        loss1 = calculate_loss1(f, ff.float(), type_mask(target)) *0.01
+        f = f[:,:,1:-1]
 
-        loss2 = calculate_loss2(pro, fff.float(), type_mask(target))
+        loss2 = self.criterion(f, ff.float(), type_mask(target))
         
-        return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss, loss1, loss2
+        return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss, loss2
+   
    
 
