@@ -356,6 +356,6 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         emb_linear = emb_linear.reshape(z[0],z[1],512*24)
 
-         emb_linear = self.norm(emb_linear)
+        emb_linear = self.norm(emb_linear)
         
         return emb_linear
