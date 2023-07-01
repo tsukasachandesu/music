@@ -290,22 +290,13 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         mask = x[..., 0].bool()
         emb_type = self.word_emb_type(x[..., 0])
-        emb_barbeat = self.word_emb_barbeat(x[..., 1])
-        emb_tempo = self.word_emb_tempo(x[..., 2])
-        emb_instrument = self.word_emb_instrument(x[..., 3])
-        emb_note_name = self.word_emb_note_name(x[..., 4])
-        emb_octave = self.word_emb_octave(x[..., 5])
-        emb_duration = self.word_emb_duration(x[..., 6])
+
+        emb_duration = self.word_emb_duration(x[..., 1:])
         
         embs1 = torch.cat(
             [
                 emb_type,
-                emb_barbeat,
-                emb_tempo,
-                emb_instrument,
-                emb_note_name,
-                emb_octave,
-                emb_duration,
+                emb_duration
             ], dim = -1)
 
         z = embs1.shape
