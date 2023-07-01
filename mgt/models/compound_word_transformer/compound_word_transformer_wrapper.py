@@ -350,7 +350,3 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_linear = self.norm(emb_linear)
         
         return emb_linear
-
-        emb_linear = self.norm(emb_linear)
-        
-        return emb_linear
