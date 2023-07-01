@@ -140,11 +140,6 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         self.word_emb_type = CompoundTransformerEmbeddings(self.num_tokens[0], self.emb_sizes[0])
         self.word_emb_barbeat = CompoundTransformerEmbeddings(self.num_tokens[1], self.emb_sizes[1])
-        self.word_emb_tempo = CompoundTransformerEmbeddings(self.num_tokens[2], self.emb_sizes[2])
-        self.word_emb_instrument = CompoundTransformerEmbeddings(self.num_tokens[3], self.emb_sizes[3])
-        self.word_emb_note_name = CompoundTransformerEmbeddings(self.num_tokens[4], self.emb_sizes[4])
-        self.word_emb_octave = CompoundTransformerEmbeddings(self.num_tokens[5], self.emb_sizes[5])
-        self.word_emb_duration = CompoundTransformerEmbeddings(self.num_tokens[6], self.emb_sizes[6])
 
         # individual output
         self.proj_type = nn.Sequential(
@@ -196,11 +191,6 @@ class CompoundWordTransformerWrapper(nn.Module):
     def init_(self):
         nn.init.normal_(self.word_emb_type.weight(), std=0.02)
         nn.init.normal_(self.word_emb_barbeat.weight(), std=0.02)
-        nn.init.normal_(self.word_emb_tempo.weight(), std=0.02)
-        nn.init.normal_(self.word_emb_instrument.weight(), std=0.02)
-        nn.init.normal_(self.word_emb_note_name.weight(), std=0.02)
-        nn.init.normal_(self.word_emb_octave.weight(), std=0.02)
-        nn.init.normal_(self.word_emb_duration.weight(), std=0.02)
 
     def forward_output_sampling(self, h, selection_temperatures=None, selection_probability_tresholds=None):
         # sample type
@@ -289,14 +279,24 @@ class CompoundWordTransformerWrapper(nn.Module):
     ):
         
         mask = x[..., 0].bool()
-        emb_type = self.word_emb_type(x[..., 0])
 
-        emb_duration = self.word_emb_duration(x[..., 1:])
-        
+        emb_type = self.word_emb_type(x[..., 0])
+        emb_barbeat = self.word_emb_barbeat(x[..., 1])
+        emb_tempo = self.word_emb_barbeat(x[..., 2])
+        emb_instrument = self.word_emb_barbeat(x[..., 3])
+        emb_note_name =self.word_emb_barbeat(x[..., 4])
+        emb_octave = self.word_emb_barbeat(x[..., 5])
+        emb_duration = self.word_emb_barbeat(x[..., 6])
+
         embs1 = torch.cat(
             [
                 emb_type,
-                emb_duration
+                emb_barbeat,
+                emb_tempo,
+                emb_instrument,
+                emb_note_name,
+                emb_octave,
+                emb_duration,
             ], dim = -1)
 
         z = embs1.shape
@@ -346,6 +346,10 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_linear = emb_linear.reshape(-1,1,512*24)
 
         emb_linear = emb_linear.reshape(z[0],z[1],512*24)
+
+        emb_linear = self.norm(emb_linear)
+        
+        return emb_linear
 
         emb_linear = self.norm(emb_linear)
         
