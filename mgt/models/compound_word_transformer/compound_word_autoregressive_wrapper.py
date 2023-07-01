@@ -22,6 +22,17 @@ def calculate_loss1(predicted, target, loss_mask):
 
     return loss
 
+def calculate_loss2(predicted, target, loss_mask):
+    trainable_values = torch.sum(loss_mask)
+    if trainable_values == 0:
+        return 0
+
+    loss = F.binary_cross_entropy(torch.sigmoid(predicted[:, ...]), target, reduction = 'none')
+    loss = loss * loss_mask.unsqueeze(-1)
+    loss = torch.sum(loss) / trainable_values
+
+    return loss
+
 def notes_to_ce(indices):
   note_index_to_pitch_index = [0, -5, 2, -3, 4, -1, -6, 1, -4, 3, -2, 5]
   total = np.zeros(3)
@@ -80,7 +91,7 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         final_res = prompt.copy()
         last_token = final_res[-self.max_seq_len:]
         input_ = torch.tensor(np.array([last_token])).long().to(get_device())
-        h = self.net.forward_hidden(input_)
+        h, pro = self.net.forward_hidden(input_)
 
         print('------ generate ------')
         for _ in range(output_length):
@@ -104,10 +115,10 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         xi = x[:, :-1, :]
         target = x[:, 1:, :]
 
-        h = self.net.forward_hidden(xi,**kwargs)
+        h, pro = self.net.forward_hidden(xi,**kwargs)
         
         proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration = self.net.forward_output(h)
-
+ 
         type_loss = calculate_loss(proj_type, target[..., 0], type_mask(target))
         barbeat_loss = calculate_loss(proj_barbeat, target[..., 1], type_mask(target))
         tempo_loss = calculate_loss(proj_tempo, target[..., 2], type_mask(target))
@@ -122,13 +133,18 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         proj_note_name1 = torch.softmax(proj_note_name, dim=0)
         proj_octave1 = torch.softmax(proj_octave, dim=0)
         proj_duration1 = torch.softmax(proj_duration, dim=0)
+
+        fff = torch.nn.functional.one_hot(target[..., 1], num_classes=6914) + torch.nn.functional.one_hot(target[..., 2], num_classes=6914) + torch.nn.functional.one_hot(target[..., 3], num_classes=6914) + torch.nn.functional.one_hot(target[..., 4], num_classes=6914) + torch.nn.functional.one_hottarget[..., 5], num_classes=6914) + torch.nn.functional.one_hot(target[..., 6], num_classes=6914)
         
         f = proj_barbeat1 + proj_tempo1 + proj_instrument1 + proj_note_name1 + proj_octave1 + proj_duration1
         f = f/6
         ff = torch.nn.functional.one_hot(x[:, 1:, 1], num_classes=6914) + torch.nn.functional.one_hot(x[:, 1:, 2], num_classes=6914) + torch.nn.functional.one_hot(x[:, 1:, 3], num_classes=6914) + torch.nn.functional.one_hot(x[:, 1:, 4], num_classes=6914) + torch.nn.functional.one_hot(x[:, 1:, 5], num_classes=6914) + torch.nn.functional.one_hot(x[:, 1:, 6], num_classes=6914)
         ff = ff/6
-        loss1 = calculate_loss1(f, ff.float(), type_mask(target)) *0.05
         
-        return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss, loss1
+        loss1 = calculate_loss1(f, ff.float(), type_mask(target)) *0.05
+
+        loss2 = calculate_loss2(pro, fff.float(), type_mask(target))
+        
+        return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss, loss1, loss2
    
 
