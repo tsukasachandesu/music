@@ -142,6 +142,10 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.word_emb_barbeat = CompoundTransformerEmbeddings(self.num_tokens[1], self.emb_sizes[1])
 
         # individual output
+        self.pro = nn.Sequential(
+            nn.Linear(dim*24, self.num_tokens[0])
+        )        
+        
         self.proj_type = nn.Sequential(
             nn.Linear(dim*24, self.num_tokens[0])
         )
@@ -169,7 +173,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.proj_duration = nn.Sequential(
             nn.Linear(dim*24, self.num_tokens[6])
         )
-        
+
         # in_features is equal to dimension plus dimensions of the type embedding
 
         self.compound_word_embedding_size = np.sum(emb_sizes)
@@ -268,6 +272,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         proj_note_name = self.proj_note_name(h)
         proj_octave = self.proj_octave(h)
         proj_duration = self.proj_duration(h)
+                           
 
         return proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration
 
@@ -348,5 +353,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_linear = emb_linear.reshape(z[0],z[1],512*24)
 
         emb_linear = self.norm(emb_linear)
+
+        pro = self.pro(emb_linear)
         
-        return emb_linear
+        return emb_linear, pro
