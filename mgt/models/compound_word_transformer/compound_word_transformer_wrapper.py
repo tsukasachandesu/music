@@ -12,12 +12,13 @@ import torch.nn.functional as F
 import itertools
 import math
 from einops import rearrange, reduce, repeat
+from functools import partial, wraps
 
 class RotaryEmbedding(nn.Module):
     def __init__(self, dim, theta = 10000):
         super().__init__()
         inv_freq = 1.0 / (theta ** (torch.arange(0, dim, 2).float() / dim))
-        self.register_buffer("inv_freq", inv_freq)
+        self.register_buffer("inv_freq", inv_freq, persistent = False)
 
     @property
     def device(self):
@@ -34,13 +35,7 @@ def rotate_half(x):
     return torch.cat((-x2, x1), dim=-1)
 
 def apply_rotary_pos_emb(pos, t):
-    return t * pos.cos() + rotate_half(t) * pos.sin()
-
-
-class SwiGLU(nn.Module):
-    def forward(self, x):
-        x, gate = x.chunk(2, dim=-1)
-        return F.silu(gate) * x
+    return (t * pos.cos()) + (rotate_half(t) * pos.sin())
 
 class RMSNorm(nn.Module):
     def __init__(self, dim):
@@ -51,6 +46,9 @@ class RMSNorm(nn.Module):
     def forward(self, x):
         normed = F.normalize(x, dim = -1)
         return normed * self.scale * self.gamma
+
+def cast_tuple(val, num = 1):
+    return val if isinstance(val, tuple) else ((val,) * num
 
 class CausalSelfAttention(nn.Module):
     def __init__(self):
@@ -64,6 +62,7 @@ class CausalSelfAttention(nn.Module):
         self.dropout = nn.Dropout(0.1)
         self.eps = 1e-6
         self.norm = RMSNorm(512)
+        self.rotary_pos_emb = RotaryEmbedding(512)
 
     def kernel_method(self, x):
         return torch.sigmoid(x)
@@ -76,6 +75,8 @@ class CausalSelfAttention(nn.Module):
 
     def forward(self, x):
         queries, values, keys = x, x, x
+        pos_emb = self.rotary_pos_emb(1024)
+
         ## 1. Linear projection
         B, L, _ = queries.shape
         _, S, _ = keys.shape
@@ -85,6 +86,11 @@ class CausalSelfAttention(nn.Module):
         queries = queries.transpose(1, 2)
         keys = keys.transpose(1, 2)
         values = values.transpose(1, 2)
+
+        q_pos_emb, k_pos_emb = cast_tuple(pos_emb, num = 2)
+        q = apply_rotary_pos_emb(queries, q_pos_emb)
+        k = apply_rotary_pos_emb(keys, k_pos_emb)
+        
         # 2. Non-negative projection
         queries = self.kernel_method(queries)
         keys = self.kernel_method(keys)
@@ -124,7 +130,7 @@ class Block(nn.Module):
         super().__init__()
         self.atten = CausalSelfAttention()
         self.norm = RMSNorm(512)
-        self.mlp =  nn.Sequential(nn.Linear(512, 4 * 512),nn.GELU(),nn.Linear(4 * 512, 512))
+        self.mlp =  nn.Sequential(nn.Linear(512, 4 * 512),nn.SiLU(),nn.Dropout(0.1),nn.Linear(4 * 512, 512))
         self.layers = nn.ModuleList([])
         for _ in range(4):
             self.layers.append(nn.ModuleList([
@@ -440,7 +446,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         x = self.in_linear2(emb_linear)        
         x = x + self.pos_emb(x)
         x = self.emb_dropout(x)
-        
 
         if not self.training:
             x.squeeze(0)
