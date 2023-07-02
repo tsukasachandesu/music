@@ -56,15 +56,14 @@ class CausalSelfAttention(nn.Module):
     def __init__(self):
         super().__init__()
         self.n_embd = 512
-        self.n_heads = 64
-        self.query_projection = nn.Linear(512, 64)
-        self.key_projection = nn.Linear(512, 64)
-        self.value_projection = nn.Linear(512, 64)
+        self.n_heads = 8
+        self.query_projection = nn.Linear(512, 512)
+        self.key_projection = nn.Linear(512, 512)
+        self.value_projection = nn.Linear(512, 512)
         self.out_projection = nn.Linear(512, 512)
         self.dropout = nn.Dropout(0.1)
         self.eps = 1e-6
         self.norm = RMSNorm(512)
-        self.rotary_emb = RotaryEmbedding(64)
 
     def kernel_method(self, x):
         return torch.sigmoid(x)
@@ -85,7 +84,6 @@ class CausalSelfAttention(nn.Module):
         values = self.value_projection(values).view(B, S, self.n_heads, -1)
         queries = queries.transpose(1, 2)
         keys = keys.transpose(1, 2)
-        queries, keys = map(lambda t: apply_rotary_pos_emb(self.rotary_emb, t), (q, k)
         values = values.transpose(1, 2)
         # 2. Non-negative projection
         queries = self.kernel_method(queries)
@@ -126,7 +124,7 @@ class Block(nn.Module):
         super().__init__()
         self.atten = CausalSelfAttention()
         self.norm = RMSNorm(512)
-        self.mlp =  nn.Sequential(nn.Linear(512, 4 * 512),SwiGLU(),nn.Dropout(0.1),nn.Linear(4 * 512, 512))
+        self.mlp =  nn.Sequential(nn.Linear(512, 4 * 512),nn.GELU(),nn.Linear(4 * 512, 512))
         self.layers = nn.ModuleList([])
         for _ in range(4):
             self.layers.append(nn.ModuleList([
