@@ -12,6 +12,7 @@ import torch.nn.functional as F
 import itertools
 import math
 from einops import rearrange, reduce, repeat
+from functools import partial, wraps
 
 class RotaryEmbedding(nn.Module):
     def __init__(self, dim, theta = 10000):
@@ -48,7 +49,7 @@ class RMSNorm(nn.Module):
 
 def cast_tuple(val, num = 1):
     return val if isinstance(val, tuple) else ((val,) * num)
-    
+
 class CausalSelfAttention(nn.Module):
     def __init__(self):
         super().__init__()
@@ -61,7 +62,7 @@ class CausalSelfAttention(nn.Module):
         self.dropout = nn.Dropout(0.1)
         self.eps = 1e-6
         self.norm = RMSNorm(512)
-        self.rotary_pos_emb = RotaryEmbedding(512)
+        self.rotary_pos_emb = RotaryEmbedding(64)
 
     def kernel_method(self, x):
         return torch.sigmoid(x)
@@ -74,7 +75,7 @@ class CausalSelfAttention(nn.Module):
 
     def forward(self, x):
         queries, values, keys = x, x, x
-        pos_emb = self.rotary_pos_emb(1024)
+        pos_emb = self.rotary_pos_emb(queries.shape[1])
 
         ## 1. Linear projection
         B, L, _ = queries.shape
@@ -87,8 +88,8 @@ class CausalSelfAttention(nn.Module):
         values = values.transpose(1, 2)
 
         q_pos_emb, k_pos_emb = cast_tuple(pos_emb, num = 2)
-        q = apply_rotary_pos_emb(queries, q_pos_emb)
-        k = apply_rotary_pos_emb(keys, k_pos_emb)
+        queries = apply_rotary_pos_emb(queries, q_pos_emb)
+        keys = apply_rotary_pos_emb(keys, k_pos_emb)
         
         # 2. Non-negative projection
         queries = self.kernel_method(queries)
