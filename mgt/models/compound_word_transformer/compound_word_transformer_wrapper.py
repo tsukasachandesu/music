@@ -13,6 +13,134 @@ import itertools
 import math
 from einops import rearrange, reduce, repeat
 
+class RotaryEmbedding(nn.Module):
+    def __init__(self, dim, theta = 10000):
+        super().__init__()
+        inv_freq = 1.0 / (theta ** (torch.arange(0, dim, 2).float() / dim))
+        self.register_buffer("inv_freq", inv_freq)
+
+    @property
+    def device(self):
+        return next(self.buffers()).device
+
+    def forward(self, seq_len):
+        t = torch.arange(seq_len, device = self.device).type_as(self.inv_freq)
+        freqs = torch.einsum('i , j -> i j', t, self.inv_freq)
+        freqs = torch.cat((freqs, freqs), dim = -1)
+        return freqs
+
+def rotate_half(x):
+    x1, x2 = x.chunk(2, dim=-1)
+    return torch.cat((-x2, x1), dim=-1)
+
+def apply_rotary_pos_emb(pos, t):
+    return t * pos.cos() + rotate_half(t) * pos.sin()
+
+
+class SwiGLU(nn.Module):
+    def forward(self, x):
+        x, gate = x.chunk(2, dim=-1)
+        return F.silu(gate) * x
+
+class RMSNorm(nn.Module):
+    def __init__(self, dim):
+        super().__init__()
+        self.scale = dim ** 0.5
+        self.gamma = nn.Parameter(torch.ones(dim))
+
+    def forward(self, x):
+        normed = F.normalize(x, dim = -1)
+        return normed * self.scale * self.gamma
+
+class CausalSelfAttention(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.n_embd = 512
+        self.n_heads = 64
+        self.query_projection = nn.Linear(512, 64)
+        self.key_projection = nn.Linear(512, 64)
+        self.value_projection = nn.Linear(512, 64)
+        self.out_projection = nn.Linear(512, 512)
+        self.dropout = nn.Dropout(0.1)
+        self.eps = 1e-6
+        self.norm = RMSNorm(512)
+        self.rotary_emb = RotaryEmbedding(64)
+
+    def kernel_method(self, x):
+        return torch.sigmoid(x)
+
+    def causal_dot_product(self, q, k, v):
+        kv = torch.einsum("nhld,nhlm->nhldm", k, v)
+        kv = torch.cumsum(kv, dim=2)
+        qkv = torch.einsum("nhld,nhldm->nhlm", q, kv)
+        return qkv
+
+    def forward(self, x):
+        queries, values, keys = x, x, x
+        ## 1. Linear projection
+        B, L, _ = queries.shape
+        _, S, _ = keys.shape
+        queries = self.query_projection(queries).view(B, L, self.n_heads, -1)
+        keys = self.key_projection(keys).view(B, S, self.n_heads, -1)
+        values = self.value_projection(values).view(B, S, self.n_heads, -1)
+        queries = queries.transpose(1, 2)
+        keys = keys.transpose(1, 2)
+        queries, keys = map(lambda t: apply_rotary_pos_emb(self.rotary_emb, t), (q, k)
+        values = values.transpose(1, 2)
+        # 2. Non-negative projection
+        queries = self.kernel_method(queries)
+        keys = self.kernel_method(keys)
+        ## 3. Causal Flow-Attention
+        # (1) Calculate incoming and outgoing flow
+        sink_incoming = 1.0 / (torch.einsum("nhld,nhld->nhl", queries + self.eps, keys.cumsum(dim=2) + self.eps))
+        source_outgoing = 1.0 / (torch.einsum("nhld,nhld->nhl", keys + self.eps, queries.cumsum(dim=2) + self.eps))
+        # approximate normal conservation col and row by multiplying corresponding element number
+        normal = (((torch.arange(queries.shape[2])).float() + 1.0)).to(queries.device)[None, None, :]
+        sink_incoming = sink_incoming * normal
+        source_outgoing = source_outgoing * normal
+        # (2) conservation refine for source and sink
+        conserved_sink = torch.einsum("nhld,nhld->nhl", queries + self.eps,
+                                      (keys * source_outgoing[:, :, :, None]).cumsum(dim=2) + self.eps) / normal
+        conserved_source = torch.einsum("nhld,nhld->nhl", keys + self.eps,
+                                        (queries * sink_incoming[:, :, :, None]).cumsum(
+                                            dim=2) + self.eps) / normal
+        conserved_source = torch.clamp(conserved_source, min=-1.0, max=1.0)  # for stability
+        # (3) Competition & Allocation
+        sink_allocation = torch.sigmoid(conserved_sink)
+        conserved_source = torch.exp(conserved_source)
+        source_competition = (conserved_source / conserved_source.cumsum(dim=-1)) * normal
+        # (4) Causal dot product
+        x = (self.causal_dot_product(queries * (sink_incoming[:, :, :, None] / normal[:, :, :, None]),
+                                     # for value normalization
+                                     keys,
+                                     values * source_competition[:, :, :, None])  # competition
+             * sink_allocation[:, :, :, None]).transpose(1, 2)  # allocation
+        ## (5) Final projection
+        x = x.reshape(B, L, -1)
+        x = self.out_projection(x)
+        x = self.dropout(x)
+        return self.norm(x)
+
+class Block(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.atten = CausalSelfAttention()
+        self.norm = RMSNorm(512)
+        self.mlp =  nn.Sequential(nn.Linear(512, 4 * 512),SwiGLU(),nn.Dropout(0.1),nn.Linear(4 * 512, 512))
+        self.layers = nn.ModuleList([])
+        for _ in range(4):
+            self.layers.append(nn.ModuleList([
+                self.atten,
+                self.mlp
+            ]))
+
+    def forward(self, x):
+        for attn, ff in self.layers:
+            x = self.norm(attn(x) + x)
+            x = self.norm(ff(x) + x)
+
+        return self.norm(x)
+
 def tiv1(q):
     c = [0]*6*2
     c = np.array(c)
@@ -186,6 +314,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.norm = nn.LayerNorm(512*24)
         
         self.in_linear2 = nn.Linear(512*7*16, 512)
+        self.blo = Block()
 
         self.init_()
 
@@ -319,6 +448,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             x.squeeze(0)
             
         x = self.attn_layers(x, mask=mask, return_hiddens=False)
+        x = self.blo(x)
 
         x = torch.cat(
             [
