@@ -12,7 +12,6 @@ import torch.nn.functional as F
 import itertools
 import math
 from einops import rearrange, reduce, repeat
-from functools import partial, wraps
 
 class RotaryEmbedding(nn.Module):
     def __init__(self, dim, theta = 10000):
@@ -48,8 +47,8 @@ class RMSNorm(nn.Module):
         return normed * self.scale * self.gamma
 
 def cast_tuple(val, num = 1):
-    return val if isinstance(val, tuple) else ((val,) * num
-
+    return val if isinstance(val, tuple) else ((val,) * num)
+    
 class CausalSelfAttention(nn.Module):
     def __init__(self):
         super().__init__()
