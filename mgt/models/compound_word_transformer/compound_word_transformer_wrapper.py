@@ -474,7 +474,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         emb_linear = emb_linear + self.pos_emb2(emb_linear)
 
-        mask = mask.reshape(-1,1)
+        mask = mask.reshape(-1,1).squeeze(1)
+        mask = repeat(mask, 'f -> f b', b = 24),
         
         emb_linear = self.attn_layers2(emb_linear, mask=mask, return_hiddens=False)
         
