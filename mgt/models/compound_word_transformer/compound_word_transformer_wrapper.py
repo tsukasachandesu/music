@@ -150,7 +150,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 	    
         self.norm = RMSNorm(512)
 
-        self.in_linear2 = nn.Linear(2394, 512)
+        self.in_linear2 = nn.Linear(2432, 512)
 	    
         self.test1 = Fundamental_Music_Embedding()
         self.test2 = Fundamental_Music_Embedding()	    
