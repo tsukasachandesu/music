@@ -156,7 +156,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.test2 = Fundamental_Music_Embedding()	    
         self.test3 = Fundamental_Music_Embedding()
         self.test4 = Fundamental_Music_Embedding()
-        self.test5 = Fundamental_Music_Embedding(d_model = 512, base=10001)
+        self.test5 = Fundamental_Music_Embedding(d_model = 512)
 
         position = torch.arange(max_seq_len).unsqueeze(1)
         div_term = torch.exp(torch.arange(0, 512, 2) * (-math.log(10000.0) / 512))
@@ -259,7 +259,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         x += pe_index
         x += self.test5(x[..., 0])
         x = self.emb_dropout(x)
-        x = self.norm(x)
         x = self.attn_layers(x, mask=mask, return_hiddens=False)
         x = self.norm(x)
         return x
