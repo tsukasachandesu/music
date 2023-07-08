@@ -146,9 +146,11 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         self.attn_layers = attn_layers
         self.norm = RMSNorm(512)
-        self.in_linear = nn.Linear(512*7, 512)
+        self.in_linear = nn.Linear(512*13, 512)
         self.emb = Fundamental_Music_Embedding(d_model = 512)
-
+        self.emb1 = Fundamental_Music_Embedding(d_model = 512)
+        self.emb2 = Fundamental_Music_Embedding(d_model = 512)
+	    
         position = torch.arange(max_seq_len).unsqueeze(1)
         div_term = torch.exp(torch.arange(0, 512, 2) * (-math.log(10000.0) / 512))
         pe = torch.zeros(max_seq_len, 1, 512)
@@ -251,22 +253,24 @@ class CompoundWordTransformerWrapper(nn.Module):
             **kwargs
     ):
         emb_type = self.word_emb_type(x[..., 0])
-        emb_barbeat = self.word_emb_barbeat(x[..., 1])
-        emb_tempo = self.word_emb_barbeat(x[..., 2])
-        emb_instrument = self.word_emb_barbeat(x[..., 3])
-        emb_note_name =self.word_emb_barbeat(x[..., 4])
-        emb_octave = self.word_emb_barbeat(x[..., 5])
-        emb_duration = self.word_emb_barbeat(x[..., 6])
+	    
         x = torch.cat(
             [
-                emb_type,
-                emb_barbeat,
-                emb_tempo,
-                emb_instrument,
-                emb_note_name,
-                emb_octave,
-                emb_duration,
+		emb_type,
+                self.emb1(x[..., 1] % 64),
+                self.emb1(x[..., 2] % 64),
+                self.emb1(x[..., 3] % 64),
+                self.emb1(x[..., 4] % 64),
+                self.emb1(x[..., 5] % 64),
+                self.emb1(x[..., 6] % 64),
+                self.emb2(x[..., 1] // 64),
+                self.emb2(x[..., 2] // 64),
+                self.emb2(x[..., 3] // 64),
+                self.emb2(x[..., 4] // 64),
+                self.emb2(x[..., 5] // 64),
+                self.emb2(x[..., 6] // 64),
             ], dim = -1)
+	    
         x = self.in_linear(x)  
         mask = x[..., 0].bool()
         pe_index = self.pe[:x.size(1)]
