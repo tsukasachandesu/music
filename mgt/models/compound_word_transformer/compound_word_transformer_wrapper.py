@@ -152,10 +152,10 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         self.in_linear2 = nn.Linear(2432, 512)
 	    
-        self.test1 = Fundamental_Music_Embedding(d_model = 126)
-        self.test2 = Fundamental_Music_Embedding(d_model = 126)	    
-        self.test3 = Fundamental_Music_Embedding(d_model = 126)
-        self.test4 = Fundamental_Music_Embedding(d_model = 126)
+        self.test1 = Fundamental_Music_Embedding(d_model = 128)
+        self.test2 = Fundamental_Music_Embedding(d_model = 128)	    
+        self.test3 = Fundamental_Music_Embedding(d_model = 128)
+        self.test4 = Fundamental_Music_Embedding(d_model = 128)
         self.test5 = Fundamental_Music_Embedding(d_model = 512)
 
         position = torch.arange(max_seq_len).unsqueeze(1)
