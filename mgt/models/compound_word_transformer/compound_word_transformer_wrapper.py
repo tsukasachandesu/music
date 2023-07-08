@@ -157,15 +157,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         pe[:, 0, 0::2] = torch.sin(position * div_term)
         pe[:, 0, 1::2] = torch.cos(position * div_term)
         self.register_buffer('pe', pe)
-
-        self.word_emb_type = CompoundTransformerEmbeddings(self.num_tokens[0], self.emb_sizes[0])
-        self.word_emb_barbeat = CompoundTransformerEmbeddings(self.num_tokens[1], self.emb_sizes[1])
-	    
-        self.init_()
-
-    def init_(self):
-        nn.init.normal_(self.word_emb_type.weight(), std=0.02)
-        nn.init.normal_(self.word_emb_barbeat.weight(), std=0.02)
 	    
     def forward_output_sampling(self, h, selection_temperatures=None, selection_probability_tresholds=None):
         # sample type
@@ -256,7 +247,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 	    
         x = torch.cat(
             [
-		emb_type,
+		self.emb(x[..., 0]),
                 self.emb1(x[..., 1] % 64),
                 self.emb1(x[..., 2] % 64),
                 self.emb1(x[..., 3] % 64),
