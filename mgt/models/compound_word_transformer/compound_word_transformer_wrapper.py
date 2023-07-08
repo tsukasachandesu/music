@@ -9,33 +9,8 @@ from x_transformers.x_transformers import AttentionLayers, default, AbsolutePosi
 from mgt.models.compound_word_transformer.compound_transformer_embeddings import CompoundTransformerEmbeddings
 from mgt.models.utils import get_device
 import torch.nn.functional as F
-import itertools
 import math
 from einops import rearrange, reduce, repeat
-from functools import partial, wraps
-
-class RotaryEmbedding(nn.Module):
-    def __init__(self, dim, theta = 10000):
-        super().__init__()
-        inv_freq = 1.0 / (theta ** (torch.arange(0, dim, 2).float() / dim))
-        self.register_buffer("inv_freq", inv_freq, persistent = False)
-
-    @property
-    def device(self):
-        return next(self.buffers()).device
-
-    def forward(self, seq_len):
-        t = torch.arange(seq_len, device = self.device).type_as(self.inv_freq)
-        freqs = torch.einsum('i , j -> i j', t, self.inv_freq)
-        freqs = torch.cat((freqs, freqs), dim = -1)
-        return freqs
-
-def rotate_half(x):
-    x1, x2 = x.chunk(2, dim=-1)
-    return torch.cat((-x2, x1), dim=-1)
-
-def apply_rotary_pos_emb(pos, t):
-    return (t * pos.cos()) + (rotate_half(t) * pos.sin())
 
 class RMSNorm(nn.Module):
     def __init__(self, dim):
@@ -46,156 +21,6 @@ class RMSNorm(nn.Module):
     def forward(self, x):
         normed = F.normalize(x, dim = -1)
         return normed * self.scale * self.gamma
-
-def cast_tuple(val, num = 1):
-    return val if isinstance(val, tuple) else ((val,) * num)
-
-class CausalSelfAttention(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.n_embd = 512
-        self.n_heads = 8
-        self.query_projection = nn.Linear(512, 512)
-        self.key_projection = nn.Linear(512, 512)
-        self.value_projection = nn.Linear(512, 512)
-        self.out_projection = nn.Linear(512, 512)
-        self.dropout = nn.Dropout(0.1)
-        self.eps = 1e-6
-        self.norm = RMSNorm(512)
-        self.rotary_pos_emb = RotaryEmbedding(64)
-
-    def kernel_method(self, x):
-        return torch.sigmoid(x)
-
-    def causal_dot_product(self, q, k, v):
-        kv = torch.einsum("nhld,nhlm->nhldm", k, v)
-        kv = torch.cumsum(kv, dim=2)
-        qkv = torch.einsum("nhld,nhldm->nhlm", q, kv)
-        return qkv
-
-    def forward(self, x):
-        queries, values, keys = x, x, x
-        pos_emb = self.rotary_pos_emb(queries.shape[1])
-
-        ## 1. Linear projection
-        B, L, _ = queries.shape
-        _, S, _ = keys.shape
-        queries = self.query_projection(queries).view(B, L, self.n_heads, -1)
-        keys = self.key_projection(keys).view(B, S, self.n_heads, -1)
-        values = self.value_projection(values).view(B, S, self.n_heads, -1)
-        queries = queries.transpose(1, 2)
-        keys = keys.transpose(1, 2)
-        values = values.transpose(1, 2)
-
-        q_pos_emb, k_pos_emb = cast_tuple(pos_emb, num = 2)
-        queries = apply_rotary_pos_emb(queries, q_pos_emb)
-        keys = apply_rotary_pos_emb(keys, k_pos_emb)
-        
-        # 2. Non-negative projection
-        queries = self.kernel_method(queries)
-        keys = self.kernel_method(keys)
-        ## 3. Causal Flow-Attention
-        # (1) Calculate incoming and outgoing flow
-        sink_incoming = 1.0 / (torch.einsum("nhld,nhld->nhl", queries + self.eps, keys.cumsum(dim=2) + self.eps))
-        source_outgoing = 1.0 / (torch.einsum("nhld,nhld->nhl", keys + self.eps, queries.cumsum(dim=2) + self.eps))
-        # approximate normal conservation col and row by multiplying corresponding element number
-        normal = (((torch.arange(queries.shape[2])).float() + 1.0)).to(queries.device)[None, None, :]
-        sink_incoming = sink_incoming * normal
-        source_outgoing = source_outgoing * normal
-        # (2) conservation refine for source and sink
-        conserved_sink = torch.einsum("nhld,nhld->nhl", queries + self.eps,
-                                      (keys * source_outgoing[:, :, :, None]).cumsum(dim=2) + self.eps) / normal
-        conserved_source = torch.einsum("nhld,nhld->nhl", keys + self.eps,
-                                        (queries * sink_incoming[:, :, :, None]).cumsum(
-                                            dim=2) + self.eps) / normal
-        conserved_source = torch.clamp(conserved_source, min=-1.0, max=1.0)  # for stability
-        # (3) Competition & Allocation
-        sink_allocation = torch.sigmoid(conserved_sink)
-        conserved_source = torch.exp(conserved_source)
-        source_competition = (conserved_source / conserved_source.cumsum(dim=-1)) * normal
-        # (4) Causal dot product
-        x = (self.causal_dot_product(queries * (sink_incoming[:, :, :, None] / normal[:, :, :, None]),
-                                     # for value normalization
-                                     keys,
-                                     values * source_competition[:, :, :, None])  # competition
-             * sink_allocation[:, :, :, None]).transpose(1, 2)  # allocation
-        ## (5) Final projection
-        x = x.reshape(B, L, -1)
-        x = self.out_projection(x)
-        x = self.dropout(x)
-        return self.norm(x)
-
-class Block(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.atten = CausalSelfAttention()
-        self.norm = RMSNorm(512)
-        self.mlp =  nn.Sequential(nn.Linear(512, 4 * 512),nn.SiLU(),nn.Dropout(0.1),nn.Linear(4 * 512, 512))
-        self.layers = nn.ModuleList([])
-        for _ in range(4):
-            self.layers.append(nn.ModuleList([
-                self.atten,
-                self.mlp
-            ]))
-
-    def forward(self, x):
-        for attn, ff in self.layers:
-            x = self.norm(attn(x) + x)
-            x = self.norm(ff(x) + x)
-
-        return self.norm(x)
-
-def tiv1(q):
-    c = [0]*6*2
-    c = np.array(c)
-    count = 0
-    for i in q:
-        a = [math.sin(math.radians(30*-i)),math.cos(math.radians(30*-i)),math.sin(math.radians(60*-i)),math.cos(math.radians(60*-i)),math.sin(math.radians(90*-i)),math.cos(math.radians(90*-i)),math.sin(math.radians(120*-i)),math.cos(math.radians(120*-i)),math.sin(math.radians(150*-i)),math.cos(math.radians(150*-i)),math.sin(math.radians(180*-i)),math.cos(math.radians(180*-i))]
-        a = np.array(a)
-        c = c + a
-        count += 1
-    if count != 0:
-        c /= count
-    return c
-
-def notes_to_ce(indices):
-  note_index_to_pitch_index = [0, -5, 2, -3, 4, -1, -6, 1, -4, 3, -2, 5]
-  total = np.zeros(3)
-  count = 0
-  for index in indices:
-    total += pitch_index_to_position(note_index_to_pitch_index[index])
-    count += 1
-  if count != 0:
-    total /= count               
-  return total.tolist()    
-
-def pitch_index_to_position(pitch_index) :
-    c = pitch_index - (4 * (pitch_index // 4))
-    verticalStep = 0.4
-    radius = 1.0
-    pos = np.array([0.0, 0.0, 0.0])
-    if c == 0:
-        pos[1] = radius
-    if c == 1:
-        pos[0] = radius
-    if c == 2:
-        pos[1] = -1*radius
-    if c == 3:
-        pos[0] = -1*radius
-    pos[2] = pitch_index * verticalStep
-    return np.array(pos)
-
-def largest_distance(pitches):
-    if len(pitches) < 2:
-        return 0
-    diameter = 0
-    pitch_pairs = itertools.combinations(pitches, 2)
-    for pitch_pair in pitch_pairs:
-        distance = np.linalg.norm(pitch_index_to_position(
-            pitch_pair[0]) - pitch_index_to_position(pitch_pair[1]))
-        if distance > diameter:
-            diameter = distance
-    return diameter
 
 def softmax_with_temperature(logits, temperature):
     probs = np.exp(logits / temperature) / np.sum(np.exp(logits / temperature))
@@ -315,7 +140,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.attn_layers = attn_layers
         self.attn_layers2 = attn_layers2
          
-        self.norm = nn.LayerNorm(512*24)
+        self.norm = RMSNorm(512*24)
         
         self.in_linear2 = nn.Linear(512*7*16, 512)
         self.blo = Block()
