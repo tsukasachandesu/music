@@ -12,13 +12,6 @@ import torch.nn.functional as F
 import math
 from einops import rearrange, reduce, repeat
 
-import numpy as np
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import math
-import matplotlib.pyplot as plt
-
 class Fundamental_Music_Embedding(nn.Module):
 	def __init__(self, d_model, base, device='cuda:0'):
 		super().__init__()
@@ -217,7 +210,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         self.in_linear2 = nn.Linear(512*7, 512)
 
-        self.init_()
+	self.test = Fundamental_Music_Embedding(d_model = d_model, base=10001, device = device)
+
+	self.init_()
 
     def init_(self):
         nn.init.normal_(self.word_emb_type.weight(), std=0.02)
@@ -319,7 +314,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_octave = self.word_emb_barbeat(x[..., 5])
         emb_duration = self.word_emb_barbeat(x[..., 6])
 
-        
+        self.test(x[..., 1])
 
         x = torch.cat(
             [
