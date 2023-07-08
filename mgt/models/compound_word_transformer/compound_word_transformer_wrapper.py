@@ -259,16 +259,7 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_duration,
             ], dim = -1)
 
-        z = embs1.shape
-        emb_linear = embs1
-        
-        window_size = 16
-        emb_linear = F.pad(emb_linear, (0, 0, window_size - 1, 0), mode='constant', value=0)
-        emb_linear = emb_linear.unfold(1,16,1)
-        emb_linear = torch.permute(emb_linear, (0,1,3,2))  
-        emb_linear = emb_linear.reshape(z[0],z[1],1,512*7*16)
-        emb_linear = emb_linear.squeeze(2)
-        x = self.in_linear2(emb_linear)        
+        x = self.in_linear2(embs1)        
         x = x + self.pos_emb(x)
         x = self.emb_dropout(x)
 
@@ -276,7 +267,6 @@ class CompoundWordTransformerWrapper(nn.Module):
             x.squeeze(0)
             
         x = self.attn_layers(x, mask=mask, return_hiddens=False)
-        x = self.blo(x)
 
         x = torch.cat(
             [
@@ -289,13 +279,6 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_octave.reshape(-1,1,512),
                 emb_duration.reshape(-1,1,512),
             ], dim = 1)
-
-        window_size = 3
-        emb_linear = F.pad(x, (0, 0, window_size - 1, 0), mode='constant', value=0)
-        emb_linear = emb_linear.unfold(1,3,1)
-        emb_linear = torch.permute(emb_linear, (0,1,3,2))  
-        emb_linear = emb_linear.reshape(-1,1,24,512)
-        emb_linear = emb_linear.squeeze(1)
         
         emb_linear = emb_linear + self.pos_emb2(emb_linear)
         mask = mask.reshape(-1,1).squeeze(1)
@@ -306,10 +289,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_linear = emb_linear.reshape(-1,1,512*24)
 
         emb_linear = emb_linear.reshape(z[0],z[1],512*24)
-
-        emb_linear = self.norm(emb_linear)
-        
-        return emb_linear
 
         emb_linear = self.norm(emb_linear)
         
