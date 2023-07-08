@@ -13,7 +13,7 @@ import math
 from einops import rearrange, reduce, repeat
 
 class Fundamental_Music_Embedding(nn.Module):
-  def __init__(self, d_model=128, base=10000, device='cuda:0'):
+  def __init__(self, d_model, base=10000, device='cuda:0'):
     super().__init__()
     self.d_model = d_model
     self.device = device
@@ -152,10 +152,10 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         self.in_linear2 = nn.Linear(2432, 512)
 	    
-        self.test1 = Fundamental_Music_Embedding()
-        self.test2 = Fundamental_Music_Embedding()	    
-        self.test3 = Fundamental_Music_Embedding()
-        self.test4 = Fundamental_Music_Embedding()
+        self.test1 = Fundamental_Music_Embedding(d_model = 126)
+        self.test2 = Fundamental_Music_Embedding(d_model = 126)	    
+        self.test3 = Fundamental_Music_Embedding(d_model = 126)
+        self.test4 = Fundamental_Music_Embedding(d_model = 126)
         self.test5 = Fundamental_Music_Embedding(d_model = 512)
 
         position = torch.arange(max_seq_len).unsqueeze(1)
@@ -256,8 +256,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         x = self.in_linear2(x)  
         pe_index = self.pe[:x.size(1)]
         pe_index = torch.swapaxes(pe_index, 0, 1) 
-        x += pe_index
-
+        x = x + pe_index
+        x = x + self.test5(x[..., 0])
         x = self.emb_dropout(x)
         x = self.attn_layers(x, mask=mask, return_hiddens=False)
         x = self.norm(x)
