@@ -257,7 +257,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         pe_index = self.pe[:x.size(1)]
         pe_index = torch.swapaxes(pe_index, 0, 1) 
         x += pe_index
-        x += self.test5(x[..., 0])
+
         x = self.emb_dropout(x)
         x = self.attn_layers(x, mask=mask, return_hiddens=False)
         x = self.norm(x)
