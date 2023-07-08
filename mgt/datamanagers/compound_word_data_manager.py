@@ -124,9 +124,13 @@ class CompoundWordDataManager(DataManager):
                         if pq[i][0] == 3:
                             ppqq[cur*16+pq[i][1]-1] = [pq[i][1],pq[i][2],pq[i][3],pq[i][4],pq[i][5],pq[i][6],pq[i][7],pq[i][8],pq[i][9]] 
 
+                    ppqqq=[]
+                    for i in range(len(ppqq)):
+                        ppqqq.append(ppqq[0]+[*inverse_dic[int(ppqq[0][1])],*inverse_dic[int(ppqq[0][1])],*inverse_dic[int(ppqq[0][2])],*inverse_dic[int(ppqq[0][3])],*inverse_dic[int(ppqq[0][4])],*inverse_dic[int(ppqq[0][5])],*inverse_dic[int(ppqq[0][6])]])
+
                     print(f'Extracted {len(ppqq)} compound words.') 
                     
-                    training_data.append(ppqq)
+                    training_data.append(ppqqq)
                 except Exception as e:
                     print(f"Exception: {e}")
 
