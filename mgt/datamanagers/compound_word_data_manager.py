@@ -15,60 +15,6 @@ defaults = {
     'instrument_mapping': {}
 }
 
-def tiv1(q):
-    c = [0]*6*2
-    c = np.array(c)
-    count = 0
-    for i in q:
-        a = [math.sin(math.radians(30*-i)),math.cos(math.radians(30*-i)),math.sin(math.radians(60*-i)),math.cos(math.radians(60*-i)),math.sin(math.radians(90*-i)),math.cos(math.radians(90*-i)),math.sin(math.radians(120*-i)),math.cos(math.radians(120*-i)),math.sin(math.radians(150*-i)),math.cos(math.radians(150*-i)),math.sin(math.radians(180*-i)),math.cos(math.radians(180*-i))]
-        a = np.array(a)
-        c = c + a
-        count += 1
-    if count != 0:
-        c /= count
-    
-    return c.tolist()    
-
-def notes_to_ce(indices):
-  note_index_to_pitch_index = [0, -5, 2, -3, 4, -1, -6, 1, -4, 3, -2, 5]
-  total = np.zeros(3)
-  count = 0
-  for index in indices:
-    total += pitch_index_to_position(note_index_to_pitch_index[index])
-    count += 1
-  if count != 0:
-    total /= count               
-  return total.tolist()    
-
-def pitch_index_to_position(pitch_index) :
-    c = pitch_index - (4 * (pitch_index // 4))
-    verticalStep = 0.4
-    radius = 1.0
-    pos = np.array([0.0, 0.0, 0.0])
-    if c == 0:
-        pos[1] = radius
-    if c == 1:
-        pos[0] = radius
-    if c == 2:
-        pos[1] = -1*radius
-    if c == 3:
-        pos[0] = -1*radius
-    pos[2] = pitch_index * verticalStep
-    
-    return np.array(pos)
-
-def largest_distance(pitches):
-    if len(pitches) < 2:
-        return 0
-    diameter = 0
-    pitch_pairs = itertools.combinations(pitches, 2)
-    for pitch_pair in pitch_pairs:
-        distance = np.linalg.norm(pitch_index_to_position(
-            pitch_pair[0]) - pitch_index_to_position(pitch_pair[1]))
-        if distance > diameter:
-            diameter = distance
-    return diameter
-
 class CompoundWordDataManager(DataManager):
     """
     transposition_steps: Transposed copies of the data to include. For example [-1, 0, 1] has a copy that is transposed
