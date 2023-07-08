@@ -132,7 +132,7 @@ class CompoundWordDataManager(DataManager):
                             
                     p =[[] * 1 for i in range(cur*16+1)]
                     
-                    ppqq =[[i%16+1,6913,6913,6913,6913,6913,6913] * 1 for i in range(cur*16+1)]
+                    ppqq =[[i%16+1,1,1,1,1,1,1] * 1 for i in range(cur*16+1)]
                     
                     cur = -1
                     for i in d:
@@ -152,24 +152,24 @@ class CompoundWordDataManager(DataManager):
                        
                     p  = []
                     for i in pp:
-                        n =[0,0,6913,6913,6913,6913,6913,6913]
+                        n =[0,0,1,1,1,1,1,1]
                         r = 2
                         for j in i:
                             n[0] = j[0]
                             n[1] = j[1]
-                            n[r] = j[2]
+                            n[r] = j[2] + 2
                             
                             if r >= 7:
                                 break
                             r = r + 1
                         p.append(n)
                         
-                    if p[-1] == [2, 0, 6913,6913,6913,6913,6913,6913]:
+                    if p[-1] == [2, 0, 1,1,1,1,1,1]:
                         del p[-1]
                         
                     pq = []
                     for i in p:
-                        pq.append([i[0],i[1]]+sorted([i[2],i[3],i[4],i[5],i[6],i[7]]))
+                        pq.append([i[0],i[1]]+sorted([i[2],i[3],i[4],i[5],i[6],i[7]], reverse=True))
                                
                     cur = -1
                     for i in range(len(pq)):
@@ -177,20 +177,6 @@ class CompoundWordDataManager(DataManager):
                             cur  = cur + 1
                         if pq[i][0] == 3:
                             ppqq[cur*16+pq[i][1]-1] = [pq[i][1],pq[i][2],pq[i][3],pq[i][4],pq[i][5],pq[i][6],pq[i][7]] 
-                            
-                    for i in ppqq:
-                        if i[1] == 6914:
-                            i[1] = 6913
-                        if i[2] == 6914:
-                            i[2] = 6913
-                        if i[3] == 6914:
-                            i[3] = 6913
-                        if i[4] == 6914:
-                            i[4] = 6913
-                        if i[5] == 6914:
-                            i[5] = 6913
-                        if i[6] == 6914:
-                            i[6] = 6913
 
                     print(f'Extracted {len(ppqq)} compound words.') 
                     
@@ -210,9 +196,9 @@ class CompoundWordDataManager(DataManager):
         q = []
         for i in data:
             for j in range(6):
-                if i[j+1] != 0 and i[j+1] != 6913:
+                if i[j+1] != 0 and i[j+1] != 1:
                     q.append([2,i[0],0,0,0,0,0,0])
-                    q.append([3,i[0],0,0,*inverse_dic[int(i[j+1]-1)],31])
+                    q.append([3,i[0],0,0,*inverse_dic[int(i[j+1]-2)],31])
             if i[0] == 16:
                 q.append([2,0,0,0,0,0,0,0])
         remi = self.compound_word_mapper.map_to_remi(q)
