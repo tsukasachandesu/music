@@ -141,22 +141,13 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.proj_duration = nn.Sequential(
             nn.Linear(dim, self.num_tokens[6])
         )
-
         self.compound_word_embedding_size = np.sum(emb_sizes)
-        
         self.emb_dropout = nn.Dropout(emb_dropout)
         
         self.attn_layers = attn_layers
-	    
         self.norm = RMSNorm(512)
-
-        self.in_linear2 = nn.Linear(2432, 512)
-	    
-        self.test1 = Fundamental_Music_Embedding(d_model = 128)
-        self.test2 = Fundamental_Music_Embedding(d_model = 128)	    
-        self.test3 = Fundamental_Music_Embedding(d_model = 128)
-        self.test4 = Fundamental_Music_Embedding(d_model = 128)
-        self.test5 = Fundamental_Music_Embedding(d_model = 512)
+        self.in_linear = nn.Linear(512*7, 512)
+        self.emb = Fundamental_Music_Embedding(d_model = 512)
 
         position = torch.arange(max_seq_len).unsqueeze(1)
         div_term = torch.exp(torch.arange(0, 512, 2) * (-math.log(10000.0) / 512))
@@ -164,6 +155,15 @@ class CompoundWordTransformerWrapper(nn.Module):
         pe[:, 0, 0::2] = torch.sin(position * div_term)
         pe[:, 0, 1::2] = torch.cos(position * div_term)
         self.register_buffer('pe', pe)
+
+        self.word_emb_type = CompoundTransformerEmbeddings(self.num_tokens[0], self.emb_sizes[0])
+        self.word_emb_barbeat = CompoundTransformerEmbeddings(self.num_tokens[1], self.emb_sizes[1])
+	    
+        self.init_()
+
+    def init_(self):
+        nn.init.normal_(self.word_emb_type.weight(), std=0.02)
+        nn.init.normal_(self.word_emb_barbeat.weight(), std=0.02)
 	    
     def forward_output_sampling(self, h, selection_temperatures=None, selection_probability_tresholds=None):
         # sample type
@@ -250,15 +250,31 @@ class CompoundWordTransformerWrapper(nn.Module):
             mask=None,
             **kwargs
     ):
-        
+        emb_type = self.word_emb_type(x[..., 0])
+        emb_barbeat = self.word_emb_barbeat(x[..., 1])
+        emb_tempo = self.word_emb_barbeat(x[..., 2])
+        emb_instrument = self.word_emb_barbeat(x[..., 3])
+        emb_note_name =self.word_emb_barbeat(x[..., 4])
+        emb_octave = self.word_emb_barbeat(x[..., 5])
+        emb_duration = self.word_emb_barbeat(x[..., 6])
+        x = torch.cat(
+            [
+                emb_type,
+                emb_barbeat,
+                emb_tempo,
+                emb_instrument,
+                emb_note_name,
+                emb_octave,
+                emb_duration,
+            ], dim = -1)
+        x = self.in_linear(x)  
         mask = x[..., 0].bool()
-        x = torch.cat([self.test1(x[..., 0]),self.test1(x[..., 9]),self.test2(x[..., 10]),self.test3(x[..., 11]),self.test1(x[..., 12]),self.test2(x[..., 13]),self.test3(x[..., 14]),self.test1(x[..., 15]),self.test2(x[..., 16]),self.test3(x[..., 17]),self.test1(x[..., 18]),self.test2(x[..., 19]),self.test3(x[..., 20]),self.test1(x[..., 21]),self.test2(x[..., 22]),self.test3(x[..., 23]),self.test1(x[..., 24]),self.test2(x[..., 25]),self.test3(x[..., 26])], dim = -1)
-        x = self.in_linear2(x)  
         pe_index = self.pe[:x.size(1)]
         pe_index = torch.swapaxes(pe_index, 0, 1) 
         x = x + pe_index
-        x = x + self.test5(x[..., 0])
+        x = x + self.emb(x[..., 0])
         x = self.emb_dropout(x)
+        x = self.norm(x)
         x = self.attn_layers(x, mask=mask, return_hiddens=False)
         x = self.norm(x)
         return x
