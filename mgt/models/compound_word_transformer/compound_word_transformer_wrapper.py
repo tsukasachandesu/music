@@ -13,7 +13,7 @@ import math
 from einops import rearrange, reduce, repeat
 
 class Fundamental_Music_Embedding(nn.Module):
-	def __init__(self, d_model, base, device='cuda:0'):
+	def __init__(self, d_model=512, base=10000, device='cuda:0'):
 		super().__init__()
 		self.d_model = d_model
 		self.device = device
@@ -65,7 +65,7 @@ class Music_PositionalEncoding(nn.Module):
 		pe[:, 0, 1::2] = torch.cos(position * div_term)
 		self.register_buffer('pe', pe)
 	
-	def forward(self, inp,　dur_onset_cumsum = None):
+	def forward(self, inp, dur_onset_cumsum = None):
 
 		pe_index = self.pe[:inp.size(1)] #[seq_len, batch_size, embedding_dim]
 		pe_index = torch.swapaxes(pe_index, 0, 1) #[batch_size, seq_len, embedding_dim]
@@ -207,11 +207,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.attn_layers2 = attn_layers2
 
         self.norm = RMSNorm(512*8)
-        
+
         self.in_linear2 = nn.Linear(512*7, 512)
-
-	self.test = Fundamental_Music_Embedding(d_model = d_model, base=10001, device = device)
-
+	self.test = Fundamental_Music_Embedding()
 	self.init_()
 
     def init_(self):
