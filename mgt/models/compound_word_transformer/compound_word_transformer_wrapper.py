@@ -259,6 +259,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         x += pe_index
         x += self.test5(x[..., 0])
         x = self.emb_dropout(x)
+	x = self.norm(x)
         x = self.attn_layers(x, mask=mask, return_hiddens=False)
         x = self.norm(x)
         return x
