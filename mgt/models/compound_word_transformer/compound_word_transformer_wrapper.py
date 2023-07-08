@@ -26,16 +26,20 @@ class Fundamental_Music_Embedding(nn.Module):
     angle_rates = angle_rates[None, ... ].to(self.device)
     angles = nn.Parameter(angle_rates, requires_grad=True)
     self.register_parameter("angles", angles)
+	  
   def __call__(self, inp):
-    inp = inp[..., None] #pos (batch, num_pitch, 1)
+    if inp.dim()==2:
+	    inp = inp[..., None] #pos (batch, num_pitch, 1)
+    elif inp.dim()==1:
+	    inp = inp[None, ..., None] #pos (1, num_pitch, 1)
     angle_rads = inp*self.angles #(batch, num_pitch)*(1,dim)
     angle_rads[:, :, 0::2] = torch.sin(angle_rads.clone()[:, : , 0::2])
     angle_rads[:, :, 1::2] = torch.cos(angle_rads.clone()[:, :, 1::2])
     pos_encoding = angle_rads.to(torch.float32)
     if self.translation_bias.size()[-1]!= self.d_model:
-      translation_bias = self.translation_bias.repeat(1, 1,int(self.d_model/2))
+	    translation_bias = self.translation_bias.repeat(1, 1,int(self.d_model/2))
     else:
-      translation_bias = self.translation_bias
+	    translation_bias = self.translation_bias
     pos_encoding += translation_bias
     return pos_encoding
 
@@ -94,7 +98,6 @@ class CompoundWordTransformerWrapper(nn.Module):
             num_tokens,
             max_seq_len,
             attn_layers,
-            attn_layers2,
             emb_dim=None,
             emb_dropout=0.,
             use_pos_emb=True,
@@ -103,17 +106,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         super().__init__()
         assert isinstance(attn_layers, AttentionLayers), 'attention layers must be one of Encoder or Decoder'
 
-        if emb_sizes is None:
-            emb_sizes = [
-                512,  # Bar / Beat
-                512,  # Tempo
-                512,  # Instrument
-                512,  # Note Name
-                512,  # Octave
-                512,
-                512
-            ]
-
         self.emb_sizes = emb_sizes
 
         dim = attn_layers.dim
@@ -121,11 +113,6 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         self.num_tokens = num_tokens
         self.max_seq_len = max_seq_len
-
-        self.word_emb_type = CompoundTransformerEmbeddings(self.num_tokens[0], self.emb_sizes[0])
-        self.word_emb_barbeat = CompoundTransformerEmbeddings(self.num_tokens[1], self.emb_sizes[1])
-
-        # individual output
         
         self.proj_type = nn.Sequential(
             nn.Linear(dim*8, self.num_tokens[0])
@@ -155,22 +142,15 @@ class CompoundWordTransformerWrapper(nn.Module):
             nn.Linear(dim*8, self.num_tokens[6])
         )
 
-        # in_features is equal to dimension plus dimensions of the type embedding
-
         self.compound_word_embedding_size = np.sum(emb_sizes)
-
-        self.pos_emb = AbsolutePositionalEmbedding(512, max_seq_len) 
-        self.pos_emb2 = AbsolutePositionalEmbedding(512, 8)
         
         self.emb_dropout = nn.Dropout(emb_dropout)
         
         self.attn_layers = attn_layers
-        self.attn_layers2 = attn_layers2
-
-        self.norm = RMSNorm(512*8)
+	    
+        self.norm = RMSNorm(512)
 
         self.in_linear2 = nn.Linear(2394, 512)
-	self.in_linear3 = nn.Linear(1024, 512)
 	    
         self.test1 = Fundamental_Music_Embedding()
         self.test2 = Fundamental_Music_Embedding()	    
@@ -272,18 +252,13 @@ class CompoundWordTransformerWrapper(nn.Module):
     ):
         
         mask = x[..., 0].bool()
-	    
         x = torch.cat([self.test1(x[..., 0]),self.test1(x[..., 9]),self.test2(x[..., 10]),self.test3(x[..., 11]),self.test1(x[..., 12]),self.test2(x[..., 13]),self.test3(x[..., 14]),self.test1(x[..., 15]),self.test2(x[..., 16]),self.test3(x[..., 17]),self.test1(x[..., 18]),self.test2(x[..., 19]),self.test3(x[..., 20]),self.test1(x[..., 21]),self.test2(x[..., 22]),self.test3(x[..., 23]),self.test1(x[..., 24]),self.test2(x[..., 25]),self.test3(x[..., 26])], dim = -1)
         x = self.in_linear2(x)  
-	z = x.shape
-	    
-	pe_index = self.pe[:inp.size(1)] #[seq_len, batch_size, embedding_dim]
-	pe_index = torch.swapaxes(pe_index, 0, 1) #[batch_size, seq_len, embedding_dim]
+	pe_index = self.pe[:inp.size(1)]
+	pe_index = torch.swapaxes(pe_index, 0, 1) 
 	x += pe_index
 	x += self.test5(x[..., 0])
 	x = self.emb_dropout(x)
-
         x = self.attn_layers(x, mask=mask, return_hiddens=False)
         x = self.norm(x)
-        
         return x
