@@ -115,31 +115,31 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.max_seq_len = max_seq_len
         
         self.proj_type = nn.Sequential(
-            nn.Linear(dim*8, self.num_tokens[0])
+            nn.Linear(dim, self.num_tokens[0])
         )
         
         self.proj_barbeat = nn.Sequential(
-            nn.Linear(dim*8, self.num_tokens[1])
+            nn.Linear(dim, self.num_tokens[1])
         )
         
         self.proj_tempo = nn.Sequential(
-            nn.Linear(dim*8, self.num_tokens[2])
+            nn.Linear(dim, self.num_tokens[2])
         )
         
         self.proj_instrument = nn.Sequential(
-            nn.Linear(dim*8, self.num_tokens[3])
+            nn.Linear(dim, self.num_tokens[3])
         )
         
         self.proj_note_name = nn.Sequential(
-            nn.Linear(dim*8, self.num_tokens[4])
+            nn.Linear(dim, self.num_tokens[4])
         )
         
         self.proj_octave = nn.Sequential(
-            nn.Linear(dim*8, self.num_tokens[5])
+            nn.Linear(dim, self.num_tokens[5])
         )
         
         self.proj_duration = nn.Sequential(
-            nn.Linear(dim*8, self.num_tokens[6])
+            nn.Linear(dim, self.num_tokens[6])
         )
 
         self.compound_word_embedding_size = np.sum(emb_sizes)
@@ -259,7 +259,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         x += pe_index
         x += self.test5(x[..., 0])
         x = self.emb_dropout(x)
-	x = self.norm(x)
+        x = self.norm(x)
         x = self.attn_layers(x, mask=mask, return_hiddens=False)
         x = self.norm(x)
         return x
