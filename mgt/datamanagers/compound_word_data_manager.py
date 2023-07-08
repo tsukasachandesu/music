@@ -126,7 +126,7 @@ class CompoundWordDataManager(DataManager):
 
                     ppqqq=[]
                     for i in range(len(ppqq)):
-                        ppqqq.append(ppqq[0]+[*inverse_dic[int(ppqq[0][1])],*inverse_dic[int(ppqq[0][1])],*inverse_dic[int(ppqq[0][2])],*inverse_dic[int(ppqq[0][3])],*inverse_dic[int(ppqq[0][4])],*inverse_dic[int(ppqq[0][5])],*inverse_dic[int(ppqq[0][6])]])
+                        ppqqq.append(ppqq[0]+[*inverse_dic[int(ppqq[0][1])],*inverse_dic[int(ppqq[0][2])],*inverse_dic[int(ppqq[0][3])],*inverse_dic[int(ppqq[0][4])],*inverse_dic[int(ppqq[0][5])],*inverse_dic[int(ppqq[0][6])]])
 
                     print(f'Extracted {len(ppqq)} compound words.') 
                     
