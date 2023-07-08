@@ -35,6 +35,7 @@ def get_batch(training_data: List[np.ndarray], batch_size: int, max_sequence_len
     :param randomly_truncate: Whether to randomly truncate sequences in the batch.
     :return: A list of sequences representing the batch.
     """
+    training_data = training_data[:,:-2]
     indices = []
     for i in range(batch_size):
         song_index = random.randint(0, len(training_data) - 1)
