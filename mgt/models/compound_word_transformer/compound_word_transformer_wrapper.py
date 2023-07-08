@@ -13,7 +13,7 @@ import math
 from einops import rearrange, reduce, repeat
 
 class Fundamental_Music_Embedding(nn.Module):
-  def __init__(self, d_model=512, base=10000, device='cuda:0'):
+  def __init__(self, d_model=128, base=10000, device='cuda:0'):
     super().__init__()
     self.d_model = d_model
     self.device = device
@@ -169,14 +169,22 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         self.norm = RMSNorm(512*8)
 
-        self.in_linear2 = nn.Linear(512*7, 512)
-        self.test = Fundamental_Music_Embedding()
-        self.init_()
+        self.in_linear2 = nn.Linear(2394, 512)
+	self.in_linear3 = nn.Linear(1024, 512)
+	    
+        self.test1 = Fundamental_Music_Embedding()
+        self.test2 = Fundamental_Music_Embedding()	    
+        self.test3 = Fundamental_Music_Embedding()
+	self.test4 = Fundamental_Music_Embedding()
+	self.test5 = Fundamental_Music_Embedding(d_model = 512, base=10001)
 
-    def init_(self):
-        nn.init.normal_(self.word_emb_type.weight(), std=0.02)
-        nn.init.normal_(self.word_emb_barbeat.weight(), std=0.02)
-
+	position = torch.arange(max_seq_len).unsqueeze(1)
+	div_term = torch.exp(torch.arange(0, 512, 2) * (-math.log(10000.0) / 512))
+	pe = torch.zeros(max_seq_len, 1, 512)
+	pe[:, 0, 0::2] = torch.sin(position * div_term)
+	pe[:, 0, 1::2] = torch.cos(position * div_term)
+	self.register_buffer('pe', pe)
+	    
     def forward_output_sampling(self, h, selection_temperatures=None, selection_probability_tresholds=None):
         # sample type
         if selection_probability_tresholds is None:
@@ -264,58 +272,18 @@ class CompoundWordTransformerWrapper(nn.Module):
     ):
         
         mask = x[..., 0].bool()
+	    
+        x = torch.cat([self.test1(x[..., 0]),self.test1(x[..., 9]),self.test2(x[..., 10]),self.test3(x[..., 11]),self.test1(x[..., 12]),self.test2(x[..., 13]),self.test3(x[..., 14]),self.test1(x[..., 15]),self.test2(x[..., 16]),self.test3(x[..., 17]),self.test1(x[..., 18]),self.test2(x[..., 19]),self.test3(x[..., 20]),self.test1(x[..., 21]),self.test2(x[..., 22]),self.test3(x[..., 23]),self.test1(x[..., 24]),self.test2(x[..., 25]),self.test3(x[..., 26])], dim = -1)
+        x = self.in_linear2(x)  
+	z = x.shape
+	    
+	pe_index = self.pe[:inp.size(1)] #[seq_len, batch_size, embedding_dim]
+	pe_index = torch.swapaxes(pe_index, 0, 1) #[batch_size, seq_len, embedding_dim]
+	x += pe_index
+	x += self.test5(x[..., 0])
+	x = self.emb_dropout(x)
 
-        emb_type = self.word_emb_type(x[..., 0])
-        emb_barbeat = self.word_emb_barbeat(x[..., 1])
-        emb_tempo = self.word_emb_barbeat(x[..., 2])
-        emb_instrument = self.word_emb_barbeat(x[..., 3])
-        emb_note_name =self.word_emb_barbeat(x[..., 4])
-        emb_octave = self.word_emb_barbeat(x[..., 5])
-        emb_duration = self.word_emb_barbeat(x[..., 6])
-
-        print(self.test(x[..., 1]).shape)
-	
-
-        x = torch.cat(
-            [
-                emb_type,
-                emb_barbeat,
-                emb_tempo,
-                emb_instrument,
-                emb_note_name,
-                emb_octave,
-                emb_duration,
-            ], dim = -1)
-
-        z = x.shape
-
-        x = self.in_linear2(x)        
-        x = x + self.pos_emb(x)
-        x = self.emb_dropout(x)
-
-        if not self.training:
-            x.squeeze(0)
-            
         x = self.attn_layers(x, mask=mask, return_hiddens=False)
-        
-        x = torch.cat(
-            [
-                x.reshape(-1,1,512),
-                emb_type.reshape(-1,1,512),
-                emb_barbeat.reshape(-1,1,512),
-                emb_tempo.reshape(-1,1,512),
-                emb_instrument.reshape(-1,1,512),
-                emb_note_name.reshape(-1,1,512),
-                emb_octave.reshape(-1,1,512),
-                emb_duration.reshape(-1,1,512),
-            ], dim = 1)
-        
-        x = x + self.pos_emb2(x)
-        mask = mask.reshape(-1,1).squeeze(1)
-        mask = repeat(mask, 'b -> b a', a=8)
-        
-        x = self.attn_layers2(x, mask=mask, return_hiddens=False)
-        x = x.reshape(z[0],z[1],512*8)
         x = self.norm(x)
         
         return x
