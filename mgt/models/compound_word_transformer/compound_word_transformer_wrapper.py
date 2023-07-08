@@ -29,17 +29,17 @@ class Fundamental_Music_Embedding(nn.Module):
 	  
   def __call__(self, inp):
     if inp.dim()==2:
-	    inp = inp[..., None] #pos (batch, num_pitch, 1)
+      inp = inp[..., None] #pos (batch, num_pitch, 1)
     elif inp.dim()==1:
-	    inp = inp[None, ..., None] #pos (1, num_pitch, 1)
+      inp = inp[None, ..., None] #pos (1, num_pitch, 1)
     angle_rads = inp*self.angles #(batch, num_pitch)*(1,dim)
     angle_rads[:, :, 0::2] = torch.sin(angle_rads.clone()[:, : , 0::2])
     angle_rads[:, :, 1::2] = torch.cos(angle_rads.clone()[:, :, 1::2])
     pos_encoding = angle_rads.to(torch.float32)
     if self.translation_bias.size()[-1]!= self.d_model:
-	    translation_bias = self.translation_bias.repeat(1, 1,int(self.d_model/2))
+      translation_bias = self.translation_bias.repeat(1, 1,int(self.d_model/2))
     else:
-	    translation_bias = self.translation_bias
+      translation_bias = self.translation_bias
     pos_encoding += translation_bias
     return pos_encoding
 
@@ -155,15 +155,15 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.test1 = Fundamental_Music_Embedding()
         self.test2 = Fundamental_Music_Embedding()	    
         self.test3 = Fundamental_Music_Embedding()
-	self.test4 = Fundamental_Music_Embedding()
-	self.test5 = Fundamental_Music_Embedding(d_model = 512, base=10001)
+        self.test4 = Fundamental_Music_Embedding()
+        self.test5 = Fundamental_Music_Embedding(d_model = 512, base=10001)
 
-	position = torch.arange(max_seq_len).unsqueeze(1)
-	div_term = torch.exp(torch.arange(0, 512, 2) * (-math.log(10000.0) / 512))
-	pe = torch.zeros(max_seq_len, 1, 512)
-	pe[:, 0, 0::2] = torch.sin(position * div_term)
-	pe[:, 0, 1::2] = torch.cos(position * div_term)
-	self.register_buffer('pe', pe)
+        position = torch.arange(max_seq_len).unsqueeze(1)
+        div_term = torch.exp(torch.arange(0, 512, 2) * (-math.log(10000.0) / 512))
+        pe = torch.zeros(max_seq_len, 1, 512)
+        pe[:, 0, 0::2] = torch.sin(position * div_term)
+        pe[:, 0, 1::2] = torch.cos(position * div_term)
+        self.register_buffer('pe', pe)
 	    
     def forward_output_sampling(self, h, selection_temperatures=None, selection_probability_tresholds=None):
         # sample type
@@ -254,11 +254,11 @@ class CompoundWordTransformerWrapper(nn.Module):
         mask = x[..., 0].bool()
         x = torch.cat([self.test1(x[..., 0]),self.test1(x[..., 9]),self.test2(x[..., 10]),self.test3(x[..., 11]),self.test1(x[..., 12]),self.test2(x[..., 13]),self.test3(x[..., 14]),self.test1(x[..., 15]),self.test2(x[..., 16]),self.test3(x[..., 17]),self.test1(x[..., 18]),self.test2(x[..., 19]),self.test3(x[..., 20]),self.test1(x[..., 21]),self.test2(x[..., 22]),self.test3(x[..., 23]),self.test1(x[..., 24]),self.test2(x[..., 25]),self.test3(x[..., 26])], dim = -1)
         x = self.in_linear2(x)  
-	pe_index = self.pe[:inp.size(1)]
-	pe_index = torch.swapaxes(pe_index, 0, 1) 
-	x += pe_index
-	x += self.test5(x[..., 0])
-	x = self.emb_dropout(x)
+        pe_index = self.pe[:x.size(1)]
+        pe_index = torch.swapaxes(pe_index, 0, 1) 
+        x += pe_index
+        x += self.test5(x[..., 0])
+        x = self.emb_dropout(x)
         x = self.attn_layers(x, mask=mask, return_hiddens=False)
         x = self.norm(x)
         return x
