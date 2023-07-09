@@ -98,7 +98,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             num_tokens,
             max_seq_len,
             attn_layers,
-	    attn_layers1,
+            attn_layers2,
             emb_dim=None,
             emb_dropout=0.,
             use_pos_emb=True,
@@ -109,8 +109,8 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         self.emb_sizes = emb_sizes
         self.attn_layers = attn_layers
-        self.attn_layers1 = attn_layers1
-	self.attn_layers2 = attn_layers1
+        self.attn_layers1 = attn_layers2
+        self.attn_layers2 = attn_layers2
         dim = attn_layers.dim
         emb_dim = default(emb_dim, dim)
 
@@ -294,9 +294,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         zz += self.emb1(emb_type) 
         zz = self.attn_layers(zz, mask=mask, return_hiddens=False)
         z = torch.cat([zz.reshpape(-1,1,512),zzz], dim = 1)
-	z += torch.swapaxes(self.pe1[:7], 0, 1) 
-	z = self.attn_layers2(z, mask=mask, return_hiddens=False)
-	z = z.reshape(x1,x2,512)
-	z = self.in_linear3(z)
+        z += torch.swapaxes(self.pe1[:7], 0, 1) 
+        z = self.attn_layers2(z, mask=mask, return_hiddens=False)
+        z = z.reshape(x1,x2,512)
+        z = self.in_linear3(z)
         return z
-
