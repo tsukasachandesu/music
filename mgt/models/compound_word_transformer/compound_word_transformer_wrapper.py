@@ -113,19 +113,17 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         self.num_tokens = num_tokens
         self.max_seq_len = max_seq_len
-
-	self.type1 = CompoundTransformerEmbeddings(14, 256)
-	self.type2 = CompoundTransformerEmbeddings(11, 256)
+        self.type1 = CompoundTransformerEmbeddings(14, 256)
+        self.type2 = CompoundTransformerEmbeddings(11, 256)
         self.type3 = CompoundTransformerEmbeddings(16, 256)
-
-	self.linear = nn.Linear(256*3, 512)
-	self.linea = nn.Linear(512*7, 512)
+        self.linear = nn.Linear(256*3, 512)
+        self.linea = nn.Linear(512*7, 512)
 	    
         self.proj_type = nn.Linear(dim, self.num_tokens[0])
         self.proj_barbeat = nn.Linear(dim, self.num_tokens[1])
         self.proj_tempo = nn.Linear(dim, self.num_tokens[2])
         self.proj_instrument = nn.Linear(dim, self.num_tokens[3])
-	self.proj_note_name = nn.Linear(dim, self.num_tokens[4])
+        self.proj_note_name = nn.Linear(dim, self.num_tokens[4])
         self.proj_octave = nn.Linear(dim, self.num_tokens[5])
         self.proj_duration = nn.Linear(dim, self.num_tokens[6])
         
@@ -134,18 +132,17 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         self.attn_layers = attn_layers
         self.norm = RMSNorm(512)
-	    
-	self.emb = Fundamental_Music_Embedding(d_model = 512)
-	self.emb1 = Fundamental_Music_Embedding(d_model = 512)
+        self.emb = Fundamental_Music_Embedding(d_model = 512)
+        self.emb1 = Fundamental_Music_Embedding(d_model = 512)
 
 
         self.init_()
 
     def init_(self):
         nn.init.normal_(self.word_emb_type.weight(), std=0.02)
-	nn.init.normal_(self.type1.weight(), std=0.02)
-	nn.init.normal_(self.type2.weight(), std=0.02)
-	nn.init.normal_(self.type3.weight(), std=0.02)
+        nn.init.normal_(self.type1.weight(), std=0.02)
+        nn.init.normal_(self.type2.weight(), std=0.02)
+        nn.init.normal_(self.type3.weight(), std=0.02)
 	    
     def forward_output_sampling(self, h, selection_temperatures=None, selection_probability_tresholds=None):
         # sample type
@@ -233,21 +230,20 @@ class CompoundWordTransformerWrapper(nn.Module):
             **kwargs):
 
         emb_type = self.word_emb_type(x[..., 0])
-	x1,x2 = emb_type.shape
-
-	y = x[:, :, 1:] - 2
-	i_special_minus1 = torch.tensor([12])  
-	j_special_minus1 = torch.tensor([9])   
-	k_special_minus1 = torch.tensor([64])  
-	i_special_minus2 = torch.tensor([13]) 
-	j_special_minus2 = torch.tensor([10])  
-	k_special_minus2 = torch.tensor([65]) 
-	mask_minus1 = y == -1
-	mask_minus2 = y == -2
-	mask_normal = ~(mask_minus1 | mask_minus2)
-	i_tensor = torch.where(mask_minus1, i_special_minus1, torch.where(mask_minus2, i_special_minus2, y // (64 * 9)))
-	j_tensor = torch.where(mask_minus1, j_special_minus1, torch.where(mask_minus2, j_special_minus2, (y // 64) % 9))
-	k_tensor = torch.where(mask_minus1, k_special_minus1, torch.where(mask_minus2, k_special_minus2, y % 64))
+        x1,x2 = emb_type.shape
+        y = x[:, :, 1:] - 2
+        i_special_minus1 = torch.tensor([12])  
+        j_special_minus1 = torch.tensor([9])   
+        k_special_minus1 = torch.tensor([64])  
+        i_special_minus2 = torch.tensor([13]) 
+        j_special_minus2 = torch.tensor([10])  
+        k_special_minus2 = torch.tensor([65]) 
+        mask_minus1 = y == -1
+        mask_minus2 = y == -2
+        mask_normal = ~(mask_minus1 | mask_minus2)
+        i_tensor = torch.where(mask_minus1, i_special_minus1, torch.where(mask_minus2, i_special_minus2, y // (64 * 9)))
+        j_tensor = torch.where(mask_minus1, j_special_minus1, torch.where(mask_minus2, j_special_minus2, (y // 64) % 9))
+        k_tensor = torch.where(mask_minus1, k_special_minus1, torch.where(mask_minus2, k_special_minus2, y % 64))
 
         z = torch.cat([self.type1(i_tensor.reshape(-1,x2,1).squeeze(2)),self.type2(j_tensor.reshape(-1,x2,1).squeeze(2)),self.type3(k_tensor.reshape(-1,x2,1).squeeze(2))], dim = -1)
         z = self.linear(z)
@@ -255,8 +251,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         z = z.reshape(x1,x2,512,6)
 
         zz = torch.cat([emb_type.unsqueeze(3),z], dim = -1)
-	zz = zz.reshape(x1,x2,512*7,1)
-	zz = zz.squeeze(-1)
+        zz = zz.reshape(x1,x2,512*7,1)
+        zz = zz.squeeze(-1)
         zz = self.linea(zz)
 	
         mask = x[..., 0].bool()
