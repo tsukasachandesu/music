@@ -98,6 +98,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             num_tokens,
             max_seq_len,
             attn_layers,
+	    attn_layers1,
             emb_dim=None,
             emb_dropout=0.,
             use_pos_emb=True,
@@ -108,6 +109,8 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         self.emb_sizes = emb_sizes
         self.attn_layers = attn_layers
+        self.attn_layers1 = attn_layers1
+	self.attn_layers2 = attn_layers1
         dim = attn_layers.dim
         emb_dim = default(emb_dim, dim)
 
@@ -154,6 +157,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.type2 = CompoundTransformerEmbeddings(11, 256)
         self.type3 = CompoundTransformerEmbeddings(66, 256)
         self.emb1 = Fundamental_Music_Embedding(d_model = 512)
+        self.in_linear3 = nn.Linear(512*7, 512)
         self.in_linear2 = nn.Linear(512*7, 512)
         self.in_linear1 = nn.Linear(256*3, 512)
         position = torch.arange(max_seq_len).unsqueeze(1)
@@ -162,6 +166,10 @@ class CompoundWordTransformerWrapper(nn.Module):
         pe[:, 0, 0::2] = torch.sin(position * div_term)
         pe[:, 0, 1::2] = torch.cos(position * div_term)
         self.register_buffer('pe', pe)
+        pe1 = torch.zeros(7, 1, 512)
+        pe1[:, 0, 0::2] = torch.sin(position * div_term)
+        pe1[:, 0, 1::2] = torch.cos(position * div_term)
+        self.register_buffer('pe1', pe1)
         self.init_()
 
     def init_(self):
@@ -257,9 +265,7 @@ class CompoundWordTransformerWrapper(nn.Module):
     ):
         emb_type = self.word_emb_type(x[..., 0])
         x1, x2, x3 = emb_type.shape
-
         y = x[:, :, 1:7] - 2
-        
         i_special_minus1 = 12
         j_special_minus1 = 9 
         k_special_minus1 = 64 
@@ -276,18 +282,22 @@ class CompoundWordTransformerWrapper(nn.Module):
         j_tensor = self.type2(j_tensor.reshape(-1, x2, 1)).squeeze(2)
         k_tensor = self.type3(k_tensor.reshape(-1, x2, 1)).squeeze(2)
         z = torch.cat([i_tensor,j_tensor,k_tensor], dim = -1)
-        z = self.in_linear1(z) 
+        z = self.in_linear1(z)
         z = z.unsqueeze(3).reshape(x1,x2,512,6)
         zz = torch.cat([emb_type.unsqueeze(3),z], dim = -1)
-        zz = zz.reshape(x1,x2,512*7,1).squeeze(-1)
-        zz = self.in_linear2(zz)
-
+        zz = zz.reshape(-1,7,512,1).squeeze(-1)
+        mask = x[..., 0].bool()
+        zz += torch.swapaxes(self.pe1[:zz.size(1)], 0, 1) 
+        zzz = self.attn_layers1(zz, mask=mask, return_hiddens=False)
+        zz = self.in_linear2(zzz)
+	zz.reshape(x1,x2,512)
         zz += torch.swapaxes(self.pe[:zz.size(1)], 0, 1) 
         zz += self.emb1(emb_type) 
-	    
-        mask = x[..., 0].bool()
-
-        x = self.attn_layers(zz, mask=mask, return_hiddens=False)
-        
-        return x
+        zz = self.attn_layers(zz, mask=mask, return_hiddens=False)
+        z = torch.cat([zz.reshpape(-1,1,512),zzz], dim = 1)
+	z += torch.swapaxes(self.pe1[:7], 0, 1) 
+	z = self.attn_layers2(z, mask=mask, return_hiddens=False)
+	z = z.reshape(x1,x2,512)
+	z = self.in_linear3(z)
+        return z
 
