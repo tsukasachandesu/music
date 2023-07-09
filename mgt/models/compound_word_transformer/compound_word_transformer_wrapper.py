@@ -161,7 +161,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         pe = torch.zeros(max_seq_len, 1, 512)
         pe[:, 0, 0::2] = torch.sin(position * div_term)
         pe[:, 0, 1::2] = torch.cos(position * div_term)
-
+        self.register_buffer('pe', pe)
         self.init_()
 
     def init_(self):
