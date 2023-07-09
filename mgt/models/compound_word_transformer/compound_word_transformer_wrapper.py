@@ -113,51 +113,39 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         self.num_tokens = num_tokens
         self.max_seq_len = max_seq_len
+
+	self.type1 = CompoundTransformerEmbeddings(14, 256)
+	self.type2 = CompoundTransformerEmbeddings(11, 256)
+        self.type3 = CompoundTransformerEmbeddings(16, 256)
+
+	self.linear = nn.Linear(256*3, 512)
+	self.linea = nn.Linear(512*7, 512)
+	    
+        self.proj_type = nn.Linear(dim, self.num_tokens[0])
+        self.proj_barbeat = nn.Linear(dim, self.num_tokens[1])
+        self.proj_tempo = nn.Linear(dim, self.num_tokens[2])
+        self.proj_instrument = nn.Linear(dim, self.num_tokens[3])
+	self.proj_note_name = nn.Linear(dim, self.num_tokens[4])
+        self.proj_octave = nn.Linear(dim, self.num_tokens[5])
+        self.proj_duration = nn.Linear(dim, self.num_tokens[6])
         
-        self.proj_type = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[0])
-        )
-        
-        self.proj_barbeat = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[1])
-        )
-        
-        self.proj_tempo = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[2])
-        )
-        
-        self.proj_instrument = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[3])
-        )
-        
-        self.proj_note_name = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[4])
-        )
-        
-        self.proj_octave = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[5])
-        )
-        
-        self.proj_duration = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[6])
-        )
         self.compound_word_embedding_size = np.sum(emb_sizes)
         self.emb_dropout = nn.Dropout(emb_dropout)
         
         self.attn_layers = attn_layers
         self.norm = RMSNorm(512)
-        self.in_linear = nn.Linear(512*13, 512)
-        self.emb = Fundamental_Music_Embedding(d_model = 512)
-        self.emb1 = Fundamental_Music_Embedding(d_model = 512)
-        self.emb2 = Fundamental_Music_Embedding(d_model = 512)
-	self.emb3 = Fundamental_Music_Embedding(d_model = 512)
 	    
-        position = torch.arange(max_seq_len).unsqueeze(1)
-        div_term = torch.exp(torch.arange(0, 512, 2) * (-math.log(10000.0) / 512))
-        pe = torch.zeros(max_seq_len, 1, 512)
-        pe[:, 0, 0::2] = torch.sin(position * div_term)
-        pe[:, 0, 1::2] = torch.cos(position * div_term)
-        self.register_buffer('pe', pe)
+	self.emb = Fundamental_Music_Embedding(d_model = 512)
+	self.emb1 = Fundamental_Music_Embedding(d_model = 512)
+
+
+        self.init_()
+
+    def init_(self):
+        nn.init.normal_(self.word_emb_type.weight(), std=0.02)
+	nn.init.normal_(self.type1.weight(), std=0.02)
+	nn.init.normal_(self.type2.weight(), std=0.02)
+	nn.init.normal_(self.type3.weight(), std=0.02)
 	    
     def forward_output_sampling(self, h, selection_temperatures=None, selection_probability_tresholds=None):
         # sample type
@@ -242,62 +230,38 @@ class CompoundWordTransformerWrapper(nn.Module):
             self,
             x,
             mask=None,
-            **kwargs
-    ):
+            **kwargs):
+
         emb_type = self.word_emb_type(x[..., 0])
-	    
-k_tensor = index_tensor % 64
-j_tensor = (index_tensor // 64) % 9
-i_tensor = index_tensor // (64 * 9)
+	x1,x2 = emb_type.shape
 
-k x[:, :, 1:] % 64  batch len tokens
-i (x[:, :, 1:] // 64) % 9
-j x[:, :, 1:] // (64 * 9) 
+	y = x[:, :, 1:] - 2
+	i_special_minus1 = torch.tensor([12])  
+	j_special_minus1 = torch.tensor([9])   
+	k_special_minus1 = torch.tensor([64])  
+	i_special_minus2 = torch.tensor([13]) 
+	j_special_minus2 = torch.tensor([10])  
+	k_special_minus2 = torch.tensor([65]) 
+	mask_minus1 = y == -1
+	mask_minus2 = y == -2
+	mask_normal = ~(mask_minus1 | mask_minus2)
+	i_tensor = torch.where(mask_minus1, i_special_minus1, torch.where(mask_minus2, i_special_minus2, y // (64 * 9)))
+	j_tensor = torch.where(mask_minus1, j_special_minus1, torch.where(mask_minus2, j_special_minus2, (y // 64) % 9))
+	k_tensor = torch.where(mask_minus1, k_special_minus1, torch.where(mask_minus2, k_special_minus2, y % 64))
 
-k.reshpae(-1,:,1) batch*tokens  len
-self.emb(k batch*tokens  len  emb
-k.squeeze(3)
-k.reshpae(-1,:,x)
-i j
+        z = torch.cat([self.type1(i_tensor.reshape(-1,x2,1).squeeze(2)),self.type2(j_tensor.reshape(-1,x2,1).squeeze(2)),self.type3(k_tensor.reshape(-1,x2,1).squeeze(2))], dim = -1)
+        z = self.linear(z)
+        z = z.unsqueeze(3)
+        z = z.reshape(x1,x2,512,6)
 
-k batch len emb tok
-i
-j
-
-batch*tokens  len  emb*3
-
-batch*tokens  len  emb
-
-batch*len tokens  emb
-
-
-x = torch.cat([self.emb1(k[..., 1]), self.emb2(k[..., 1]), self.emb3(j[..., 1]], dim = -1)
-x = self.in_linear(x)  
-
-        x = torch.cat(
-            [
-                self.emb3(repeat(torch.arange(emb_type.shape[1]), 'j -> i j', i=emb_type.shape[0])),
-		self.emb(x[..., 0]),
-                self.emb1(x[..., 1] % 64),
-                self.emb1(x[..., 2] % 64),
-                self.emb1(x[..., 3] % 64),
-                self.emb1(x[..., 4] % 64),
-                self.emb1(x[..., 5] % 64),
-                self.emb1(x[..., 6] % 64),
-                self.emb2(x[..., 1] // 64),
-                self.emb2(x[..., 2] // 64),
-                self.emb2(x[..., 3] // 64),
-                self.emb2(x[..., 4] // 64),
-                self.emb2(x[..., 5] // 64),
-                self.emb2(x[..., 6] // 64),
-            ], dim = -1)
-
-	    
-	    
-        x = self.in_linear(x)  
+        zz = torch.cat([emb_type.unsqueeze(3),z], dim = -1)
+	zz = zz.reshape(x1,x2,512*7,1)
+	zz = zz.squeeze(-1)
+        zz = self.linea(zz)
+	
         mask = x[..., 0].bool()
-        x = x + pe_index + self.emb3(repeat(torch.arange(emb_type.shape[1]), 'j -> i j', i=emb_type.shape[0]))
-        x = x + self.emb(x[..., 0])
+		    
+        x = x + self.emb1(emb_type) + self.emb(repeat(torch.arange(emb_type.shape[1]), 'j -> i j', i=emb_type.shape[0]))
         x = self.emb_dropout(x)
         x = self.norm(x)
         x = self.attn_layers(x, mask=mask, return_hiddens=False)
