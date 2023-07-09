@@ -281,10 +281,10 @@ class CompoundWordTransformerWrapper(nn.Module):
         zz = torch.cat([emb_type.unsqueeze(3),z], dim = -1)
         zz = zz.reshape(x1,x2,512*7,1).squeeze(-1)
         zz = self.in_linear2(zz)
-        pe_index = self.pe[:zz.size(1)]
-        pe_index = torch.swapaxes(pe_index, 0, 1) 
-        zz = zz + pe_index
-        zz = zz + self.emb1(emb_type) 
+
+        zz += torch.swapaxes(self.pe[:zz.size(1)], 0, 1) 
+        zz += self.emb1(emb_type) 
+	    
         mask = x[..., 0].bool()
 
         x = self.attn_layers(zz, mask=mask, return_hiddens=False)
