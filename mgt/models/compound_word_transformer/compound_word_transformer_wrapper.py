@@ -76,7 +76,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         assert isinstance(attn_layers, AttentionLayers), 'attention layers must be one of Encoder or Decoder'
 
         self.emb_sizes = emb_sizes
-
+        self.attn_layers = attn_layers
         dim = attn_layers.dim
         emb_dim = default(emb_dim, dim)
 
