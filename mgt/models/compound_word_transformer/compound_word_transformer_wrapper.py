@@ -232,12 +232,12 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_type = self.word_emb_type(x[..., 0])
         x1,x2,x3 = emb_type.shape
         y = x[:, :, 1:] - 2
-        i_special_minus1 = torch.tensor([12])].to('cuda:0')  
-        j_special_minus1 = torch.tensor([9])].to('cuda:0')   
-        k_special_minus1 = torch.tensor([64])].to('cuda:0')  
-        i_special_minus2 = torch.tensor([13])].to('cuda:0') 
-        j_special_minus2 = torch.tensor([10])].to('cuda:0')  
-        k_special_minus2 = torch.tensor([65])].to('cuda:0') 
+        i_special_minus1 = 12
+        j_special_minus1 = 9 
+        k_special_minus1 = 64 
+        i_special_minus2 = 13
+        j_special_minus2 = 10
+        k_special_minus2 = 65
         mask_minus1 = y == -1
         mask_minus2 = y == -2
         mask_normal = ~(mask_minus1 | mask_minus2)
