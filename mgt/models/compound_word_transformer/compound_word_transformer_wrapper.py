@@ -84,7 +84,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.max_seq_len = max_seq_len
 
         self.word_emb_type = CompoundTransformerEmbeddings(self.num_tokens[0], self.emb_sizes[0])
-        self.word_emb_barbeat = CompoundTransformerEmbeddings(self.num_tokens[1], self.emb_sizes[1])
 
         # individual output
         
@@ -220,16 +219,10 @@ class CompoundWordTransformerWrapper(nn.Module):
             **kwargs
     ):
         emb_type = self.word_emb_type(x[..., 0])
-        emb_barbeat = self.word_emb_barbeat(x[..., 1])
-        emb_tempo = self.word_emb_barbeat(x[..., 2])
-        emb_instrument = self.word_emb_barbeat(x[..., 3])
-        emb_note_name =self.word_emb_barbeat(x[..., 4])
-        emb_octave = self.word_emb_barbeat(x[..., 5])
-        emb_duration = self.word_emb_barbeat(x[..., 6])
+        x1, x2, x3 = emb_type.shape
 
         y = x[:, :, 1:-2] - 2
-        x1,x2,x3 = y.shape
-
+        
         i_special_minus1 = 12
         j_special_minus1 = 9 
         k_special_minus1 = 64 
@@ -242,17 +235,16 @@ class CompoundWordTransformerWrapper(nn.Module):
         i_tensor = torch.where(mask_minus1, i_special_minus1, torch.where(mask_minus2, i_special_minus2, y // (64 * 9)))
         j_tensor = torch.where(mask_minus1, j_special_minus1, torch.where(mask_minus2, j_special_minus2, (y // 64) % 9))
         k_tensor = torch.where(mask_minus1, k_special_minus1, torch.where(mask_minus2, k_special_minus2, y % 64))
-        i_tensor = self.type1(i_tensor.reshape(-1, x2, 1))
-        j_tensor = self.type2(j_tensor.reshape(-1, x2, 1))
-        k_tensor = self.type3(k_tensor.reshape(-1, x2, 1))
-        i_tensor = i_tensor.squeeze(2)
-        j_tensor = j_tensor.squeeze(2)
-        k_tensor = k_tensor.squeeze(2)
+        i_tensor = self.type1(i_tensor.reshape(-1, x2, 1)).squeeze(2)
+        j_tensor = self.type2(j_tensor.reshape(-1, x2, 1)).squeeze(2)
+        k_tensor = self.type3(k_tensor.reshape(-1, x2, 1)).squeeze(2)
         z = torch.cat([i_tensor,j_tensor,k_tensor], dim = -1)
-        z = self.in_linear1(z)    
-        z = z.unsqueeze(3)
-        z = z.reshape(x1,x2,512,6)
+        z = self.in_linear1(z) 
+        print(z.shape)       
+        z = z.unsqueeze(3).reshape(x1,x2,512,6)
+        print(z.shape)
         zz = torch.cat([emb_type.unsqueeze(3),z], dim = -1)
+        print(zz.shape)
         zz = zz.reshape(x1,x2,512*7,1)
         zz = zz.squeeze(-1)
         zz = self.in_linear2(zz)
