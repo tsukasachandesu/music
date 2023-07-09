@@ -231,7 +231,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         emb_type = self.word_emb_type(x[..., 0])
         x1,x2,x3 = emb_type.shape
-        y = x[:, :, 1:] - 2
+        y = x[:, :, 1:-2] - 2
         i_special_minus1 = 12
         j_special_minus1 = 9 
         k_special_minus1 = 64 
@@ -244,9 +244,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         i_tensor = torch.where(mask_minus1, i_special_minus1, torch.where(mask_minus2, i_special_minus2, y // (64 * 9)))
         j_tensor = torch.where(mask_minus1, j_special_minus1, torch.where(mask_minus2, j_special_minus2, (y // 64) % 9))
         k_tensor = torch.where(mask_minus1, k_special_minus1, torch.where(mask_minus2, k_special_minus2, y % 64))
-	print(k_tensor.shape)
 
         z = torch.cat([self.type1(i_tensor.reshape(-1,x2,1).squeeze(2)),self.type2(j_tensor.reshape(-1,x2,1).squeeze(2)),self.type3(k_tensor.reshape(-1,x2,1).squeeze(2))], dim = -1)
+        print(z.shape)		    
         z = self.linear(z)
         z = z.unsqueeze(3)
         z = z.reshape(x1,x2,512,6)
