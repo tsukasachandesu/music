@@ -256,11 +256,11 @@ class CompoundWordTransformerWrapper(nn.Module):
         print(zz.shape)		
         zz = zz.squeeze(-1)
         zz = self.linea(zz)
+        print(zz.shape)
 	
         mask = x[..., 0].bool()
 		    
-        x = x + self.emb1(emb_type) + self.emb(repeat(torch.arange(emb_type.shape[1]), 'j -> i j', i=emb_type.shape[0]))
-        x = self.emb_dropout(x)
+        x = self.emb_dropout(zz)
         x = self.norm(x)
         x = self.attn_layers(x, mask=mask, return_hiddens=False)
         x = self.norm(x)
