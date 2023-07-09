@@ -85,7 +85,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.type1 = CompoundTransformerEmbeddings(14, 256)
         self.type2 = CompoundTransformerEmbeddings(11, 256)
         self.type3 = CompoundTransformerEmbeddings(16, 256)
-        self.linear = nn.Linear(256*3, 512)
+        self.linear = nn.Linear(768, 512)
         self.linea = nn.Linear(512*7, 512)
 	    
         self.proj_type = nn.Linear(dim, self.num_tokens[0])
@@ -212,9 +212,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         k_tensor = torch.where(mask_minus1, k_special_minus1, torch.where(mask_minus2, k_special_minus2, y % 64))
 
         z = torch.cat([self.type1(i_tensor.reshape(-1,x2,1).squeeze(2)),self.type2(j_tensor.reshape(-1,x2,1).squeeze(2)),self.type3(k_tensor.reshape(-1,x2,1).squeeze(2))], dim = -1)
-        print(z.shape)
+        
         z = self.linear(z)
-
+        print(z.shape)
         z = z.unsqueeze(3)
         z = z.reshape(x1,x2,512,6)
     
