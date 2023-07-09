@@ -150,6 +150,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.emb = Fundamental_Music_Embedding(d_model = 512)
         self.emb1 = Fundamental_Music_Embedding(d_model = 512)
         self.emb2 = Fundamental_Music_Embedding(d_model = 512)
+	self.emb3 = Fundamental_Music_Embedding(d_model = 512)
 	    
         position = torch.arange(max_seq_len).unsqueeze(1)
         div_term = torch.exp(torch.arange(0, 512, 2) * (-math.log(10000.0) / 512))
@@ -245,8 +246,37 @@ class CompoundWordTransformerWrapper(nn.Module):
     ):
         emb_type = self.word_emb_type(x[..., 0])
 	    
+k_tensor = index_tensor % 64
+j_tensor = (index_tensor // 64) % 9
+i_tensor = index_tensor // (64 * 9)
+
+k x[:, :, 1:] % 64  batch len tokens
+i (x[:, :, 1:] // 64) % 9
+j x[:, :, 1:] // (64 * 9) 
+
+k.reshpae(-1,:,1) batch*tokens  len
+self.emb(k batch*tokens  len  emb
+k.squeeze(3)
+k.reshpae(-1,:,x)
+i j
+
+k batch len emb tok
+i
+j
+
+batch*tokens  len  emb*3
+
+batch*tokens  len  emb
+
+batch*len tokens  emb
+
+
+x = torch.cat([self.emb1(k[..., 1]), self.emb2(k[..., 1]), self.emb3(j[..., 1]], dim = -1)
+x = self.in_linear(x)  
+
         x = torch.cat(
             [
+                self.emb3(repeat(torch.arange(emb_type.shape[1]), 'j -> i j', i=emb_type.shape[0])),
 		self.emb(x[..., 0]),
                 self.emb1(x[..., 1] % 64),
                 self.emb1(x[..., 2] % 64),
@@ -261,12 +291,12 @@ class CompoundWordTransformerWrapper(nn.Module):
                 self.emb2(x[..., 5] // 64),
                 self.emb2(x[..., 6] // 64),
             ], dim = -1)
+
+	    
 	    
         x = self.in_linear(x)  
         mask = x[..., 0].bool()
-        pe_index = self.pe[:x.size(1)]
-        pe_index = torch.swapaxes(pe_index, 0, 1) 
-        x = x + pe_index
+        x = x + pe_index + self.emb3(repeat(torch.arange(emb_type.shape[1]), 'j -> i j', i=emb_type.shape[0]))
         x = x + self.emb(x[..., 0])
         x = self.emb_dropout(x)
         x = self.norm(x)
