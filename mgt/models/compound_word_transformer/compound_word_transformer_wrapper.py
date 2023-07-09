@@ -246,13 +246,14 @@ class CompoundWordTransformerWrapper(nn.Module):
         k_tensor = torch.where(mask_minus1, k_special_minus1, torch.where(mask_minus2, k_special_minus2, y % 64))
 
         z = torch.cat([self.type1(i_tensor.reshape(-1,x2,1).squeeze(2)),self.type2(j_tensor.reshape(-1,x2,1).squeeze(2)),self.type3(k_tensor.reshape(-1,x2,1).squeeze(2))], dim = -1)
-        print(z.shape)		    
         z = self.linear(z)
         z = z.unsqueeze(3)
         z = z.reshape(x1,x2,512,6)
-
+        print(z.shape)		    
         zz = torch.cat([emb_type.unsqueeze(3),z], dim = -1)
+        print(zz.shape)		
         zz = zz.reshape(x1,x2,512*7,1)
+        print(zz.shape)		
         zz = zz.squeeze(-1)
         zz = self.linea(zz)
 	
