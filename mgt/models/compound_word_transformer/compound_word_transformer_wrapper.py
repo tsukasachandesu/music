@@ -234,9 +234,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         i_tensor = torch.where(mask_minus1, i_special_minus1, torch.where(mask_minus2, i_special_minus2, y // (64 * 9)))
         j_tensor = torch.where(mask_minus1, j_special_minus1, torch.where(mask_minus2, j_special_minus2, (y // 64) % 9))
         k_tensor = torch.where(mask_minus1, k_special_minus1, torch.where(mask_minus2, k_special_minus2, y % 64))
-        i_tensor = self.type1(i_tensor.reshape(-1, x2, 1)
-        j_tensor = self.type2(j_tensor.reshape(-1, x2, 1)
-        k_tensor = self.type3(k_tensor.reshape(-1, x2, 1)
+        i_tensor = self.type1(i_tensor.reshape(-1, 511, 1))
+        j_tensor = self.type2(j_tensor.reshape(-1, 511, 1))
+        k_tensor = self.type3(k_tensor.reshape(-1, 511, 1))
         i_tensor = i_tensor.squeeze(2)
         j_tensor = j_tensor.squeeze(2)
         k_tensor = k_tensor.squeeze(2)
@@ -269,3 +269,4 @@ class CompoundWordTransformerWrapper(nn.Module):
         x = self.attn_layers(x, mask=mask, return_hiddens=False)
         
         return x
+
