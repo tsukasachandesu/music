@@ -120,13 +120,19 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         self.compound_word_embedding_size = np.sum(emb_sizes)
 
-        self.in_linear2 = nn.Linear(512*7, 512)
+        self.type1 = CompoundTransformerEmbeddings(14, 256)
+        self.type2 = CompoundTransformerEmbeddings(11, 256)
+        self.type3 = CompoundTransformerEmbeddings(66, 256)
 
+        self.in_linear2 = nn.Linear(512*7, 512)
+        self.in_linear1 = nn.Linear(256*3, 512)
         self.init_()
 
     def init_(self):
         nn.init.normal_(self.word_emb_type.weight(), std=0.02)
-        nn.init.normal_(self.word_emb_barbeat.weight(), std=0.02)
+        nn.init.normal_(self.type1.weight(), std=0.02)
+        nn.init.normal_(self.type2.weight(), std=0.02)
+        nn.init.normal_(self.type3.weight(), std=0.02)
 
     def forward_output_sampling(self, h, selection_temperatures=None, selection_probability_tresholds=None):
         # sample type
@@ -213,7 +219,30 @@ class CompoundWordTransformerWrapper(nn.Module):
             mask=None,
             **kwargs
     ):
-        
+
+        y = x[:, :, 1:-2] - 2
+
+        i_special_minus1 = 12
+        j_special_minus1 = 9 
+        k_special_minus1 = 64 
+        i_special_minus2 = 13
+        j_special_minus2 = 10
+        k_special_minus2 = 65
+        mask_minus1 = y == -1
+        mask_minus2 = y == -2
+        mask_normal = ~(mask_minus1 | mask_minus2)
+        i_tensor = torch.where(mask_minus1, i_special_minus1, torch.where(mask_minus2, i_special_minus2, y // (64 * 9)))
+        j_tensor = torch.where(mask_minus1, j_special_minus1, torch.where(mask_minus2, j_special_minus2, (y // 64) % 9))
+        k_tensor = torch.where(mask_minus1, k_special_minus1, torch.where(mask_minus2, k_special_minus2, y % 64))
+        i_tensor = self.type1(i_tensor.reshape(-1, x2, 1)
+        j_tensor = self.type2(j_tensor.reshape(-1, x2, 1)
+        k_tensor = self.type3(k_tensor.reshape(-1, x2, 1)
+        i_tensor = i_tensor.squeeze(2)
+        j_tensor = j_tensor.squeeze(2)
+        k_tensor = k_tensor.squeeze(2)
+        z = torch.cat([i_tensor,j_tensor,k_tensor], dim = -1)
+        z = self.in_linear1(z)        
+
         mask = x[..., 0].bool()
 
         emb_type = self.word_emb_type(x[..., 0])
