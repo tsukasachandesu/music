@@ -298,7 +298,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         zz += self.emb1(emb_type) 
         print(zz.shape)
         zz = self.attn_layers(zz, mask=mask, return_hiddens=False)
-        zz = zz.reshpape(-1,1,512)
+        zz = zz.reshape(-1,1,512)
         z = torch.cat([zz,zzz.reshape(-1,7,512)], dim = 1)
         z += torch.swapaxes(self.pe1[:8], 0, 1)
         print(z.shape)
