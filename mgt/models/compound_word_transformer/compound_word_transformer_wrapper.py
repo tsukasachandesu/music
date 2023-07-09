@@ -230,7 +230,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             **kwargs):
 
         emb_type = self.word_emb_type(x[..., 0])
-        x1,x2 = emb_type.shape
+        x1,x2,x3 = emb_type.shape
         y = x[:, :, 1:] - 2
         i_special_minus1 = torch.tensor([12])  
         j_special_minus1 = torch.tensor([9])   
