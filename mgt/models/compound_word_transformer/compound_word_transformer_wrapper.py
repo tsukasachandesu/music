@@ -110,8 +110,8 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         dim = attn_layers.dim
         emb_dim = default(emb_dim, dim)
-        self.word_emb_type = CompoundTransformerEmbeddings(self.num_tokens[0], self.emb_sizes[0])
         self.num_tokens = num_tokens
+        self.word_emb_type = CompoundTransformerEmbeddings(self.num_tokens[0], self.emb_sizes[0]) 
         self.max_seq_len = max_seq_len
         self.type1 = CompoundTransformerEmbeddings(14, 256)
         self.type2 = CompoundTransformerEmbeddings(11, 256)
