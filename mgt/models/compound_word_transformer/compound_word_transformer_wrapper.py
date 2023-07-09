@@ -290,16 +290,16 @@ class CompoundWordTransformerWrapper(nn.Module):
         zz = zz.reshape(-1,7,512,1).squeeze(-1)
         mask = x[..., 0].bool()
         zz += torch.swapaxes(self.pe1[:7], 0, 1) 
-        print(zz.shape)
-        zzz = self.attn_layers1(zz, mask=mask, return_hiddens=False)
+	    
+        zzz = self.attn_layers1(zz, mask=None, return_hiddens=False)
         zz = self.in_linear2(zzz).reshape(x1,x2,512)
         zz += torch.swapaxes(self.pe[:zz.size(1)], 0, 1) 
         zz += self.emb1(emb_type) 
-        print(zz.shape)
+
         zz = self.attn_layers(zz, mask=mask, return_hiddens=False)
         z = torch.cat([zz.reshpape(-1,1,512),zzz], dim = 1)
         z += torch.swapaxes(self.pe1[:7], 0, 1) 
-        z = self.attn_layers2(z, mask=mask, return_hiddens=False)
+        z = self.attn_layers2(z, mask=None, return_hiddens=False)
         z = z.reshape(x1,x2,512)
         z = self.in_linear3(z)
         return z
