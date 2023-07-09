@@ -213,6 +213,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         z = torch.cat([self.type1(i_tensor.reshape(-1,x2,1).squeeze(2)),self.type2(j_tensor.reshape(-1,x2,1).squeeze(2)),self.type3(k_tensor.reshape(-1,x2,1).squeeze(2))], dim = -1)
         print(z.shape)
+        print(z.device)
         z = self.linear(z)
         print(z.shape)
         z = z.unsqueeze(3)
