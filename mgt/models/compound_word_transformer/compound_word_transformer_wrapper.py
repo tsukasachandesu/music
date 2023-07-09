@@ -12,6 +12,37 @@ import torch.nn.functional as F
 import math
 from einops import rearrange, reduce, repeat
 
+class Fundamental_Music_Embedding(nn.Module):
+  def __init__(self, d_model, base=10000, device='cuda:0'):
+    super().__init__()
+    self.d_model = d_model
+    self.device = device
+    self.base = base
+    translation_bias = torch.rand((1, self.d_model), dtype = torch.float32)
+    translation_bias = nn.Parameter(translation_bias, requires_grad=True)
+    self.register_parameter("translation_bias", translation_bias)
+    i = torch.arange(d_model)
+    angle_rates = 1 / torch.pow(self.base, (2 * (i//2)) / d_model)
+    angle_rates = angle_rates[None, ... ].to(self.device)
+    angles = nn.Parameter(angle_rates, requires_grad=True)
+    self.register_parameter("angles", angles)
+	  
+  def __call__(self, inp):
+    if inp.dim()==2:
+      inp = inp[..., None] #pos (batch, num_pitch, 1)
+    elif inp.dim()==1:
+      inp = inp[None, ..., None] #pos (1, num_pitch, 1)
+    angle_rads = inp*self.angles #(batch, num_pitch)*(1,dim)
+    angle_rads[:, :, 0::2] = torch.sin(angle_rads.clone()[:, : , 0::2])
+    angle_rads[:, :, 1::2] = torch.cos(angle_rads.clone()[:, :, 1::2])
+    pos_encoding = angle_rads.to(torch.float32)
+    if self.translation_bias.size()[-1]!= self.d_model:
+      translation_bias = self.translation_bias.repeat(1, 1,int(self.d_model/2))
+    else:
+      translation_bias = self.translation_bias
+    pos_encoding += translation_bias
+    return pos_encoding
+
 class RMSNorm(nn.Module):
     def __init__(self, dim):
         super().__init__()
@@ -122,9 +153,15 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.type1 = CompoundTransformerEmbeddings(14, 256)
         self.type2 = CompoundTransformerEmbeddings(11, 256)
         self.type3 = CompoundTransformerEmbeddings(66, 256)
-
+        self.emb1 = Fundamental_Music_Embedding(d_model = 512)
         self.in_linear2 = nn.Linear(512*7, 512)
         self.in_linear1 = nn.Linear(256*3, 512)
+        position = torch.arange(max_seq_len).unsqueeze(1)
+        div_term = torch.exp(torch.arange(0, 512, 2) * (-math.log(10000.0) / 512))
+        pe = torch.zeros(max_seq_len, 1, 512)
+        pe[:, 0, 0::2] = torch.sin(position * div_term)
+        pe[:, 0, 1::2] = torch.cos(position * div_term)
+
         self.init_()
 
     def init_(self):
@@ -244,7 +281,10 @@ class CompoundWordTransformerWrapper(nn.Module):
         zz = torch.cat([emb_type.unsqueeze(3),z], dim = -1)
         zz = zz.reshape(x1,x2,512*7,1).squeeze(-1)
         zz = self.in_linear2(zz)
-        
+        pe_index = self.pe[:zz.size(1)]
+        pe_index = torch.swapaxes(pe_index, 0, 1) 
+        zz = zz + pe_index
+        zz = zz + self.emb1(emb_type) 
         mask = x[..., 0].bool()
 
         x = self.attn_layers(zz, mask=mask, return_hiddens=False)
