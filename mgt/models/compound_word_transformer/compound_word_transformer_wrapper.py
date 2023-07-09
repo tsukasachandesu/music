@@ -241,11 +241,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         z = torch.cat([i_tensor,j_tensor,k_tensor], dim = -1)
         z = self.in_linear1(z) 
         z = z.unsqueeze(3).reshape(x1,x2,512,6)
-        print(z.shape)
         zz = torch.cat([emb_type.unsqueeze(3),z], dim = -1)
-        print(zz.shape)
-        zz = zz.reshape(x1,x2,512*7,1)
-        zz = zz.squeeze(-1)
+        zz = zz.reshape(x1,x2,512*7,1).squeeze(-1)
         zz = self.in_linear2(zz)
         
         mask = x[..., 0].bool()
