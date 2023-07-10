@@ -5,7 +5,7 @@
 import numpy as np
 import torch
 from torch import nn
-from x_transformers.x_transformers import AttentionLayers, default, AbsolutePositionalEmbedding, always
+from x_transformers.x_transformers import AttentionLayers, default, always
 from mgt.models.compound_word_transformer.compound_transformer_embeddings import CompoundTransformerEmbeddings
 from mgt.models.utils import get_device
 import torch.nn.functional as F
@@ -102,85 +102,52 @@ class CompoundWordTransformerWrapper(nn.Module):
             attn_layers2,
             emb_dim=None,
             emb_dropout=0.,
-            use_pos_emb=True,
             emb_sizes=None
     ):
         super().__init__()
-        assert isinstance(attn_layers, AttentionLayers), 'attention layers must be one of Encoder or Decoder'
 
         self.emb_sizes = emb_sizes
-        self.attn_layers = attn_layers
-        self.attn_layers1 = attn_layers2
-        self.attn_layers3 = attn_layers1
-        self.attn_layers4 = attn_layers1
+	    
+        self.dec_attn = attn_layers
+        self.enc_attn1 = attn_layers1
+        self.enc_attn2 = attn_layers1
+        self.cross_atte1 = attn_layers2
+        self.cross_attn2 = attn_layers2
+
+        self.pitch_emb = CompoundTransformerEmbeddings(14, 256)
+        self.oct_emb = CompoundTransformerEmbeddings(11, 256)
+        self.dur_emb = CompoundTransformerEmbeddings(66, 256)
+	    
+        self.out_linear = nn.Linear(512*7, 512)
+        self.token_linear = nn.Linear(256*3, 512)
+
+        self.lat_emb = nn.Embedding(max_seq_len-1, dim)
+	    
         dim = attn_layers.dim
         emb_dim = default(emb_dim, dim)
-        self.pos_emb = nn.Embedding(max_seq_len, dim)
+
         self.num_tokens = num_tokens
         self.max_seq_len = max_seq_len
 
         self.word_emb_type = CompoundTransformerEmbeddings(self.num_tokens[0], self.emb_sizes[0])
-
-        # individual output
         
-        self.proj_type = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[0])
-        )
-        
-        self.proj_barbeat = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[1])
-        )
-        
-        self.proj_tempo = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[2])
-        )
-        
-        self.proj_instrument = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[3])
-        )
-        
-        self.proj_note_name = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[4])
-        )
-        
-        self.proj_octave = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[5])
-        )
-        
-        self.proj_duration = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[6])
-        )
-
-        # in_features is equal to dimension plus dimensions of the type embedding
+        self.proj_type =  nn.Linear(dim, self.num_tokens[0])
+        self.proj_barbeat = nn.Linear(dim, self.num_tokens[1])
+        self.proj_tempo = nn.Linear(dim, self.num_tokens[2])
+        self.proj_instrument = nn.Linear(dim, self.num_tokens[3])        
+        self.proj_note_name = nn.Linear(dim, self.num_tokens[4])
+        self.proj_octave = nn.Linear(dim, self.num_tokens[5])
+        self.proj_duration = nn.Linear(dim, self.num_tokens[6])
 
         self.compound_word_embedding_size = np.sum(emb_sizes)
 
-        self.type1 = CompoundTransformerEmbeddings(14, 256)
-        self.type2 = CompoundTransformerEmbeddings(11, 256)
-        self.type3 = CompoundTransformerEmbeddings(66, 256)
-        self.emb1 = Fundamental_Music_Embedding(d_model = 512)
-        self.in_linear3 = nn.Linear(512*8, 512)
-        self.in_linear2 = nn.Linear(512*7, 512)
-        self.in_linear1 = nn.Linear(256*3, 512)
-        position = torch.arange(max_seq_len).unsqueeze(1)
-        div_term = torch.exp(torch.arange(0, 512, 2) * (-math.log(10000.0) / 512))
-        pe = torch.zeros(max_seq_len, 1, 512)
-        pe[:, 0, 0::2] = torch.sin(position * div_term)
-        pe[:, 0, 1::2] = torch.cos(position * div_term)
-        self.register_buffer('pe', pe)
-        position = torch.arange(8).unsqueeze(1)
-        div_term = torch.exp(torch.arange(0, 512, 2) * (-math.log(10000.0) / 512))
-        pe1 = torch.zeros(8, 1, 512)
-        pe1[:, 0, 0::2] = torch.sin(position * div_term)
-        pe1[:, 0, 1::2] = torch.cos(position * div_term)
-        self.register_buffer('pe1', pe1)
         self.init_()
 
     def init_(self):
         nn.init.normal_(self.word_emb_type.weight(), std=0.02)
-        nn.init.normal_(self.type1.weight(), std=0.02)
-        nn.init.normal_(self.type2.weight(), std=0.02)
-        nn.init.normal_(self.type3.weight(), std=0.02)
+        nn.init.normal_(self.pitch_emb.weight(), std=0.02)
+        nn.init.normal_(self.oct_emb.weight(), std=0.02)
+        nn.init.normal_(self.dur_emb.weight(), std=0.02)
 
     def forward_output_sampling(self, h, selection_temperatures=None, selection_probability_tresholds=None):
         # sample type
@@ -267,8 +234,11 @@ class CompoundWordTransformerWrapper(nn.Module):
             mask=None,
             **kwargs
     ):
+        mask = x[..., 0].bool()	  
+	    
         emb_type = self.word_emb_type(x[..., 0])
         x1, x2, x3 = emb_type.shape
+	    
         y = x[:, :, 1:7] - 2
         i_special_minus1 = 12
         j_special_minus1 = 9 
@@ -282,31 +252,33 @@ class CompoundWordTransformerWrapper(nn.Module):
         i_tensor = torch.where(mask_minus1, i_special_minus1, torch.where(mask_minus2, i_special_minus2, y // (64 * 9)))
         j_tensor = torch.where(mask_minus1, j_special_minus1, torch.where(mask_minus2, j_special_minus2, (y // 64) % 9))
         k_tensor = torch.where(mask_minus1, k_special_minus1, torch.where(mask_minus2, k_special_minus2, y % 64))
-        i_tensor = self.type1(i_tensor.reshape(-1, x2, 1)).squeeze(2)
-        j_tensor = self.type2(j_tensor.reshape(-1, x2, 1)).squeeze(2)
-        k_tensor = self.type3(k_tensor.reshape(-1, x2, 1)).squeeze(2)
-        z = torch.cat([i_tensor,j_tensor,k_tensor], dim = -1)
-        z = self.in_linear1(z)
-        z = z.unsqueeze(3).reshape(x1,x2,512,6)
-        zz = torch.cat([emb_type.unsqueeze(3),z], dim = -1)
-        zz = zz.reshape(-1,7,512,1).squeeze(-1)
-        mask = x[..., 0].bool()
+        i_tensor = self.pit_emb(i_tensor.reshape(-1, x2, 1)).squeeze(2)
+        j_tensor = self.oct_emb(j_tensor.reshape(-1, x2, 1)).squeeze(2)
+        k_tensor = self.dur_emb(k_tensor.reshape(-1, x2, 1)).squeeze(2)
 	    
-        zz += torch.swapaxes(self.pe1[:7], 0, 1) 
-        zzz = self.attn_layers1(zz, mask=None, return_hiddens=False)
-        latents = self.pos_emb(torch.arange(self.max_seq_len-1, device = x.device))
+        z = self.token_linear(torch.cat([i_tensor,j_tensor,k_tensor], dim = -1))
+        z = z.unsqueeze(3).reshape(x1,x2,512,6)
+	    
+        z = torch.cat([emb_type.unsqueeze(3),z], dim = -1)
+        z = z.reshape(-1,7,512,1).squeeze(-1)
+
+        z = self.enc_layers1(z, mask=None, return_hiddens=False)
+
+        latents = self.pos_emb(torch.arange(self.max_seq_len-1, device = x.device))	    
         latents = latents.repeat(x.shape[0], 1, 1)
         letents = latents.reshape(-1,1,512)
+	    	    
+        latents = self.cross_layers1(latents, context = z, mask = None, context_mask = None)
+        latents = latents.reshape(x1,x2,512)
+        latents = self.dec_layers(latents, mask=mask, return_hiddens=False)
 	    
-        zz = self.attn_layers3(latents, context = zzz, mask = None, context_mask = None)
-        zz = zz.reshape(x1,x2,512)
-        zz += torch.swapaxes(self.pe[:zz.size(1)], 0, 1) 
-        zz += self.emb1(emb_type) 
-        zz = self.attn_layers(zz, mask=mask, return_hiddens=False)
-        zz = zz.reshape(-1,1,512)
-        zzz = self.attn_layers4(zzz, context = zz, mask = None, context_mask = None)
-        zzz = zzz.reshape(-1,6,512)
-        zzz = self.attn_layers2(zzz, mask=None, return_hiddens=False)
-        zzz = zzz.reshape(x1,x2,512*8)
-        zzz = self.in_linear3(zzz)
-        return zzz
+        latents = latents.reshape(-1,1,512)
+	    
+        z = self.cross_layers1(z, context = latents, mask = None, context_mask = None)
+        z = z.reshape(-1,6,512)   
+        z = self.enc_layers2(z, mask=None, return_hiddens=False)
+	    
+        z = z.reshape(x1,x2,512*7)
+        z = self.out_linear(z)
+	    
+        return z
