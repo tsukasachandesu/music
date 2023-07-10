@@ -145,31 +145,24 @@ class CompoundWordTransformerModel(object):
                 ff_glu = True,
                 ff_swish = True,
                 use_rmsnorm = True,
-                alibi_pos_bias = True,
-                alibi_num_heads = 4,   
                 layer_dropout = self.dropout,
                 attn_dropout=self.dropout,  # dropout post-attention
                 ff_dropout=self.dropout,  # feedforward dropout
-                ff_no_bias = True,
-                attn_one_kv_head = True,
-                shift_tokens = 1
+                ff_no_bias = True
             ),
-            attn_layers2=Encoder(
+            attn_layers1=Encoder(
                 dim=512,
                 depth=2,
                 heads=8,
                 ff_glu = True,
                 ff_swish = True,
-                use_rmsnorm = True,
-                dynamic_pos_bias = True,  
-                dynamic_pos_bias_log_distance = False,              
+                use_rmsnorm = True,              
                 layer_dropout = self.dropout,
                 attn_dropout=self.dropout,  
                 ff_dropout=self.dropout,
                 ff_no_bias = True,
-                attn_one_kv_head = True
             ) ,
-            attn_layers1=CrossAttender(
+            attn_layers2=CrossAttender(
                 dim=512,
                 depth=2,
                 heads=8,
@@ -179,8 +172,7 @@ class CompoundWordTransformerModel(object):
                 layer_dropout = self.dropout,
                 attn_dropout=self.dropout,  
                 ff_dropout=self.dropout,
-                ff_no_bias = True,
-                attn_one_kv_head = True
+                ff_no_bias = True
             ) 
         )).to(get_device())
 
