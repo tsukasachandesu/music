@@ -270,7 +270,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 	    	    
         latents = self.cross_layers1(latents, context = z, mask = None, context_mask = None)
         latents = latents.reshape(x1,x2,512)
-        latents = self.dec_layers(latents, mask=mask, return_hiddens=False)
+        latents = self.dec_layers(latents, mask=None, return_hiddens=False)
 	    
         latents = latents.reshape(-1,1,512)
 	    
