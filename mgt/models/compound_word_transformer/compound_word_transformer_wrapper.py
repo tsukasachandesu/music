@@ -115,7 +115,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.attn_layers4 = attn_layers1
         dim = attn_layers.dim
         emb_dim = default(emb_dim, dim)
-
+        self.pos_emb = nn.Embedding(max_seq_len, dim)
         self.num_tokens = num_tokens
         self.max_seq_len = max_seq_len
 
@@ -294,18 +294,19 @@ class CompoundWordTransformerWrapper(nn.Module):
 	    
         zz += torch.swapaxes(self.pe1[:7], 0, 1) 
         zzz = self.attn_layers1(zz, mask=None, return_hiddens=False)
-
-        zzz = self.attn_layers3(nodes, context = encoded_neighbors, mask = node_masks, context_mask = neighbor_masks)
-        zzz = zzz.reshape(x1,x2,512*7)
+        latents = self.pos_emb(torch.arange(self.max_seq_len-1, device = x.device))
+        latents = latents.repeat(x.shape[0], 1, 1)
+        letents = latents.reshape(-1,1,512)
 	    
-        zz = self.in_linear2(zzz)
+        zz = self.attn_layers3(latents, context = zzz, mask = None, context_mask = None)
+        zz = zz.reshape(x1,x2,512)
         zz += torch.swapaxes(self.pe[:zz.size(1)], 0, 1) 
         zz += self.emb1(emb_type) 
         zz = self.attn_layers(zz, mask=mask, return_hiddens=False)
         zz = zz.reshape(-1,1,512)
-        z = torch.cat([zz,zzz.reshape(-1,7,512)], dim = 1)
-        z += torch.swapaxes(self.pe1[:8], 0, 1)
-        z = self.attn_layers2(z, mask=None, return_hiddens=False)
-        z = z.reshape(x1,x2,512*8)
-        z = self.in_linear3(z)
-        return z
+        zzz = self.attn_layers4(zzz, context = zz, mask = None, context_mask = None)
+        zzz = zzz.reshape(-1,6,512)
+        zzz = self.attn_layers2(zzz, mask=None, return_hiddens=False)
+        zzz = zzz.reshape(x1,x2,512*8)
+        zzz = self.in_linear3(zzz)
+        return zzz
