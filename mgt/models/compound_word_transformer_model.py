@@ -6,7 +6,7 @@ import numpy as np
 import torch
 from x_transformers import Decoder
 from x_transformers import Encoder
-
+from x_transformers import CrossAttender
 
 from mgt.models import utils
 from mgt.models.compound_word_transformer.compound_word_autoregressive_wrapper import CompoundWordAutoregressiveWrapper
@@ -140,7 +140,7 @@ class CompoundWordTransformerModel(object):
             max_seq_len=self.max_sequence_length,
             attn_layers=Decoder(
                 dim=self.dim,
-                depth=12,
+                depth=8,
                 heads=self.heads,
                 ff_glu = True,
                 ff_swish = True,
@@ -156,13 +156,26 @@ class CompoundWordTransformerModel(object):
             ),
             attn_layers2=Encoder(
                 dim=512,
-                depth=4,
+                depth=2,
                 heads=8,
                 ff_glu = True,
                 ff_swish = True,
                 use_rmsnorm = True,
                 dynamic_pos_bias = True,  
                 dynamic_pos_bias_log_distance = False,              
+                layer_dropout = self.dropout,
+                attn_dropout=self.dropout,  
+                ff_dropout=self.dropout,
+                ff_no_bias = True,
+                attn_one_kv_head = True
+            ) ,
+            attn_layers1=CrossAttender(
+                dim=512,
+                depth=2,
+                heads=8,
+                ff_glu = True,
+                ff_swish = True,
+                use_rmsnorm = True,            
                 layer_dropout = self.dropout,
                 attn_dropout=self.dropout,  
                 ff_dropout=self.dropout,
