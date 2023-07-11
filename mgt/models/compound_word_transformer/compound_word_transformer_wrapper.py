@@ -111,7 +111,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.dec_attn = attn_layers
         self.enc_attn1 = attn_layers1
         self.enc_attn2 = attn_layers1
-        self.cross_atte1 = attn_layers2
+        self.cross_attn1 = attn_layers2
         self.cross_attn2 = attn_layers2
 
         self.pitch_emb = CompoundTransformerEmbeddings(14, 256)
@@ -262,21 +262,21 @@ class CompoundWordTransformerWrapper(nn.Module):
         z = torch.cat([emb_type.unsqueeze(3),z], dim = -1)
         z = z.reshape(-1,7,512,1).squeeze(-1)
 
-        z = self.enc_layers1(z, mask=None, return_hiddens=False)
+        z = self.enc_attn1(z, mask=None, return_hiddens=False)
 
         latents = self.pos_emb(torch.arange(self.max_seq_len-1, device = x.device))	    
         latents = latents.repeat(x.shape[0], 1, 1)
         letents = latents.reshape(-1,1,512)
 	    	    
-        latents = self.cross_layers1(latents, context = z, mask = None, context_mask = None)
+        latents = self.cross_attn1(latents, context = z, mask = None, context_mask = None)
         latents = latents.reshape(x1,x2,512)
-        latents = self.dec_layers(latents, mask=None, return_hiddens=False)
+        latents = self.dec_attn(latents, mask=None, return_hiddens=False)
 	    
         latents = latents.reshape(-1,1,512)
 	    
-        z = self.cross_layers1(z, context = latents, mask = None, context_mask = None)
+        z = self.cross_attn2(z, context = latents, mask = None, context_mask = None)
         z = z.reshape(-1,6,512)   
-        z = self.enc_layers2(z, mask=None, return_hiddens=False)
+        z = self.enc_attn2(z, mask=None, return_hiddens=False)
 	    
         z = z.reshape(x1,x2,512*7)
         z = self.out_linear(z)
