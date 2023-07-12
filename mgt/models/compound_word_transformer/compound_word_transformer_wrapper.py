@@ -252,7 +252,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         i_tensor = torch.where(mask_minus1, i_special_minus1, torch.where(mask_minus2, i_special_minus2, y // (64 * 9)))
         j_tensor = torch.where(mask_minus1, j_special_minus1, torch.where(mask_minus2, j_special_minus2, (y // 64) % 9))
         k_tensor = torch.where(mask_minus1, k_special_minus1, torch.where(mask_minus2, k_special_minus2, y % 64))
-        i_tensor = self.pit_emb(i_tensor.reshape(-1, x2, 1)).squeeze(2)
+        i_tensor = self.pitch_emb(i_tensor.reshape(-1, x2, 1)).squeeze(2)
         j_tensor = self.oct_emb(j_tensor.reshape(-1, x2, 1)).squeeze(2)
         k_tensor = self.dur_emb(k_tensor.reshape(-1, x2, 1)).squeeze(2)
 	    
