@@ -148,7 +148,11 @@ class CompoundWordTransformerModel(object):
                 layer_dropout = self.dropout,
                 attn_dropout=self.dropout,  # dropout post-attention
                 ff_dropout=self.dropout,  # feedforward dropout
-                ff_no_bias = True
+                ff_no_bias = True,
+                attn_one_kv_head = True,
+                alibi_pos_bias = True, # turns on ALiBi positional embedding
+                alibi_num_heads = 4,
+                shift_tokens = 1
             ),
             attn_layers1=Encoder(
                 dim=512,
@@ -161,6 +165,9 @@ class CompoundWordTransformerModel(object):
                 attn_dropout=self.dropout,  
                 ff_dropout=self.dropout,
                 ff_no_bias = True,
+                attn_one_kv_head = True,
+                dynamic_pos_bias = True,                # set this to True
+                dynamic_pos_bias_log_distance = False   # whether to use log distance, as in SwinV2
             ) ,
             attn_layers2=CrossAttender(
                 dim=512,
@@ -172,7 +179,10 @@ class CompoundWordTransformerModel(object):
                 layer_dropout = self.dropout,
                 attn_dropout=self.dropout,  
                 ff_dropout=self.dropout,
-                ff_no_bias = True
+                ff_no_bias = True,
+                attn_one_kv_head = True,
+                dynamic_pos_bias = True,                # set this to True
+                dynamic_pos_bias_log_distance = False   # whether to use log distance, as in SwinV2
             ) 
         )).to(get_device())
 
