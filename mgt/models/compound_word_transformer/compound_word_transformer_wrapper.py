@@ -12,6 +12,27 @@ import torch.nn.functional as F
 import math
 from einops import rearrange, reduce, repeat
 
+class ScaledSinusoidalEmbedding(nn.Module):
+    def __init__(self, dim, theta = 10000):
+        super().__init__()
+        assert (dim % 2) == 0
+        self.scale = nn.Parameter(torch.ones(1) * dim ** -0.5)
+
+        half_dim = dim // 2
+        freq_seq = torch.arange(half_dim).float() / half_dim
+        inv_freq = theta ** -freq_seq
+        self.register_buffer('inv_freq', inv_freq, persistent = False)
+
+    def forward(self, x, pos = None):
+        seq_len, device = x.shape[1], x.device
+
+        if not exists(pos):
+            pos = torch.arange(seq_len, device = device)
+
+        emb = einsum('i, j -> i j', pos, self.inv_freq)
+        emb = torch.cat((emb.sin(), emb.cos()), dim = -1)
+        return emb * self.scale
+
 class Fundamental_Music_Embedding(nn.Module):
   def __init__(self, d_model, base=10000, device='cuda:0'):
     super().__init__()
@@ -101,7 +122,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 	    attn_layers1,
             attn_layers2,
             emb_dim=None,
-            emb_dropout=0.,
+            emb_dropout=0.1,
             emb_sizes=None
     ):
         super().__init__()
@@ -140,6 +161,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.proj_duration = nn.Linear(dim, self.num_tokens[6])
 
         self.compound_word_embedding_size = np.sum(emb_sizes)
+        self.emb_dropout = nn.Dropout(emb_dropout)
+        self.pos_emb = ScaledSinusoidalEmbedding(dim)
+        self.norm = RMSNorm(dim)
 
         self.init_()
 
@@ -260,20 +284,34 @@ class CompoundWordTransformerWrapper(nn.Module):
         z = z.unsqueeze(3).reshape(x1,x2,512,6)
         z = torch.cat([emb_type.unsqueeze(3),z], dim = -1)
         z = z.reshape(-1,7,512,1).squeeze(-1)
+        z = self.norm(z)
+	
+	z = z + self.pos_emb(z)
+        z = self.emb_dropout(z)
         z = self.enc_attn1(z, mask=None, return_hiddens=False)
 	    
         latents = self.lat_emb(torch.arange(self.max_seq_len-1, device = x.device))	    
         latents = latents.repeat(x.shape[0], 1, 1).reshape(-1,1,512)
-
+	    
+        latents = latents + self.pos_emb(latents)    
+	z = z + self.pos_emb(z)    
+        
         latents = self.cross_attn1(latents, context = z, mask = None, context_mask = None)
         latents = latents.reshape(x1,x2,512)
+
+	latents = latents + self.pos_emb(latents)      
+        latents = self.emb_dropout(latents)
         latents = self.dec_attn(latents, mask=None, return_hiddens=False)
         latents = latents.reshape(-1,1,512)
+
+        latents = latents + self.pos_emb(latents) 
+        z = z + self.pos_emb(z)   
         z = self.cross_attn2(z, context = latents, mask = None, context_mask = None)
-        z = z.reshape(-1,6,512)   
+        z = z.reshape(-1,6,512)
+        z = z + self.pos_emb(z)   
         z = self.enc_attn2(z, mask=None, return_hiddens=False)
-	    
         z = z.reshape(x1,x2,512*7)
         z = self.out_linear(z)
+        z = self.norm(z)
 	    
         return z
