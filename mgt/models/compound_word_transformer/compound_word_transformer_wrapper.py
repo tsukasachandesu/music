@@ -121,14 +121,14 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.out_linear = nn.Linear(512*7, 512)
         self.token_linear = nn.Linear(256*3, 512)
 
-        self.lat_emb = nn.Embedding(max_seq_len-1, dim)
 	    
         dim = attn_layers.dim
         emb_dim = default(emb_dim, dim)
 
         self.num_tokens = num_tokens
         self.max_seq_len = max_seq_len
-
+        self.lat_emb = nn.Embedding(max_seq_len-1, dim)
+	    
         self.word_emb_type = CompoundTransformerEmbeddings(self.num_tokens[0], self.emb_sizes[0])
         
         self.proj_type =  nn.Linear(dim, self.num_tokens[0])
