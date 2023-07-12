@@ -264,9 +264,12 @@ class CompoundWordTransformerWrapper(nn.Module):
 	    
         latents = self.lat_emb(torch.arange(self.max_seq_len-1, device = x.device))	    
         latents = latents.repeat(x.shape[0], 1, 1)
+
+        print(latents.shape)
         letents = latents.reshape(-1,1,512)
 
         print(latents.shape)
+        print("aaaaa")
         print(z.shape)
         latents = self.cross_attn1(latents, context = z, mask = None, context_mask = None)
         latents = latents.reshape(x1,x2,512)
