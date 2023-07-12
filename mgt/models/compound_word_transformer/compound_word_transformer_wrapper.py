@@ -288,7 +288,13 @@ class CompoundWordTransformerWrapper(nn.Module):
 	
 	z = z + self.pos_emb(z)
         z = self.emb_dropout(z)
-        z = self.enc_attn1(z, mask=None, return_hiddens=False)
+
+        mask1 = mask.reshape(-1,1).squeeze(1)
+        mask1 = repeat(mask, 'b -> b a', a=7)
+
+        mask2 = mask.reshape(-1,1).squeeze(1)
+	    
+        z = self.enc_attn1(z, mask=mask1, return_hiddens=False)
 	    
         latents = self.lat_emb(torch.arange(self.max_seq_len-1, device = x.device))	    
         latents = latents.repeat(x.shape[0], 1, 1).reshape(-1,1,512)
@@ -296,20 +302,20 @@ class CompoundWordTransformerWrapper(nn.Module):
         latents = latents + self.pos_emb(latents)    
 	z = z + self.pos_emb(z)    
         
-        latents = self.cross_attn1(latents, context = z, mask = None, context_mask = None)
+        latents = self.cross_attn1(latents, context = z, mask = mask2, context_mask = mask1)
         latents = latents.reshape(x1,x2,512)
 
 	latents = latents + self.pos_emb(latents)      
         latents = self.emb_dropout(latents)
-        latents = self.dec_attn(latents, mask=None, return_hiddens=False)
+        latents = self.dec_attn(latents, mask = mask, return_hiddens=False)
         latents = latents.reshape(-1,1,512)
 
         latents = latents + self.pos_emb(latents) 
         z = z + self.pos_emb(z)   
-        z = self.cross_attn2(z, context = latents, mask = None, context_mask = None)
+        z = self.cross_attn2(z, context = latents, mask = mask1, context_mask = mask2)
         z = z.reshape(-1,6,512)
         z = z + self.pos_emb(z)   
-        z = self.enc_attn2(z, mask=None, return_hiddens=False)
+        z = self.enc_attn2(z, mask=mask1, return_hiddens=False)
         z = z.reshape(x1,x2,512*7)
         z = self.out_linear(z)
         z = self.norm(z)
