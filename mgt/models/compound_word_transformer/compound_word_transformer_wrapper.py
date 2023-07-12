@@ -255,25 +255,29 @@ class CompoundWordTransformerWrapper(nn.Module):
         i_tensor = self.pitch_emb(i_tensor.reshape(-1, x2, 1)).squeeze(2)
         j_tensor = self.oct_emb(j_tensor.reshape(-1, x2, 1)).squeeze(2)
         k_tensor = self.dur_emb(k_tensor.reshape(-1, x2, 1)).squeeze(2)
+      
 	    
         z = self.token_linear(torch.cat([i_tensor,j_tensor,k_tensor], dim = -1))
+        print(z.shape)
         z = z.unsqueeze(3).reshape(x1,x2,512,6)
-	    
+        print(z.shape)
         z = torch.cat([emb_type.unsqueeze(3),z], dim = -1)
+        print(z.shape)
         z = z.reshape(-1,7,512,1).squeeze(-1)
-
+        print(z.shape)
         z = self.enc_attn1(z, mask=None, return_hiddens=False)
-
+        print(z.shape)
         latents = self.lat_emb(torch.arange(self.max_seq_len-1, device = x.device))	    
         latents = latents.repeat(x.shape[0], 1, 1)
         letents = latents.reshape(-1,1,512)
-	    	    
+        print(latents.shape)    
         latents = self.cross_attn1(latents, context = z, mask = None, context_mask = None)
         latents = latents.reshape(x1,x2,512)
+        print(latents.shape)    
         latents = self.dec_attn(latents, mask=None, return_hiddens=False)
-	    
+        print(latents.shape)    
         latents = latents.reshape(-1,1,512)
-	    
+        print(latents.shape)    
         z = self.cross_attn2(z, context = latents, mask = None, context_mask = None)
         z = z.reshape(-1,6,512)   
         z = self.enc_attn2(z, mask=None, return_hiddens=False)
