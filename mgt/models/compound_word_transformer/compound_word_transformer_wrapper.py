@@ -152,7 +152,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         self.num_tokens = num_tokens
         self.max_seq_len = max_seq_len
-        self.lat_emb = nn.Embedding(max_seq_len-1, dim)
+        self.lat_emb = nn.Embedding(max_seq_len*2, dim)
 	    
         self.word_emb_type = CompoundTransformerEmbeddings(self.num_tokens[0], self.emb_sizes[0])
         
@@ -263,10 +263,8 @@ class CompoundWordTransformerWrapper(nn.Module):
             **kwargs
     ):
         mask = x[..., 0].bool()	  
-	    
         emb_type = self.word_emb_type(x[..., 0])
         x1, x2, x3 = emb_type.shape
-	    
         y = x[:, :, 1:7] - 2
         i_special_minus1 = 12
         j_special_minus1 = 9 
@@ -283,45 +281,27 @@ class CompoundWordTransformerWrapper(nn.Module):
         i_tensor = self.pitch_emb(i_tensor.reshape(-1, x2, 1)).squeeze(2)
         j_tensor = self.oct_emb(j_tensor.reshape(-1, x2, 1)).squeeze(2)
         k_tensor = self.dur_emb(k_tensor.reshape(-1, x2, 1)).squeeze(2)
-      
         z = self.token_linear(torch.cat([i_tensor,j_tensor,k_tensor], dim = -1))
-
         z = z.unsqueeze(3).reshape(x1,x2,512,6)
         z = torch.cat([emb_type.unsqueeze(3),z], dim = -1)
         z = z.reshape(-1,7,512,1).squeeze(-1)
-        z = self.norm(z)
-
         z = z + self.pos_emb(z)
-        z = self.emb_dropout(z)
-
         mask1 = mask.reshape(-1,1).squeeze(1)
         mask1 = repeat(mask1, 'b -> b a', a=7)
         mask2 = mask.reshape(-1,1)
-
         z = self.enc_attn1(z, mask=mask1, return_hiddens=False)
-
         latents = self.lat_emb(torch.arange(x2, device = x.device))	
         latents = latents.repeat(x1, 1, 1).reshape(-1,1,512)
-        latents = latents + self.pos_emb(latents)    
-        z = z + self.pos_emb(z)    
-
         latents = self.cross_attn1(latents, context = z, mask = mask2, context_mask = mask1)
- 
         latents = latents.reshape(x1,x2,512)
-
         latents = latents + self.pos_emb(latents)
         latents = self.emb_dropout(latents)
-
         latents = self.dec_attn(latents, mask = mask, return_hiddens=False)
         latents = latents.reshape(-1,1,512)
-        latents = latents + self.pos_emb(latents) 
         z = z + self.pos_emb(z)   
-
         z = self.cross_attn2(z, context = latents, mask = mask1, context_mask = mask2)
         z = z.reshape(-1,7,512)
         z = z + self.pos_emb(z)  
-
         z = self.enc_attn2(z, mask=mask1, return_hiddens=False)
         z = z.reshape(x1,x2,512*7)
-
         return z
