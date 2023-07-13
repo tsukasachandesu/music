@@ -12,6 +12,52 @@ import torch.nn.functional as F
 import math
 from einops import rearrange, reduce, repeat
 
+import torch
+
+def kronecker_product(t1, t2):
+    """
+    Computes the Kronecker product between two torch Tensors
+    """
+    t1_height, t1_width = t1.size()
+    t2_height, t2_width = t2.size()
+    out_height = t1_height * t2_height
+    out_width = t1_width * t2_width
+
+    tiled_t2 = t2.repeat(t1_height, t1_width)
+    expanded_t1 = (
+        t1.unsqueeze(2)
+        .unsqueeze(3)
+        .repeat(1, 1, t2_height, t2_width)
+        .view(out_height, out_width)
+    )
+
+    return expanded_t1 * tiled_t2
+
+def get_ar_mask(seq_len):
+    """
+    Create an auto-regressive mask of shape (1, 1, seq_len, seq_len).
+    """
+    mask = torch.tril(torch.ones((1, 1, seq_len, seq_len)))
+    return mask
+
+def get_chunk_ar_mask(seq_len, chunk_size, dtype=torch.float32):
+    """Get causal mask across chuncks, but full attention within each chunk.
+
+    Args:
+        seq_len: a `int` or `int` tensor specifying the sequence length.
+        chunk_size: a `int` or `int` tensor specifying the local window size.
+            seq_len must be divisible by chunk_size.
+        dtype: torch data type for the return tensor.
+
+    Returns:
+        tensor of shape [1, 1, seq_len, seq_len] with ones for
+        locations to be masked out.
+    """
+    valid_locs = torch.ones([chunk_size, chunk_size], dtype=dtype)
+    valid_locs = kronecker_product(torch.eye(seq_len // chunk_size), valid_locs)
+    valid_locs = valid_locs.reshape([1, 1, seq_len, seq_len])
+
+    return get_ar_mask(seq_len) * (1.0 - valid_locs)
 
 def exists(val):
     return val is not None
