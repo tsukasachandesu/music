@@ -164,10 +164,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.proj_duration = nn.Linear(dim*7, self.num_tokens[6])
 
         self.compound_word_embedding_size = np.sum(emb_sizes)
-        self.emb_dropout = nn.Dropout(emb_dropout)
         self.pos_emb = ScaledSinusoidalEmbedding(dim)
-        self.norm = RMSNorm(dim)
-
+ 
         self.init_()
 
     def init_(self):
@@ -291,14 +289,10 @@ class CompoundWordTransformerWrapper(nn.Module):
         latents = latents + self.pos_emb(latents)
         latents = self.cross_attn1(latents, context = z, mask = mask2, context_mask = mask1)
         latents = latents.reshape(x1,x2,512)
-        latents = latents + self.pos_emb(latents)
-        latents = self.emb_dropout(latents)
         latents = self.dec_attn(latents, mask = mask, return_hiddens=False)
         latents = latents.reshape(-1,1,512)
-        z = z + self.pos_emb(z)   
         z = self.cross_attn2(z, context = latents, mask = mask1, context_mask = mask2)
         z = z.reshape(-1,7,512)
-        z = z + self.pos_emb(z)  
         z = self.enc_attn2(z, mask=mask1, return_hiddens=False)
         z = z.reshape(x1,x2,512*7)
         return z
