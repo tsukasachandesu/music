@@ -16,8 +16,6 @@ from einops import rearrange, reduce, repeat
 def exists(val):
     return val is not None
 
-
-
 class ScaledSinusoidalEmbedding(nn.Module):
     def __init__(self, dim, theta = 10000):
         super().__init__()
@@ -324,8 +322,5 @@ class CompoundWordTransformerWrapper(nn.Module):
         z = z + self.pos_emb(z)  
 
         z = self.enc_attn2(z, mask=mask1, return_hiddens=False)
-        z = z.reshape(x1,x2,512*7)
-        z = self.out_linear(z)
-        z = self.norm(z)
-	    
+
         return z
