@@ -307,13 +307,13 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         latents = latents + self.pos_emb(latents)    
         z = z + self.pos_emb(z)    
-
+        print(latents.shape)
         latents = self.cross_attn1(latents, context = z, mask = mask2, context_mask = mask1)
-        print(z.shape)
+        print(latents.shape)
         latents = latents.reshape(x1,x2,512)
-        print(z.shape)
+        print(latents.shape)
         latents = latents + self.pos_emb(latents)
-        print(z.shape)
+        print(latents.shape)
         latents = self.emb_dropout(latents)
         print(z.shape)
         latents = self.dec_attn(latents, mask = mask, return_hiddens=False)
