@@ -4,13 +4,19 @@
 # -- temperature -- #
 import numpy as np
 import torch
-from torch import nn
+from torch import nn, einsum
 from x_transformers.x_transformers import AttentionLayers, default, always
 from mgt.models.compound_word_transformer.compound_transformer_embeddings import CompoundTransformerEmbeddings
 from mgt.models.utils import get_device
 import torch.nn.functional as F
 import math
 from einops import rearrange, reduce, repeat
+
+
+def exists(val):
+    return val is not None
+
+
 
 class ScaledSinusoidalEmbedding(nn.Module):
     def __init__(self, dim, theta = 10000):
@@ -285,8 +291,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         z = torch.cat([emb_type.unsqueeze(3),z], dim = -1)
         z = z.reshape(-1,7,512,1).squeeze(-1)
         z = self.norm(z)
-	
-	z = z + self.pos_emb(z)
+        z = z + self.pos_emb(z)
         z = self.emb_dropout(z)
 
         mask1 = mask.reshape(-1,1).squeeze(1)
@@ -300,12 +305,11 @@ class CompoundWordTransformerWrapper(nn.Module):
         latents = latents.repeat(x.shape[0], 1, 1).reshape(-1,1,512)
 	    
         latents = latents + self.pos_emb(latents)    
-	z = z + self.pos_emb(z)    
+        z = z + self.pos_emb(z)    
         
         latents = self.cross_attn1(latents, context = z, mask = mask2, context_mask = mask1)
         latents = latents.reshape(x1,x2,512)
-
-	latents = latents + self.pos_emb(latents)      
+        latents = latents + self.pos_emb(latents)      
         latents = self.emb_dropout(latents)
         latents = self.dec_attn(latents, mask = mask, return_hiddens=False)
         latents = latents.reshape(-1,1,512)
