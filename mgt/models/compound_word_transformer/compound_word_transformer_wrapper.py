@@ -139,14 +139,13 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.cross_attn1 = attn_layers2
         self.cross_attn2 = attn_layers2
 
-        self.pitch_emb = CompoundTransformerEmbeddings(14, 256)
-        self.oct_emb = CompoundTransformerEmbeddings(11, 256)
-        self.dur_emb = CompoundTransformerEmbeddings(66, 256)
+        self.pitch_emb = Fundamental_Music_Embedding(d_model = 512)
+        self.oct_emb = Fundamental_Music_Embedding(d_model = 512)
+        self.dur_emb = Fundamental_Music_Embedding(d_model = 512)
 	    
         self.out_linear = nn.Linear(512*7, 512)
-        self.token_linear = nn.Linear(256*3, 512)
+        self.token_linear = nn.Linear(512*3, 512)
 
-	    
         dim = attn_layers.dim
         emb_dim = default(emb_dim, dim)
 
@@ -173,9 +172,6 @@ class CompoundWordTransformerWrapper(nn.Module):
 
     def init_(self):
         nn.init.normal_(self.word_emb_type.weight(), std=0.02)
-        nn.init.normal_(self.pitch_emb.weight(), std=0.02)
-        nn.init.normal_(self.oct_emb.weight(), std=0.02)
-        nn.init.normal_(self.dur_emb.weight(), std=0.02)
 
     def forward_output_sampling(self, h, selection_temperatures=None, selection_probability_tresholds=None):
         # sample type
@@ -292,6 +288,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         z = self.enc_attn1(z, mask=mask1, return_hiddens=False)
         latents = self.lat_emb(torch.arange(x2, device = x.device))	
         latents = latents.repeat(x1, 1, 1).reshape(-1,1,512)
+        latents = latents + self.pos_emb(latents)
         latents = self.cross_attn1(latents, context = z, mask = mask2, context_mask = mask1)
         latents = latents.reshape(x1,x2,512)
         latents = latents + self.pos_emb(latents)
