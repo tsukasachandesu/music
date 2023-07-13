@@ -298,7 +298,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         mask1 = mask.reshape(-1,1).squeeze(1)
         mask1 = repeat(mask1, 'b -> b a', a=7)
-        mask2 = mask.reshape(-1,1).squeeze(1)
+        mask2 = mask.reshape(-1,1)
 
         z = self.enc_attn1(z, mask=mask1, return_hiddens=False)
 
