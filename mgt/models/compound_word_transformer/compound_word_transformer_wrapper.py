@@ -288,11 +288,11 @@ class CompoundWordTransformerWrapper(nn.Module):
         latents = latents.repeat(x1, 1, 1).reshape(-1,1,512)
         latents = latents + self.pos_emb(latents)
         latents = self.cross_attn1(latents, context = z, mask = mask2, context_mask = mask1)
-        latents = latents.reshape(x1,x2,512)
-        latents = self.dec_attn(latents, mask = mask, return_hiddens=False)
-        latents = latents.reshape(-1,1,512)
+        latents1 = latents.reshape(x1,x2,512)
+        latents2 = self.dec_attn(latents1, mask = mask, return_hiddens=False)
+        latents = latents2.reshape(-1,1,512)
         z = self.cross_attn2(z, context = latents, mask = mask1, context_mask = mask2)
         z = z.reshape(-1,7,512)
         z = self.enc_attn2(z, mask=mask1, return_hiddens=False)
         z = z.reshape(x1,x2,512*7)
-        return z
+        return z, latents1, latents2
