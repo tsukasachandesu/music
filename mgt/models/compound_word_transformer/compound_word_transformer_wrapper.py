@@ -308,6 +308,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         z = z + self.pos_emb(z)    
         print(z.shape)
         print(latents.shape) 
+        print(mask2.shape)
+        print(mask1.shape) 
         latents = self.cross_attn1(latents, context = z, mask = mask2, context_mask = mask1)
         print(z.shape)
         print(latents.shape) 
