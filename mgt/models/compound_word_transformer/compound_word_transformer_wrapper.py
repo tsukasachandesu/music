@@ -156,13 +156,13 @@ class CompoundWordTransformerWrapper(nn.Module):
 	    
         self.word_emb_type = CompoundTransformerEmbeddings(self.num_tokens[0], self.emb_sizes[0])
         
-        self.proj_type =  nn.Linear(dim, self.num_tokens[0])
-        self.proj_barbeat = nn.Linear(dim, self.num_tokens[1])
-        self.proj_tempo = nn.Linear(dim, self.num_tokens[2])
-        self.proj_instrument = nn.Linear(dim, self.num_tokens[3])        
-        self.proj_note_name = nn.Linear(dim, self.num_tokens[4])
-        self.proj_octave = nn.Linear(dim, self.num_tokens[5])
-        self.proj_duration = nn.Linear(dim, self.num_tokens[6])
+        self.proj_type =  nn.Linear(dim*7, self.num_tokens[0])
+        self.proj_barbeat = nn.Linear(dim*7, self.num_tokens[1])
+        self.proj_tempo = nn.Linear(dim*7, self.num_tokens[2])
+        self.proj_instrument = nn.Linear(dim*7, self.num_tokens[3])        
+        self.proj_note_name = nn.Linear(dim*7, self.num_tokens[4])
+        self.proj_octave = nn.Linear(dim*7, self.num_tokens[5])
+        self.proj_duration = nn.Linear(dim*7, self.num_tokens[6])
 
         self.compound_word_embedding_size = np.sum(emb_sizes)
         self.emb_dropout = nn.Dropout(emb_dropout)
@@ -322,5 +322,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         z = z + self.pos_emb(z)  
 
         z = self.enc_attn2(z, mask=mask1, return_hiddens=False)
+        z = z.reshape(x1,x2,512*7)
 
         return z
