@@ -14,6 +14,20 @@ from einops import rearrange, reduce, repeat
 
 import torch
 
+  def _latent_shift(self, latents, s_len):
+    """latents shape change: b t m d -> (b t) m d."""
+    latents_leading, latents_last = latents[:, :-1], latents[:, -1:]
+    latents = tf.concat([tf.zeros_like(latents_last), latents_leading], axis=1)
+    latents = einops.rearrange(latents, 'b t m d -> (b t) m d', t=s_len)
+    return latents, latents_last
+
+  def _latent_shift_back(self, latents, latents_last, s_len):
+    """latents shape change: (b t) m d -> b t m d."""
+    latents = einops.rearrange(latents, '(b t) m d -> b t m d', t=s_len)
+    latents = tf.concat([latents[:, 1:], latents_last], axis=1)
+    return latents
+
+
 def kronecker_product(t1, t2):
     """
     Computes the Kronecker product between two torch Tensors
