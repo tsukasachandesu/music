@@ -297,7 +297,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         z = self.emb_dropout(z)
         print(z.shape)
         mask1 = mask.reshape(-1,1).squeeze(1)
-        mask1 = repeat(mask, 'b -> b a', a=7)
+        mask1 = repeat(mask1, 'b -> b a', a=7)
         print(z.shape)
         mask2 = mask.reshape(-1,1).squeeze(1)
         print(z.shape)
