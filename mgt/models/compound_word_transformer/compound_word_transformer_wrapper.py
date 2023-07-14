@@ -12,61 +12,19 @@ import torch.nn.functional as F
 import math
 from einops import rearrange, reduce, repeat
 
-import torch
+def kronecker_product(mat1, mat2):
+    m1, n1 = mat1.size()
+    mat1_rsh = mat1.reshape([m1, 1, n1, 1])
+    m2, n2 = mat2.size()
+    mat2_rsh = mat2.reshape([1, m2, 1, n2])
+    return (mat1_rsh * mat2_rsh).reshape([m1 * m2, n1 * n2])
 
-  def _latent_shift(self, latents, s_len):
-    """latents shape change: b t m d -> (b t) m d."""
-    latents_leading, latents_last = latents[:, :-1], latents[:, -1:]
-    latents = tf.concat([tf.zeros_like(latents_last), latents_leading], axis=1)
-    latents = einops.rearrange(latents, 'b t m d -> (b t) m d', t=s_len)
-    return latents, latents_last
-
-  def _latent_shift_back(self, latents, latents_last, s_len):
-    """latents shape change: (b t) m d -> b t m d."""
-    latents = einops.rearrange(latents, '(b t) m d -> b t m d', t=s_len)
-    latents = tf.concat([latents[:, 1:], latents_last], axis=1)
-    return latents
-
-
-def kronecker_product(t1, t2):
-    """
-    Computes the Kronecker product between two torch Tensors
-    """
-    t1_height, t1_width = t1.size()
-    t2_height, t2_width = t2.size()
-    out_height = t1_height * t2_height
-    out_width = t1_width * t2_width
-
-    tiled_t2 = t2.repeat(t1_height, t1_width)
-    expanded_t1 = (
-        t1.unsqueeze(2)
-        .unsqueeze(3)
-        .repeat(1, 1, t2_height, t2_width)
-        .view(out_height, out_width)
-    )
-
-    return expanded_t1 * tiled_t2
-
-def get_ar_mask(seq_len):
-    """
-    Create an auto-regressive mask of shape (1, 1, seq_len, seq_len).
-    """
-    mask = torch.tril(torch.ones((1, 1, seq_len, seq_len)))
-    return mask
+def get_ar_mask(seq_len, dtype=torch.float32):
+    valid_locs = torch.tril(torch.ones([seq_len, seq_len], dtype=dtype))
+    valid_locs = valid_locs.reshape([1, 1, seq_len, seq_len])
+    return 1.0 - valid_locs
 
 def get_chunk_ar_mask(seq_len, chunk_size, dtype=torch.float32):
-    """Get causal mask across chuncks, but full attention within each chunk.
-
-    Args:
-        seq_len: a `int` or `int` tensor specifying the sequence length.
-        chunk_size: a `int` or `int` tensor specifying the local window size.
-            seq_len must be divisible by chunk_size.
-        dtype: torch data type for the return tensor.
-
-    Returns:
-        tensor of shape [1, 1, seq_len, seq_len] with ones for
-        locations to be masked out.
-    """
     valid_locs = torch.ones([chunk_size, chunk_size], dtype=dtype)
     valid_locs = kronecker_product(torch.eye(seq_len // chunk_size), valid_locs)
     valid_locs = valid_locs.reshape([1, 1, seq_len, seq_len])
@@ -205,6 +163,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 	    
         self.out_linear = nn.Linear(512*7, 512)
         self.token_linear = nn.Linear(512*3, 512)
+        self.token_linear1 = nn.Linear(512*7, 512)
 
         dim = attn_layers.dim
         emb_dim = default(emb_dim, dim)
@@ -215,13 +174,13 @@ class CompoundWordTransformerWrapper(nn.Module):
 	    
         self.word_emb_type = CompoundTransformerEmbeddings(self.num_tokens[0], self.emb_sizes[0])
         
-        self.proj_type =  nn.Linear(dim*7, self.num_tokens[0])
-        self.proj_barbeat = nn.Linear(dim*7, self.num_tokens[1])
-        self.proj_tempo = nn.Linear(dim*7, self.num_tokens[2])
-        self.proj_instrument = nn.Linear(dim*7, self.num_tokens[3])        
-        self.proj_note_name = nn.Linear(dim*7, self.num_tokens[4])
-        self.proj_octave = nn.Linear(dim*7, self.num_tokens[5])
-        self.proj_duration = nn.Linear(dim*7, self.num_tokens[6])
+        self.proj_type =  nn.Linear(dim, self.num_tokens[0])
+        self.proj_barbeat = nn.Linear(dim, self.num_tokens[1])
+        self.proj_tempo = nn.Linear(dim, self.num_tokens[2])
+        self.proj_instrument = nn.Linear(dim, self.num_tokens[3])        
+        self.proj_note_name = nn.Linear(dim, self.num_tokens[4])
+        self.proj_octave = nn.Linear(dim, self.num_tokens[5])
+        self.proj_duration = nn.Linear(dim, self.num_tokens[6])
 
         self.compound_word_embedding_size = np.sum(emb_sizes)
         self.pos_emb = ScaledSinusoidalEmbedding(dim)
@@ -336,23 +295,17 @@ class CompoundWordTransformerWrapper(nn.Module):
         j_tensor = self.oct_emb(j_tensor.reshape(-1, x2, 1)).squeeze(2)
         k_tensor = self.dur_emb(k_tensor.reshape(-1, x2, 1)).squeeze(2)
         z = self.token_linear(torch.cat([i_tensor,j_tensor,k_tensor], dim = -1))
-        z = z.unsqueeze(3).reshape(x1,x2,512,6)
-        z = torch.cat([emb_type.unsqueeze(3),z], dim = -1)
-        z = z.reshape(-1,7,512,1).squeeze(-1)
+        z = self.token_linear1(torch.cat([emb_type,z], dim = -1))
+        z = z.reshape(-1,16,512)
         z = z + self.pos_emb(z)
-        mask1 = mask.reshape(-1,1).squeeze(1)
-        mask1 = repeat(mask1, 'b -> b a', a=7)
-        mask2 = mask.reshape(-1,1)
-        z = self.enc_attn1(z, mask=mask1, return_hiddens=False)
-        latents = self.lat_emb(torch.arange(x2, device = x.device))	
+        latents = self.lat_emb(torch.arange(x2/16,device = x.device))	
         latents = latents.repeat(x1, 1, 1).reshape(-1,1,512)
         latents = latents + self.pos_emb(latents)
-        latents = self.cross_attn1(latents, context = z, mask = mask2, context_mask = mask1)
+        latents = self.cross_attn1(latents, context = z, attn_mask = 1 - get_chunk_ar_mask(x2, 16))
         latents1 = latents.reshape(x1,x2,512)
-        latents2 = self.dec_attn(latents1, mask = mask, return_hiddens=False)
+        latents2 = self.dec_attn(latents1)
         latents = latents2.reshape(-1,1,512)
-        z = self.cross_attn2(z, context = latents, mask = mask1, context_mask = mask2)
-        z = z.reshape(-1,7,512)
-        z = self.enc_attn2(z, mask=mask1, return_hiddens=False)
-        z = z.reshape(x1,x2,512*7)
-        return z, latents1, latents2
+        z = self.cross_attn2(z, context = latents)
+        z = self.enc_attn2(z)
+        z = z.reshape(x1,x2,512)
+        return z
