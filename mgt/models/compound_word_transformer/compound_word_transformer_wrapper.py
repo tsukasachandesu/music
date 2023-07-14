@@ -11,6 +11,7 @@ from mgt.models.utils import get_device
 import torch.nn.functional as F
 import math
 from einops import rearrange, reduce, repeat
+from torch.nn.functional import pad
 
 def kronecker_product(mat1, mat2):
     m1, n1 = mat1.size()
@@ -152,8 +153,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.emb_sizes = emb_sizes
 	    
         self.dec_attn = attn_layers
-        self.enc_attn1 = attn_layers1
-        self.enc_attn2 = attn_layers1
+        self.enc_attn2 = attn_layers
         self.cross_attn1 = attn_layers2
         self.cross_attn2 = attn_layers2
 
@@ -278,6 +278,10 @@ class CompoundWordTransformerWrapper(nn.Module):
         mask = x[..., 0].bool()	  
         emb_type = self.word_emb_type(x[..., 0])
         x1, x2, x3 = emb_type.shape
+        padding_size = x2 - (16 % x2) if n % x != 0 else 0
+        padding = (0, 0, 0, padding_size)
+        x = pad(x, padding, "constant", 0)
+	x1, x2 = x.shape
         y = x[:, :, 1:7] - 2
         i_special_minus1 = 12
         j_special_minus1 = 9 
@@ -301,8 +305,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         latents = self.lat_emb(torch.arange(x2/16,device = x.device))	
         latents = latents.repeat(x1, 1, 1).reshape(-1,1,512)
         latents = latents + self.pos_emb(latents)
-        latents = self.cross_attn1(latents, context = z, attn_mask = 1 - get_chunk_ar_mask(x2, 16))
-        latents1 = latents.reshape(x1,x2,512)
+        latents = self.cross_attn1(latents, context = z)
+        latents1 = latents.reshape(x1,-1,512)
         latents2 = self.dec_attn(latents1)
         latents = latents2.reshape(-1,1,512)
         z = self.cross_attn2(z, context = latents)
