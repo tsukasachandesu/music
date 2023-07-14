@@ -152,7 +152,6 @@ class CompoundWordTransformerModel(object):
                 attn_one_kv_head = True,
                 alibi_pos_bias = True, # turns on ALiBi positional embedding
                 alibi_num_heads = 4,
-                shift_tokens = 1
             ),
             attn_layers1=Encoder(
                 dim=512,
