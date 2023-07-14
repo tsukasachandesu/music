@@ -13,6 +13,17 @@ import math
 from einops import rearrange, reduce, repeat
 from torch.nn.functional import pad
 
+def _latent_shift(latents):
+    """latents shape change: b t m d -> (b t) m d."""
+    latents_leading, latents_last = latents[:, :-1,:], latents[:, -1:,:]
+    latents = torch.cat([torch.zeros_like(latents_last), latents_leading], dim=1)
+    return latents, latents_last
+
+def _latent_shift_back(latents, latents_last):
+    """latents shape change: (b t) m d -> b t m d."""
+    latents = torch.cat([latents[:, 1:], latents_last], dim=1)
+    return latents
+
 def kronecker_product(mat1, mat2):
     m1, n1 = mat1.size()
     mat1_rsh = mat1.reshape([m1, 1, n1, 1])
@@ -310,7 +321,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         latents1 = latents.reshape(x1,-1,512)
         latents2 = self.dec_attn(latents1)
         latents = latents2.reshape(-1,1,512)
+        latents, latents_last = _latent_shift(latents)
         z = self.cross_attn2(z, context = latents)
         z = self.enc_attn2(z)
+        latents = _latent_shift_back(latents, latents_last)
         z = z.reshape(x1,x2,512)
         return z
