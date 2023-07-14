@@ -276,12 +276,13 @@ class CompoundWordTransformerWrapper(nn.Module):
             **kwargs
     ):
         mask = x[..., 0].bool()	  
-        emb_type = self.word_emb_type(x[..., 0])
-        x1, x2, x3 = emb_type.shape
+        x1, x2 = x.shape
         padding_size = x2 - (16 % x2) if n % x != 0 else 0
         padding = (0, 0, 0, padding_size)
         x = pad(x, padding, "constant", 0)
 	x1, x2 = x.shape
+        emb_type = self.word_emb_type(x[..., 0])
+
         y = x[:, :, 1:7] - 2
         i_special_minus1 = 12
         j_special_minus1 = 9 
