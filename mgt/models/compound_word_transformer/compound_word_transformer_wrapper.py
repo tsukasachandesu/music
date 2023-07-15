@@ -328,12 +328,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         latents1 = latents.reshape(x1,-1,512)
         latents2 = self.dec_attn(latents1)
         latents = latents2.reshape(-1,1,512)
-	    
-        latents, latents_last = _latent_shift(latents)
         z = self.cross_attn2(z, context = latents)
         z = self.enc_attn2(z)
-	    
-        latents = _latent_shift_back(latents, latents_last)
         z = z.reshape(x1,x2,512)
         if padding_size != 0:
           z = z[:,:-padding_size,:]
