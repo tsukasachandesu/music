@@ -16,12 +16,12 @@ from torch.nn.functional import pad
 def _latent_shift(latents):
     """latents shape change: b t m d -> (b t) m d."""
     latents_leading, latents_last = latents[:-1, :,:], latents[-1:, :,:]
-    latents = torch.cat([torch.zeros_like(latents_last), latents_leading], dim=1)
+    latents = torch.cat([torch.zeros_like(latents_last), latents_leading], dim=0)
     return latents, latents_last
 
 def _latent_shift_back(latents, latents_last):
     """latents shape change: (b t) m d -> b t m d."""
-    latents = torch.cat([latents[1:, :,:], latents_last], dim=1)
+    latents = torch.cat([latents[1:, :,:], latents_last], dim=0)
     return latents
 
 def get_ar_mask(seq_len, batch,dtype=torch.float32):
