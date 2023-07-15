@@ -324,7 +324,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         z = z + self.pos_emb(z)
         print(x2/16)
 	    
-        latents = self.lat_emb(torch.arange(x2/16, device = z.device))	
+        latents = self.lat_emb(torch.arange(int(x2//16), device = z.device))	
         print(latents.shape)
         latents = latents.repeat(x1, 1, 1).reshape(-1,1,512)
         latents = latents + self.pos_emb(latents)
