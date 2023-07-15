@@ -318,7 +318,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         z = self.token_linear(torch.cat([i_tensor,j_tensor,k_tensor], dim = -1))
         z = torch.cat([emb_type,z], dim = 0)
         z = z.reshape(x1, x2, -1)
-        z = self.token_linear1(z, mask=mask, return_hiddens=False)
+        z = self.token_linear1(z)
         z = z + self.pos_emb(z)
-        z = self.dec_attn(z)
+        z = self.dec_attn(z, mask=mask, return_hiddens=False)
         return z
