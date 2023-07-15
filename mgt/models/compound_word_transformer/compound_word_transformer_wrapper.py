@@ -320,7 +320,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         x = self.in_linear(x) 
         x = self.emb_dropout(x) 
         x1, x2, x3 = x.shape  
-        latents = x.reshape(x1,x2//16,512*16)
+        latents = x.reshape(x1,-1,512*16)
         latents = self.in_linear1(latents)
         latents = self.emb_dropout(latents) 
         
