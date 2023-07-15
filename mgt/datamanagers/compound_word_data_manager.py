@@ -68,7 +68,7 @@ class CompoundWordDataManager(DataManager):
                       elif i[0] == 3:
                         c = i[2]
                         d.append([2,b,c])
-                    print(d)
+                          
                     cur = 0
                     for i in d:
                         if i == [1, 0, 0]:
@@ -82,7 +82,6 @@ class CompoundWordDataManager(DataManager):
                             cur = cur + 1
                         if i[0] == 2:
                             p[i[1] + cur * 16 -1].append([i[0],i[1],i[2]])
-                    print(d)
                                    
                     pp = []
                     cur = 0
@@ -92,7 +91,7 @@ class CompoundWordDataManager(DataManager):
                         if i:
                             pp.append(i)
                         cur = cur + 1
-                       
+                    print(pp)  
                     p  = []
                     for i in pp:
                         if i == [1, 0, 0]:
@@ -108,7 +107,7 @@ class CompoundWordDataManager(DataManager):
                                     break
                                 r = r + 1
                             p.append(n)
-                    print(p)
+                    print(p)  
                     pq = []
                     for i in p:
                         pq.append([i[0],i[1]]+sorted([i[2],i[3],i[4],i[5],i[6],i[7]], reverse=True))
