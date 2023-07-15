@@ -153,7 +153,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             num_tokens,
             max_seq_len,
             attn_layers,
-	    attn_layers1,
+            attn_layers1,
             attn_layers2,
             emb_dim=None,
             emb_dropout=0.1,
@@ -164,7 +164,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.emb_sizes = emb_sizes
 	    
         self.dec_attn1 = attn_layers
-	self.enc_attn1 = attn_layers1
+        self.enc_attn1 = attn_layers1
 
 	    
         self.out_linear = nn.Linear(512*7, 512)
@@ -292,7 +292,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             **kwargs
     ):
 
-	mask = x[..., 0].bool()
+        mask = x[..., 0].bool()
 	    
         emb_type = self.word_emb_type(x[..., 0])
         emb_type1 = self.word_emb_type1(x[..., 1])
@@ -317,11 +317,11 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         x = self.out_linear(x)   
         x = x + self.pos_emb(x)    
-        x = self.dec_attn3(x, mask = mask)
+        x = self.dec_attn1(x, mask = mask)
 
         x = torch.cat(
             [
-		x.reshape(-1,1,512),
+                x.reshape(-1,1,512),
                 emb_type.reshape(-1,1,512),
                 emb_type1.reshape(-1,1,512),
                 emb_type2.reshape(-1,1,512),
@@ -333,6 +333,9 @@ class CompoundWordTransformerWrapper(nn.Module):
 	     
         x = x + self.pos_emb(x)    
         x = self.enc_attn1(x)
+        x = x.reshape(x1,x2,512*8)
+
+        return x
         x = x.reshape(x1,x2,512*8)
 
         return x
