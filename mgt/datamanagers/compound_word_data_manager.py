@@ -91,10 +91,10 @@ class CompoundWordDataManager(DataManager):
                         if i:
                             pp.append(i)
                         cur = cur + 1
-                    print(pp)  
+                        
                     p  = []
                     for i in pp:
-                        if i == [1, 0, 0]:
+                        if i == [[1, 0, 0]]:
                             p.append([1,0,0,0,0,0,0,0])
                         else:
                             n =[0,0,1,1,1,1,1,1]
@@ -107,7 +107,7 @@ class CompoundWordDataManager(DataManager):
                                     break
                                 r = r + 1
                             p.append(n)
-                    print(p)  
+ 
                     pq = []
                     for i in p:
                         pq.append([i[0],i[1]]+sorted([i[2],i[3],i[4],i[5],i[6],i[7]], reverse=True))
