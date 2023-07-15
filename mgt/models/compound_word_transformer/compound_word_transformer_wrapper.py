@@ -314,8 +314,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         x = self.in_linear(x) 
         x1, x2, x3 = x.shape
-
-        print(x.shape)
         
         latents = x.reshape(x1,-1,512*8)
         latents = self.in_linear1(latents) 
