@@ -78,7 +78,7 @@ class CompoundWordDataManager(DataManager):
                             
                     p =[[] * 1 for i in range(cur*16+1)]
                     
-                    ppqq =[[i%16+1,1,1,1,1,1,1,1,1] * 1 for i in range(cur*16+1)]
+                    ppqq =[[i%16+1,1,1,1,1,1] * 1 for i in range(cur*16+1)]
                     
                     cur = -1
                     for i in d:
