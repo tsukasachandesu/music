@@ -122,7 +122,7 @@ class CompoundWordDataManager(DataManager):
                         if pq[i][0] == 2:
                             cur  = cur + 1
                         if pq[i][0] == 3:
-                            ppqq[cur*16+pq[i][1]-1] = [pq[i][1],pq[i][2],pq[i][3],pq[i][4],pq[i][5],pq[i][6],pq[i][7],pq[i][8],pq[i][9]] 
+                            ppqq[cur*16+pq[i][1]-1] = [pq[i][1],pq[i][2],pq[i][3],pq[i][4],pq[i][5],pq[i][6],pq[i][7]] 
 
                     print(f'Extracted {len(ppqq)} compound words.') 
                     
