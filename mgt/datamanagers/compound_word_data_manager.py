@@ -129,12 +129,12 @@ class CompoundWordDataManager(DataManager):
         inverse_dic = {v: k for k, v in dic.items()}
         q = []
         for i in data:
-            for j in range(6):
-                if i[0] == 1:
-                    q.append([2,0,0,0,0,0,0,0])
-                else:
-                    q.append([2,i[0],0,0,0,0,0,0])
-                    q.append([3,i[0],0,0,*inverse_dic[int(i[j+1]-2)],31])
+            if i[0] == 1:
+                q.append([2,0,0,0,0,0,0,0])
+            else:
+                for j in range(6):
+                    q.append([2,i[1],0,0,0,0,0,0])
+                    q.append([3,i[1],0,0,*inverse_dic[int(i[j+2]-2)],31])
 
         remi = self.compound_word_mapper.map_to_remi(q)
         return MidiToolkitWrapper(self.to_midi_mapper.to_midi(remi))
