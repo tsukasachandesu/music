@@ -287,13 +287,17 @@ class CompoundWordTransformerWrapper(nn.Module):
             **kwargs
     ):
         mask = x[..., 0].bool()	
-
         x1, x2 = mask.shape
-
+	    
+        padding_size = 16 - (x2 % 16)
+        padding = (0, 0, 0, 0, 0, padding_size)
+        x = pad(x, padding, "constant", 0)
+	    
         emb_type = self.word_emb_type(x[..., 0])
-
         x1, x2, x3 = emb_type.shape
-        print(emb_type.shape)
+
+
+	    
         y = x[:, :, 1:7] - 2
         i_special_minus1 = 12
         j_special_minus1 = 9 
@@ -310,27 +314,18 @@ class CompoundWordTransformerWrapper(nn.Module):
         i_tensor = self.pitch_emb(i_tensor.reshape(-1, x2, 1)).squeeze(2)
         j_tensor = self.oct_emb(j_tensor.reshape(-1, x2, 1)).squeeze(2)
         k_tensor = self.dur_emb(k_tensor.reshape(-1, x2, 1)).squeeze(2)
-        print(i_tensor.shape)
+	    
         z = self.token_linear(torch.cat([i_tensor,j_tensor,k_tensor], dim = -1))
-        print(z.shape)
         z = torch.cat([emb_type,z], dim = 0)
-        print(z.shape)
         z = z.reshape(x1, x2, -1)
-        print(z.shape)
         z = self.token_linear1(z)
-        print(z.shape)
         z = z.reshape(-1,16,512)
-        print(z.shape)
         z = z + self.pos_emb(z)
-        print(x2/16)
 	    
         latents = self.lat_emb(torch.arange(int(x2//16), device = z.device))	
-        print(latents.shape)
         latents = latents.repeat(x1, 1, 1).reshape(-1,1,512)
         latents = latents + self.pos_emb(latents)
-        print(latents.shape)
         latents = self.cross_attn1(latents, context = z)
-        print(latents.shape)
         latents1 = latents.reshape(x1,-1,512)
         latents2 = self.dec_attn(latents1)
         latents = latents2.reshape(-1,1,512)
