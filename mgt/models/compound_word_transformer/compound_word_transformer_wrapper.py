@@ -132,8 +132,13 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.max_seq_len = max_seq_len
 
         self.word_emb_type = CompoundTransformerEmbeddings(self.num_tokens[0], self.emb_sizes[0])
-        self.word_emb_barbeat = CompoundTransformerEmbeddings(self.num_tokens[1], self.emb_sizes[1])
-
+        self.word_emb_barbeat1 = CompoundTransformerEmbeddings(self.num_tokens[1], self.emb_sizes[1])
+        self.word_emb_barbeat2 = CompoundTransformerEmbeddings(self.num_tokens[1], self.emb_sizes[1])
+        self.word_emb_barbeat3 = CompoundTransformerEmbeddings(self.num_tokens[1], self.emb_sizes[1])
+        self.word_emb_barbeat4 = CompoundTransformerEmbeddings(self.num_tokens[1], self.emb_sizes[1])
+        self.word_emb_barbeat5 = CompoundTransformerEmbeddings(self.num_tokens[1], self.emb_sizes[1])
+        self.word_emb_barbeat6 = CompoundTransformerEmbeddings(self.num_tokens[1], self.emb_sizes[1])
+        
         # individual output
         
         self.proj_type = nn.Sequential(
@@ -170,6 +175,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         self.pos_emb = AbsolutePositionalEmbedding(512, 16) 
         self.pos_emb1 = AbsolutePositionalEmbedding(512, max_seq_len)
+        self.pos_emb2 = AbsolutePositionalEmbedding(512, max_seq_len) 
         
         self.emb_dropout = nn.Dropout(emb_dropout)
         
@@ -178,18 +184,24 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.attn_layers3 = attn_layers1 
         self.attn_layers4 = attn_layers1
         self.attn_layers5 = attn_layers
+        
         self.norm = RMSNorm(512*8)
         
         self.in_linear = nn.Linear(512*7, 512)
 
-        self.lat_emb = nn.Embedding(max_seq_len*2, dim)
+        self.lat_emb = nn.Embedding(max_seq_len, dim)
 
         self.init_()
 
     def init_(self):
         nn.init.normal_(self.word_emb_type.weight(), std=0.02)
-        nn.init.normal_(self.word_emb_barbeat.weight(), std=0.02)
-
+        nn.init.normal_(self.word_emb_barbeat1.weight(), std=0.02)
+        nn.init.normal_(self.word_emb_barbeat2.weight(), std=0.02)
+        nn.init.normal_(self.word_emb_barbeat3.weight(), std=0.02)
+        nn.init.normal_(self.word_emb_barbeat4.weight(), std=0.02)
+        nn.init.normal_(self.word_emb_barbeat5.weight(), std=0.02)
+        nn.init.normal_(self.word_emb_barbeat6.weight(), std=0.02)
+        
     def forward_output_sampling(self, h, selection_temperatures=None, selection_probability_tresholds=None):
         # sample type
         if selection_probability_tresholds is None:
@@ -315,6 +327,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         latents = latents + self.pos_emb1(latents)
         latents = self.attn_layers3(latents, context = x, context_mask = mask)
         latents = latents.reshape(x1,-1,512)
+        latents = latents + self.pos_emb2(latents)
         latents = self.attn_layers1(latents)
         latents = latents.reshape(-1,1,512)
         latents, latents_last = _latent_shift(latents)
