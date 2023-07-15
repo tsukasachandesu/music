@@ -77,9 +77,7 @@ class CompoundWordDataManager(DataManager):
                             cur = cur + 1
                             
                     p =[[] * 1 for i in range(cur*16+1)]
-                    
-                    ppqq =[[i%16+1,1,1,1,1,1,1] * 1 for i in range(cur*16+1)]
-                    
+                                        
                     cur = -1
                     for i in d:
                         if i == [2, 0, 0]:
@@ -117,16 +115,9 @@ class CompoundWordDataManager(DataManager):
                     for i in p:
                         pq.append([i[0],i[1]]+sorted([i[2],i[3],i[4],i[5],i[6],i[7]], reverse=True))
                                
-                    cur = -1
-                    for i in range(len(pq)):
-                        if pq[i][0] == 2:
-                            cur  = cur + 1
-                        if pq[i][0] == 3:
-                            ppqq[cur*16+pq[i][1]-1] = [pq[i][1],pq[i][2],pq[i][3],pq[i][4],pq[i][5],pq[i][6],pq[i][7]] 
-
-                    print(f'Extracted {len(ppqq)} compound words.') 
+                    print(f'Extracted {len(pq)} compound words.') 
                     
-                    training_data.append(ppqq)
+                    training_data.append(pq)
                 except Exception as e:
                     print(f"Exception: {e}")
 
