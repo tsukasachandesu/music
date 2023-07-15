@@ -295,15 +295,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             **kwargs
     ):
 
-        x1, x2, x3 = x.shape 
-        padding_size = 0
-        if x2 % 16 != 0:
-          padding_size = 16 - (x2 % 16) 
-          padding = (0, 0, 0, padding_size)
-          x = pad(x, padding, "constant", 0)	
-
 	mask = x[..., 0].bool()
-        mask = mask.reshape(-1,16)
 	    
         emb_type = self.word_emb_type(x[..., 0])
         emb_type1 = self.word_emb_type1(x[..., 1])
@@ -324,26 +316,7 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_type6,
             ], dim = -1)
 
-        x1, x2, x3 = x.shape  
-        x = self.out_linear(x) 
-
-        x1, x2, x3 = x.shape  
-        x = x.reshape(-1,16,512)
         x = x + self.pos_emb(x)
         x = self.dec_attn3(x, mask = mask)
-	    
-        latents = self.lat_emb(torch.arange(int(x2//16), device = x.device))	
-        latents = latents.repeat(x1, 1, 1).reshape(-1,1,512)
-        latents = latents + self.pos_emb(latents)
-        latents = self.cross_attn1(latents, context = x, context_mask = mask)
-        latents = latents.reshape(x1,-1,512)
-        latents = self.dec_attn1(latents)
-        latents = latents.reshape(-1,1,512)
-        latents, latents_last = _latent_shift(latents)
-        x = self.cross_attn2(x, context = latents, mask = mask)
-        x = self.dec_attn2(x, mask = mask)
-        latents = _latent_shift_back(latents, latents_last)
-        x = x.reshape(x1,x2,512)
-        if padding_size != 0:
-          x = x[:,:-padding_size,:]
+
         return x
