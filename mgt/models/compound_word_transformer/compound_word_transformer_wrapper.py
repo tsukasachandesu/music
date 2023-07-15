@@ -188,7 +188,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.norm = RMSNorm(512*8)
         
         self.in_linear = nn.Linear(512*7, 512)
-
+        self.in_linear1 = nn.Linear(512, 512*16)
         self.lat_emb = nn.Embedding(max_seq_len, dim)
 
         self.init_()
@@ -319,11 +319,12 @@ class CompoundWordTransformerWrapper(nn.Module):
             ], dim = -1)
         x = self.in_linear(x) 
         x1, x2, x3 = x.shape  
+        latents = x.reshape(x1,x2//16,512*16)
+        latents = self.in_linear1(y)
+        latents = latents.reshape(-1,1,512)
         x = x.reshape(-1,16,512)
         x = x + self.pos_emb(x)
         x = self.attn_layers5(x, mask = mask)
-        latents = self.lat_emb(torch.arange(int(x2//16), device = x.device))	
-        latents = latents.repeat(x1, 1, 1).reshape(-1,1,512)
         latents = latents + self.pos_emb1(latents)
         latents = self.attn_layers3(latents, context = x, context_mask = mask)
         latents = latents.reshape(x1,-1,512)
