@@ -289,7 +289,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         mask = x[..., 0].bool()	
         x1, x2 = mask.shape
 	    
-        padding_size = 16 - (x2 % 16) if x2 % 16 != 0 else 0
+	padding_size = 16 - (x2 % 16) if x2 % 16 != 0 else 0
+	print(padding_size)
         padding = (0, 0, 0, padding_size)
         x = pad(x, padding, "constant", 0)	    
         emb_type = self.word_emb_type(x[..., 0])
@@ -333,7 +334,6 @@ class CompoundWordTransformerWrapper(nn.Module):
 	    
         latents = _latent_shift_back(latents, latents_last)
         z = z.reshape(x1,x2,512)
-        print(z.shape)
         z = z[:,:-padding_size,:]
         print(z.shape)
         return z
