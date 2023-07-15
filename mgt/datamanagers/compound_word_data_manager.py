@@ -62,8 +62,8 @@ class CompoundWordDataManager(DataManager):
                     d = []
                     for i in a:
                       if i[0] == 2:
-                        if i == [1,0,0]:
-                          d.append(i)
+                        if i == [2,0,0]:
+                          d.append([1,0,0])
                         b = i[1]
                       elif i[0] == 3:
                         c = i[2]
