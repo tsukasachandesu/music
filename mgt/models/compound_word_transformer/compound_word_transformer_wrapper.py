@@ -289,9 +289,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         mask = x[..., 0].bool()	
         x1, x2 = mask.shape
 	    
-        padding_size = 16 - (x2 % 16)
+        padding_size = 16 - (x2 % 16) if x2 % 16 != 0 else 0
         print(padding_size)
-        padding = (0, 0, 0, 0, 0, padding_size)
+        padding = (0, 0, 0, padding_size)
 	    
         x = pad(x, padding, "constant", 0)
         print(x.shape)
