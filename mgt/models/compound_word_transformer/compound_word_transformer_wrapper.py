@@ -336,6 +336,3 @@ class CompoundWordTransformerWrapper(nn.Module):
         x = x.reshape(x1,x2,512*8)
 
         return x
-        x = x.reshape(x1,x2,512*8)
-
-        return x
