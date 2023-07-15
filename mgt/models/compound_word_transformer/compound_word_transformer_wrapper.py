@@ -167,14 +167,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.enc_attn2 = attn_layers
         self.cross_attn1 = attn_layers2
         self.cross_attn2 = attn_layers2
-
-        self.word_emb_type = CompoundTransformerEmbeddings(self.num_tokens[0], self.emb_sizes[0])
-        self.word_emb_type1 = CompoundTransformerEmbeddings(6914, self.emb_sizes[0])
-        self.word_emb_type2 = CompoundTransformerEmbeddings(6914, self.emb_sizes[0])
-        self.word_emb_type3 = CompoundTransformerEmbeddings(6914, self.emb_sizes[0])
-        self.word_emb_type4 = CompoundTransformerEmbeddings(6914, self.emb_sizes[0])
-        self.word_emb_type5 = CompoundTransformerEmbeddings(6914, self.emb_sizes[0])
-        self.word_emb_type6 = CompoundTransformerEmbeddings(6914, self.emb_sizes[0])
 	    
         self.out_linear = nn.Linear(512*7, 512)
         self.token_linear = nn.Linear(512*3, 512)
@@ -197,6 +189,14 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         self.compound_word_embedding_size = np.sum(emb_sizes)
         self.pos_emb = ScaledSinusoidalEmbedding(dim)
+
+        self.word_emb_type = CompoundTransformerEmbeddings(self.num_tokens[0], self.emb_sizes[0])
+        self.word_emb_type1 = CompoundTransformerEmbeddings(6914, self.emb_sizes[0])
+        self.word_emb_type2 = CompoundTransformerEmbeddings(6914, self.emb_sizes[0])
+        self.word_emb_type3 = CompoundTransformerEmbeddings(6914, self.emb_sizes[0])
+        self.word_emb_type4 = CompoundTransformerEmbeddings(6914, self.emb_sizes[0])
+        self.word_emb_type5 = CompoundTransformerEmbeddings(6914, self.emb_sizes[0])
+        self.word_emb_type6 = CompoundTransformerEmbeddings(6914, self.emb_sizes[0])
  
         self.init_()
 
