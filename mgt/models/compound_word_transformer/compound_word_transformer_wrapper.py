@@ -315,7 +315,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         print(z.shape)
         z = torch.cat([emb_type,z], dim = 0)
         print(z.shape)
-        z = z.reshape(1, x2, -1)
+        z = z.reshape(x1, x2, -1)
         print(z.shape)
         z = self.token_linear1(z)
         print(z.shape)
