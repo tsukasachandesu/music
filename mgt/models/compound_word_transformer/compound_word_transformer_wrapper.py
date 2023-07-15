@@ -163,14 +163,12 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         self.emb_sizes = emb_sizes
 	    
-        self.dec_attn = attn_layers
-        self.enc_attn2 = attn_layers
+        self.dec_attn1 = attn_layers
+        self.dec_attn2 = attn_layers
         self.cross_attn1 = attn_layers2
         self.cross_attn2 = attn_layers2
 	    
         self.out_linear = nn.Linear(512*7, 512)
-        self.token_linear = nn.Linear(512*3, 512)
-        self.token_linear1 = nn.Linear(512*7, 512)
 	    
         dim = attn_layers.dim
         emb_dim = default(emb_dim, dim)
@@ -316,8 +314,8 @@ class CompoundWordTransformerWrapper(nn.Module):
             ], dim = -1)
 	    
         x = self.out_linear(x) 
+        x = x.reshape(-1,16,512)
         x = x + self.pos_emb(x)
-        x = self.dec_attn(x, mask=mask, return_hiddens=False)
 
         if x2 % 16 != 0:
           padding_size = 16 - (x2 % 16) 
@@ -332,11 +330,11 @@ class CompoundWordTransformerWrapper(nn.Module):
 	    
         latents = self.cross_attn1(latents, context = x)
         latents = latents.reshape(x1,-1,512)
-        latents = self.dec_attn(latents)
+        latents = self.dec_attn1(latents)
         latents = latents.reshape(-1,1,512)
         latents, latents_last = _latent_shift(latents)
         x = self.cross_attn2(x, context = latents)
-        x = self.enc_attn2(x)
+        x = self.dec_attn2(x)
         latents = _latent_shift_back(latents, latents_last)
         x = x.reshape(x1,x2,512)
         if padding_size != 0:
