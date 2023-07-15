@@ -315,6 +315,7 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_type5,
                 emb_type6,
             ], dim = -1)
+        x = self.out_linear(x) 
 
         x = x + self.pos_emb(x)
         x = self.dec_attn3(x, mask = mask)
