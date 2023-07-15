@@ -177,7 +177,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.attn_layers2 = attn_layers
         self.attn_layers3 = attn_layers1 
         self.attn_layers4 = attn_layers1
-     
+        self.attn_layers5 = attn_layers
         self.norm = RMSNorm(512*8)
         
         self.in_linear = nn.Linear(512*7, 512)
@@ -309,7 +309,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         x1, x2, x3 = x.shape  
         x = x.reshape(-1,16,512)
         x = x + self.pos_emb(x)
-        x = self.attn_layers1(x, mask = mask)
+        x = self.attn_layers5(x, mask = mask)
         latents = self.lat_emb(torch.arange(int(x2//16), device = x.device))	
         latents = latents.repeat(x1, 1, 1).reshape(-1,1,512)
         latents = latents + self.pos_emb1(latents)
