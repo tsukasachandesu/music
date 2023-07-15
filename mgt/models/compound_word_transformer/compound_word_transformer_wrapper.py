@@ -314,10 +314,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             ], dim = -1)
 
         x1, x2, x3 = x.shape  
-	    
         x = self.out_linear(x) 
-        x = x.reshape(-1,16,512)
-        x = x + self.pos_emb(x)
 	     
         padding_size = 0
         if x2 % 16 != 0:
@@ -326,6 +323,9 @@ class CompoundWordTransformerWrapper(nn.Module):
           x = pad(x, padding, "constant", 0)	
 		
         x1, x2, x3 = x.shape  
+
+        x = x.reshape(-1,16,512)
+        x = x + self.pos_emb(x)
 
         latents = self.lat_emb(torch.arange(int(x2//16), device = x.device))	
         latents = latents.repeat(x1, 1, 1).reshape(-1,1,512)
@@ -342,4 +342,5 @@ class CompoundWordTransformerWrapper(nn.Module):
         x = x.reshape(x1,x2,512)
         if padding_size != 0:
           x = x[:,:-padding_size,:]
+	
         return x
