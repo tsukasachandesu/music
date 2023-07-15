@@ -170,7 +170,7 @@ class CompoundWordTransformerModel(object):
             ) ,
             attn_layers2=CrossAttender(
                 dim=512,
-                depth=4,
+                depth=6,
                 heads=8,
                 ff_glu = True,
                 ff_swish = True,
