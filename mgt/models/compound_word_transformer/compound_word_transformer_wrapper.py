@@ -318,7 +318,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         x = self.out_linear(x) 
         x = x.reshape(-1,16,512)
         x = x + self.pos_emb(x)
-
+	     
+        padding_size = 0
         if x2 % 16 != 0:
           padding_size = 16 - (x2 % 16) 
           padding = (0, 0, 0, padding_size)
