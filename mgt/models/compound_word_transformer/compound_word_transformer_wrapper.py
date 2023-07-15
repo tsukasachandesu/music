@@ -318,9 +318,12 @@ class CompoundWordTransformerWrapper(nn.Module):
                 
             ], dim = -1)
         x = self.in_linear(x) 
+        x = self.emb_dropout(x) 
         x1, x2, x3 = x.shape  
         latents = x.reshape(x1,x2//16,512*16)
         latents = self.in_linear1(latents)
+        latents = self.emb_dropout(latents) 
+        
         latents = latents.reshape(-1,1,512)
         x = x.reshape(-1,16,512)
         x = x + self.pos_emb(x)
