@@ -295,8 +295,8 @@ class CompoundWordTransformerWrapper(nn.Module):
             **kwargs
     ):
         mask = x[..., 0].bool()	
-        print(x.shape)
-        x1, x2, x3 = mask.shape 
+	    
+        x1, x2= mask.shape 
         padding_size = 0
         if x2 % 16 != 0:
           padding_size = 16 - (x2 % 16) 
