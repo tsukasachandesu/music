@@ -150,13 +150,14 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         final_res = prompt.copy()
         last_token = final_res[-self.max_seq_len:]
         input_ = torch.tensor(np.array([last_token])).long().to(get_device())
-        h = self.net.forward_hidden(input_)
+        h, y_type  = self.net.forward_hidden(input_)
 
         print('------ generate ------')
         for _ in range(output_length):
             # sample others
             next_arr = self.net.forward_output_sampling(
                 h[:, -1:, :],
+                y_type[:, -1:, :],
                 selection_temperatures=selection_temperatures,
                 selection_probability_tresholds=selection_probability_tresholds)
 
@@ -165,7 +166,7 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
             # forward
             last_token = final_res[-self.max_seq_len:]
             input_ = torch.tensor(np.array([last_token])).long().to(get_device())
-            h = self.net.forward_hidden(input_)
+            h, y_type = self.net.forward_hidden(input_)
 
         return final_res
 
@@ -174,9 +175,9 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         xi = x[:, :-1, :]
         target = x[:, 1:, :]
 
-        h = self.net.forward_hidden(xi,**kwargs)
+        h, proj_type = self.net.forward_hidden(xi,**kwargs)
         
-        proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, proj_duration1 = self.net.forward_output(h)
+        proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, proj_duration1 = self.net.forward_output(h, target)
  
         type_loss = calculate_loss(proj_type, target[..., 0], type_mask(target))
         barbeat_loss = calculate_loss(proj_barbeat, target[..., 1], type_mask(target))
