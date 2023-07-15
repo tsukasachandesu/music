@@ -24,8 +24,8 @@ def _latent_shift_back(latents, latents_last):
     latents = torch.cat([latents[1:, :,:], latents_last], dim=0)
     return latents
 
-def get_ar_mask(seq_len, batch,dtype=torch.float32):
-    valid_locs = torch.tril(torch.ones([seq_len, seq_len], dtype=dtype)).repeat((batch, 1))
+def get_ar_mask(seq_len, batch,device,dtype=torch.float32):
+    valid_locs = torch.tril(torch.ones([seq_len, seq_len], device=device, dtype=dtype)).repeat((batch, 1))
     return valid_locs.bool()
     
 def exists(val):
@@ -320,7 +320,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         latents = self.attn_layers1(latents)
         latents = latents.repeat((x2//16, 1,1))
         latents, latents_last = _latent_shift(latents)
-        x = self.attn_layers4(x, context = latents, mask = mask, context_mask =get_ar_mask(x2//16, x1))
+        x = self.attn_layers4(x, context = latents, mask = mask, context_mask =get_ar_mask(x2//16, x1,x.device))
         x = self.attn_layers2(x, mask = mask)
         latents = _latent_shift_back(latents, latents_last)
         x = x.reshape(x1,x2,512)
