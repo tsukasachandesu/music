@@ -187,22 +187,7 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         octave_loss = calculate_loss(proj_octave, target[..., 5], type_mask(target))
         duration_loss = calculate_loss(proj_duration, target[..., 6], type_mask(target))
         
-        proj_barbeat1 = torch.softmax(proj_barbeat, dim=0)
-        proj_tempo1 = torch.softmax(proj_tempo, dim=0)
-        proj_instrument1 = torch.softmax(proj_instrument, dim=0)
-        proj_note_name1 = torch.softmax(proj_note_name, dim=0)
-        proj_octave1 = torch.softmax(proj_octave, dim=0)
-        proj_duration1 = torch.softmax(proj_duration, dim=0)
-        
-        ff = torch.nn.functional.one_hot(x[:, 1:, 1], num_classes=6914) + torch.nn.functional.one_hot(x[:, 1:, 2], num_classes=6914) + torch.nn.functional.one_hot(x[:, 1:, 3], num_classes=6914) + torch.nn.functional.one_hot(x[:, 1:, 4], num_classes=6914) + torch.nn.functional.one_hot(x[:, 1:, 5], num_classes=6914) + torch.nn.functional.one_hot(x[:, 1:, 6], num_classes=6914)
-        ff = ff[:,:,1:-1]
-        
-        f = proj_barbeat1 + proj_tempo1 + proj_instrument1 + proj_note_name1 + proj_octave1 + proj_duration1
-        f = f[:,:,1:-1]
-
-        loss2 = self.criterion(f, ff.float(), type_mask(target))
-        
-        return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss, loss2
+        return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss
    
    
 
