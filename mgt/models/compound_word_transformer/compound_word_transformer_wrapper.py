@@ -289,6 +289,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         mask = x[..., 0].bool()	
 
         x1, x2 = mask.shape
+        print(mask.shape)
 
         if 16 % x2 != 0:
           padding = (0, 0, 0,  x2 - (16 % x2))
@@ -297,7 +298,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_type = self.word_emb_type(x[..., 0])
 
         x1, x2, x3 = emb_type.shape
-
+        print(emb_type.shape)
         y = x[:, :, 1:7] - 2
         i_special_minus1 = 12
         j_special_minus1 = 9 
@@ -314,8 +315,10 @@ class CompoundWordTransformerWrapper(nn.Module):
         i_tensor = self.pitch_emb(i_tensor.reshape(-1, x2, 1)).squeeze(2)
         j_tensor = self.oct_emb(j_tensor.reshape(-1, x2, 1)).squeeze(2)
         k_tensor = self.dur_emb(k_tensor.reshape(-1, x2, 1)).squeeze(2)
+        print(i_tensor.shape)
         z = self.token_linear(torch.cat([i_tensor,j_tensor,k_tensor], dim = -1))
         print(z.shape)
+        z = torch.cat([emb_type,z], dim = -1)
         z = self.token_linear1(torch.cat([emb_type,z], dim = -1))
         print(z.shape)
         z = z.reshape(-1,16,512)
