@@ -290,9 +290,11 @@ class CompoundWordTransformerWrapper(nn.Module):
         x1, x2 = mask.shape
 	    
         padding_size = 16 - (x2 % 16)
+        print(padding_size)
         padding = (0, 0, 0, 0, 0, padding_size)
-        x = pad(x, padding, "constant", 0)
 	    
+        x = pad(x, padding, "constant", 0)
+        print(x.shape)
         emb_type = self.word_emb_type(x[..., 0])
         x1, x2, x3 = emb_type.shape
 
