@@ -78,7 +78,7 @@ class CompoundWordDataManager(DataManager):
                             
                     p =[[] * 1 for i in range(cur*16+1)]
                     
-                    ppqq =[[i%16+1,1,1,1,1,1] * 1 for i in range(cur*16+1)]
+                    ppqq =[[i%16+1,1,1,1,1,1,1] * 1 for i in range(cur*16+1)]
                     
                     cur = -1
                     for i in d:
@@ -98,7 +98,7 @@ class CompoundWordDataManager(DataManager):
                        
                     p  = []
                     for i in pp:
-                        n =[0,0,1,1,1,1,1,1,1,1]
+                        n =[0,0,1,1,1,1,1,1]
                         r = 2
                         for j in i:
                             n[0] = j[0]
@@ -110,12 +110,12 @@ class CompoundWordDataManager(DataManager):
                             r = r + 1
                         p.append(n)
                         
-                    if p[-1] == [2, 0, 1,1,1,1,1,1,1,1]:
+                    if p[-1] == [2, 0, 1,1,1,1,1,1]:
                         del p[-1]
                         
                     pq = []
                     for i in p:
-                        pq.append([i[0],i[1]]+sorted([i[2],i[3],i[4],i[5],i[6],i[7],i[8],i[9]], reverse=True))
+                        pq.append([i[0],i[1]]+sorted([i[2],i[3],i[4],i[5],i[6],i[7]], reverse=True))
                                
                     cur = -1
                     for i in range(len(pq)):
