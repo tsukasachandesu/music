@@ -11,6 +11,41 @@ from mgt.models.utils import get_device
 import torch.nn.functional as F
 import math
 from einops import rearrange, reduce, repeat
+from torch.nn.functional import pad
+
+def _latent_shift(latents):
+    """latents shape change: b t m d -> (b t) m d."""
+    latents_leading, latents_last = latents[:, :-1,:], latents[:, -1:,:]
+    latents = torch.cat([torch.zeros_like(latents_last), latents_leading], dim=1)
+    return latents, latents_last
+
+def _latent_shift_back(latents, latents_last):
+    """latents shape change: (b t) m d -> b t m d."""
+    latents = torch.cat([latents[:, 1:], latents_last], dim=1)
+    return latents
+
+def kronecker_product(mat1, mat2):
+    m1, n1 = mat1.size()
+    mat1_rsh = mat1.reshape([m1, 1, n1, 1])
+    m2, n2 = mat2.size()
+    mat2_rsh = mat2.reshape([1, m2, 1, n2])
+    return (mat1_rsh * mat2_rsh).reshape([m1 * m2, n1 * n2])
+
+def get_ar_mask(seq_len, dtype=torch.float32):
+    valid_locs = torch.tril(torch.ones([seq_len, seq_len], dtype=dtype))
+    valid_locs = valid_locs.reshape([1, 1, seq_len, seq_len])
+    return 1.0 - valid_locs
+
+def get_chunk_ar_mask(seq_len, chunk_size, dtype=torch.float32):
+    valid_locs = torch.ones([chunk_size, chunk_size], dtype=dtype)
+    valid_locs = kronecker_product(torch.eye(seq_len // chunk_size), valid_locs)
+    valid_locs = valid_locs.reshape([1, 1, seq_len, seq_len])
+
+    return get_ar_mask(seq_len) * (1.0 - valid_locs)
+
+def exists(val):
+    return val is not None
+
 
 class RMSNorm(nn.Module):
     def __init__(self, dim):
@@ -67,6 +102,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             num_tokens,
             max_seq_len,
             attn_layers,
+            attn_layers1,
             attn_layers2,
             emb_dim=None,
             emb_dropout=0.,
@@ -101,48 +137,52 @@ class CompoundWordTransformerWrapper(nn.Module):
         # individual output
         
         self.proj_type = nn.Sequential(
-            nn.Linear(dim*8, self.num_tokens[0])
+            nn.Linear(dim, self.num_tokens[0])
         )
         
         self.proj_barbeat = nn.Sequential(
-            nn.Linear(dim*8, self.num_tokens[1])
+            nn.Linear(dim, self.num_tokens[1])
         )
         
         self.proj_tempo = nn.Sequential(
-            nn.Linear(dim*8, self.num_tokens[2])
+            nn.Linear(dim, self.num_tokens[2])
         )
         
         self.proj_instrument = nn.Sequential(
-            nn.Linear(dim*8, self.num_tokens[3])
+            nn.Linear(dim, self.num_tokens[3])
         )
         
         self.proj_note_name = nn.Sequential(
-            nn.Linear(dim*8, self.num_tokens[4])
+            nn.Linear(dim, self.num_tokens[4])
         )
         
         self.proj_octave = nn.Sequential(
-            nn.Linear(dim*8, self.num_tokens[5])
+            nn.Linear(dim, self.num_tokens[5])
         )
         
         self.proj_duration = nn.Sequential(
-            nn.Linear(dim*8, self.num_tokens[6])
+            nn.Linear(dim, self.num_tokens[6])
         )
 
         # in_features is equal to dimension plus dimensions of the type embedding
 
         self.compound_word_embedding_size = np.sum(emb_sizes)
 
-        self.pos_emb = AbsolutePositionalEmbedding(512, max_seq_len) 
-        self.pos_emb2 = AbsolutePositionalEmbedding(512, 8)
+        self.pos_emb = AbsolutePositionalEmbedding(512, 16) 
+        self.pos_emb1 = AbsolutePositionalEmbedding(512, max_seq_len)
         
         self.emb_dropout = nn.Dropout(emb_dropout)
         
-        self.attn_layers = attn_layers
-        self.attn_layers2 = attn_layers2
-
+        self.attn_layers1 = attn_layers
+        self.attn_layers2 = attn_layers
+        self.attn_layers3 = attn_layers1 
+        self.attn_layers4 = attn_layers1
+     
         self.norm = RMSNorm(512*8)
         
-        self.in_linear2 = nn.Linear(512*7, 512)
+        self.in_linear = nn.Linear(512*7, 512)
+
+        self.lat_emb = nn.Embedding(max_seq_len*2, dim)
 
         self.init_()
 
@@ -236,7 +276,15 @@ class CompoundWordTransformerWrapper(nn.Module):
             **kwargs
     ):
         
+        x1, x2, x3 = x.shape 
+        padding_size = 0
+        if x2 % 16 != 0:
+          padding_size = 16 - (x2 % 16) 
+          padding = (0, 0, 0, padding_size)
+          x = pad(x, padding, "constant", 0)	
+
         mask = x[..., 0].bool()
+        mask = mask.reshape(-1,16)
 
         emb_type = self.word_emb_type(x[..., 0])
         emb_barbeat = self.word_emb_barbeat(x[..., 1])
@@ -255,37 +303,28 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_note_name,
                 emb_octave,
                 emb_duration,
+                
             ], dim = -1)
-
-        z = x.shape
-
-        x = self.in_linear2(x)        
+        x = self.in_linear(x) 
+        x1, x2, x3 = x.shape  
+        x = x.reshape(-1,16,512)
         x = x + self.pos_emb(x)
-        x = self.emb_dropout(x)
-
-        if not self.training:
-            x.squeeze(0)
-            
-        x = self.attn_layers(x, mask=mask, return_hiddens=False)
+	    
+        latents = self.lat_emb(torch.arange(int(x2//16), device = x.device))	
+        latents = latents.repeat(x1, 1, 1).reshape(-1,1,512)
+        latents = latents + self.pos_emb1(latents)
         
-        x = torch.cat(
-            [
-                x.reshape(-1,1,512),
-                emb_type.reshape(-1,1,512),
-                emb_barbeat.reshape(-1,1,512),
-                emb_tempo.reshape(-1,1,512),
-                emb_instrument.reshape(-1,1,512),
-                emb_note_name.reshape(-1,1,512),
-                emb_octave.reshape(-1,1,512),
-                emb_duration.reshape(-1,1,512),
-            ], dim = 1)
+        latents = self.attn_layers3(latents, context = x, context_mask = mask)
+        latents = latents.reshape(x1,-1,512)
+        latents = self.attn_layers1(latents)
+        latents = latents.reshape(-1,1,512)
+        latents, latents_last = _latent_shift(latents)
+        x = self.attn_layers4(x, context = latents, mask = mask)
+        x = self.attn_layers2(x, mask = mask)
+        latents = _latent_shift_back(latents, latents_last)
         
-        x = x + self.pos_emb2(x)
-        mask = mask.reshape(-1,1).squeeze(1)
-        mask = repeat(mask, 'b -> b a', a=8)
-        
-        x = self.attn_layers2(x, mask=mask, return_hiddens=False)
-        x = x.reshape(z[0],z[1],512*8)
-        x = self.norm(x)
-        
+        x = x.reshape(x1,x2,512)
+        if padding_size != 0:
+          x = x[:,:-padding_size,:]
         return x
+
