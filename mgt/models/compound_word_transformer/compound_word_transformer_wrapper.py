@@ -335,6 +335,6 @@ class CompoundWordTransformerWrapper(nn.Module):
 	    
         latents = _latent_shift_back(latents, latents_last)
         z = z.reshape(x1,x2,512)
-        z = z[:,:-padding_size,:]
-        print(z.shape)
+        if padding_size != 0:
+          z = z[:,:-padding_size,:]
         return z
