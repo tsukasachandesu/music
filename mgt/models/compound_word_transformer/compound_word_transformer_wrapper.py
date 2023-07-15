@@ -165,6 +165,8 @@ class CompoundWordTransformerWrapper(nn.Module):
 	    
         self.dec_attn1 = attn_layers
         self.dec_attn2 = attn_layers
+        self.dec_attn3 = attn_layers
+	    
         self.cross_attn1 = attn_layers2
         self.cross_attn2 = attn_layers2
 	    
@@ -292,7 +294,14 @@ class CompoundWordTransformerWrapper(nn.Module):
             mask=None,
             **kwargs
     ):
-        mask = x[..., 0].bool()	  
+        mask = x[..., 0].bool()	
+        print(x.shape)
+        x1, x2, x3 = mask.shape 
+        padding_size = 0
+        if x2 % 16 != 0:
+          padding_size = 16 - (x2 % 16) 
+          padding = (0, 0, 0, padding_size)
+          x = pad(x, padding, "constant", 0)	
 	    
         emb_type = self.word_emb_type(x[..., 0])
         emb_type1 = self.word_emb_type1(x[..., 1])
@@ -315,14 +324,11 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         x1, x2, x3 = x.shape  
         x = self.out_linear(x) 
-        padding_size = 0
-        if x2 % 16 != 0:
-          padding_size = 16 - (x2 % 16) 
-          padding = (0, 0, 0, padding_size)
-          x = pad(x, padding, "constant", 0)	
+
         x1, x2, x3 = x.shape  
         x = x.reshape(-1,16,512)
         x = x + self.pos_emb(x)
+        x = self.dec_attn3(x)
         latents = self.lat_emb(torch.arange(int(x2//16), device = x.device))	
         latents = latents.repeat(x1, 1, 1).reshape(-1,1,512)
         latents = latents + self.pos_emb(latents)
