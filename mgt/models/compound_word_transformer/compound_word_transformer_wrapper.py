@@ -297,36 +297,37 @@ class CompoundWordTransformerWrapper(nn.Module):
             ], dim = -1)
         
         x = self.in_linear(x) 
-        x = self.emb_dropout(x) 
         x1, x2, x3 = x.shape
         
         latents = x.reshape(x1,-1,512*16)
-        latents = self.in_linear1(latents)
-        latents = self.emb_dropout(latents) 
+        latents = self.in_linear1(latents) 
         latents = latents.reshape(-1,1,512)
         
         x = x.reshape(-1,16,512)
         x = x + self.pos_emb(x)
+        x = self.emb_dropout(x) 
         x = self.attn_layers5(x, mask = mask)
         x = self.norm(x)
         
         x = x + self.pos_emb(x)
         x = self.emb_dropout(x) 
+
+        latents = latents + self.pos_emb1(latents)
+        latents = self.emb_dropout(latents)
         latents = self.attn_layers3(latents, context = x, context_mask = mask)
         latents = self.norm(latents)
 
         latents = latents.reshape(x1,-1,512)
-        latents = self.emb_dropout(latents) 
         latents = latents + self.pos_emb1(latents)
+        latents = self.emb_dropout(latents) 
         latents = self.attn_layers1(latents)
         latents = self.norm(latents)
         
-        x = x + self.pos_emb(x)
-        latents = latents + self.pos_emb1(latents)
         latents, latents_last = _latent_shift(latents)
         latents = latents.repeat((x2//16, 1,1))
+        latents = latents + self.pos_emb1(latents)
         latents = self.emb_dropout(latents) 
-        x = self.emb_dropout(x) 
+        
         x = self.attn_layers4(x, context = latents, mask = mask, context_mask =get_ar_mask(x2//16, x1,x.device))
         x = self.norm(x)
         
