@@ -164,11 +164,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.emb_sizes = emb_sizes
 	    
         self.dec_attn1 = attn_layers
-        self.dec_attn2 = attn_layers
-        self.dec_attn3 = attn_layers
-	    
-        self.cross_attn1 = attn_layers2
-        self.cross_attn2 = attn_layers2
+	self.enc_attn1 = attn_layers1
+
 	    
         self.out_linear = nn.Linear(512*7, 512)
 	    
@@ -179,13 +176,13 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.max_seq_len = max_seq_len
         self.lat_emb = nn.Embedding(max_seq_len*2, dim)
 	            
-        self.proj_type =  nn.Linear(dim, self.num_tokens[0])
-        self.proj_barbeat = nn.Linear(dim, self.num_tokens[1])
-        self.proj_tempo = nn.Linear(dim, self.num_tokens[2])
-        self.proj_instrument = nn.Linear(dim, self.num_tokens[3])        
-        self.proj_note_name = nn.Linear(dim, self.num_tokens[4])
-        self.proj_octave = nn.Linear(dim, self.num_tokens[5])
-        self.proj_duration = nn.Linear(dim, self.num_tokens[6])
+        self.proj_type =  nn.Linear(dim*8, self.num_tokens[0])
+        self.proj_barbeat = nn.Linear(dim*8, self.num_tokens[1])
+        self.proj_tempo = nn.Linear(dim*8, self.num_tokens[2])
+        self.proj_instrument = nn.Linear(dim*8, self.num_tokens[3])        
+        self.proj_note_name = nn.Linear(dim*8, self.num_tokens[4])
+        self.proj_octave = nn.Linear(dim*8, self.num_tokens[5])
+        self.proj_duration = nn.Linear(dim*8, self.num_tokens[6])
 
         self.compound_word_embedding_size = np.sum(emb_sizes)
         self.pos_emb = ScaledSinusoidalEmbedding(dim)
@@ -315,9 +312,27 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_type5,
                 emb_type6,
             ], dim = -1)
-        x = self.out_linear(x) 
+	    
+        x1, x2, x3 = x.shape 
 
-        x = x + self.pos_emb(x)
+        x = self.out_linear(x)   
+        x = x + self.pos_emb(x)    
         x = self.dec_attn3(x, mask = mask)
+
+        x = torch.cat(
+            [
+		x.reshape(-1,1,512),
+                emb_type.reshape(-1,1,512),
+                emb_type1.reshape(-1,1,512),
+                emb_type2.reshape(-1,1,512),
+                emb_type3.reshape(-1,1,512),
+                emb_type4.reshape(-1,1,512),
+                emb_type5.reshape(-1,1,512),
+                emb_type6.reshape(-1,1,512),
+            ], dim = 1)
+	     
+        x = x + self.pos_emb(x)    
+        x = self.enc_attn1(x)
+        x = x.reshape(x1,x2,512*8)
 
         return x
