@@ -18,11 +18,9 @@ def _latent_shift(latents):
     latents_leading, latents_last = latents[:, :-1,:], latents[:, -1:,:]
     latents = torch.cat([torch.zeros_like(latents_last), latents_leading], dim=1)
     return latents, latents_last
-    
 
 def get_ar_mask(seq_len, batch,device,dtype=torch.float32):
-    valid_locs = torch.tril(torch.ones([seq_len, seq_len], device=device, dtype=dtype)).repeat((batch, 1))
-    torch.cat([torch.zeros_like(latents_last), latents_leading], dim=1)
+    valid_locs = torch.tril(torch.ones([seq_len, seq_len], device=device, dtype=dtype)).repeat(1,batch).reshape(-1,seq_len)
     return valid_locs.bool()
     
 def exists(val):
