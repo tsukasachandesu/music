@@ -318,8 +318,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         z = torch.cat([emb_type,z], dim = 0)
         z = z.reshape(x1, x2, -1)
         z = self.token_linear1(z)
-        z = z.reshape(-1,16,512)
         z = z + self.pos_emb(z)
-	z = z
         z = self.dec_attn(z)
         return z
