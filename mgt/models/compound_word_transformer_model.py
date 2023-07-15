@@ -6,7 +6,7 @@ import numpy as np
 import torch
 from x_transformers import Decoder
 from x_transformers import Encoder
-
+from x_transformers import CrossAttender
 
 from mgt.models import utils
 from mgt.models.compound_word_transformer.compound_word_autoregressive_wrapper import CompoundWordAutoregressiveWrapper
