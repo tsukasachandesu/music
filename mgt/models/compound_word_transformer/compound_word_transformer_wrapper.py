@@ -320,19 +320,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         z = self.token_linear1(z)
         z = z.reshape(-1,16,512)
         z = z + self.pos_emb(z)
-	z1 = z
-	    
-        latents = self.lat_emb(torch.arange(int(x2//16), device = z.device))	
-        latents = latents.repeat(x1, 1, 1).reshape(-1,1,512)
-        latents = latents + self.pos_emb(latents)
-        latents = self.cross_attn1(latents, context = z)
-        latents1 = latents.reshape(x1,-1,512)
-        latents2 = self.dec_attn(latents1)
-        latents = latents2.reshape(-1,1,512)
-        z = self.cross_attn2(z, context = latents)
-	    
-        z = self.enc_attn2(z1)
-        z = z.reshape(x1,x2,512)
-        if padding_size != 0:
-          z = z[:,:-padding_size,:]
+	z = z
+        z = self.dec_attn(z)
         return z
