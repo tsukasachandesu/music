@@ -15,34 +15,19 @@ from torch.nn.functional import pad
 
 def _latent_shift(latents):
     """latents shape change: b t m d -> (b t) m d."""
-    latents_leading, latents_last = latents[:, :-1,:], latents[:, -1:,:]
+    latents_leading, latents_last = latents[:-1, :,:], latents[-1:, :,:]
     latents = torch.cat([torch.zeros_like(latents_last), latents_leading], dim=1)
     return latents, latents_last
 
 def _latent_shift_back(latents, latents_last):
     """latents shape change: (b t) m d -> b t m d."""
-    latents = torch.cat([latents[:, 1:], latents_last], dim=1)
+    latents = torch.cat([latents[1:, :,:], latents_last], dim=1)
     return latents
 
-def kronecker_product(mat1, mat2):
-    m1, n1 = mat1.size()
-    mat1_rsh = mat1.reshape([m1, 1, n1, 1])
-    m2, n2 = mat2.size()
-    mat2_rsh = mat2.reshape([1, m2, 1, n2])
-    return (mat1_rsh * mat2_rsh).reshape([m1 * m2, n1 * n2])
-
-def get_ar_mask(seq_len, dtype=torch.float32):
-    valid_locs = torch.tril(torch.ones([seq_len, seq_len], dtype=dtype))
-    valid_locs = valid_locs.reshape([1, 1, seq_len, seq_len])
-    return 1.0 - valid_locs
-
-def get_chunk_ar_mask(seq_len, chunk_size, dtype=torch.float32):
-    valid_locs = torch.ones([chunk_size, chunk_size], dtype=dtype)
-    valid_locs = kronecker_product(torch.eye(seq_len // chunk_size), valid_locs)
-    valid_locs = valid_locs.reshape([1, 1, seq_len, seq_len])
-
-    return get_ar_mask(seq_len) * (1.0 - valid_locs)
-
+def get_ar_mask(seq_len, batch,dtype=torch.float32):
+    valid_locs = torch.tril(torch.ones([seq_len, seq_len], dtype=dtype)).repeat((batch, 1))
+    return valid_locs
+    
 def exists(val):
     return val is not None
 
@@ -333,9 +318,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         latents = latents.reshape(x1,-1,512)
         latents = latents + self.pos_emb2(latents)
         latents = self.attn_layers1(latents)
-        latents = latents.reshape(-1,1,512)
+        latents = latents.repeat((x2//16, 1,1))
         latents, latents_last = _latent_shift(latents)
-        x = self.attn_layers4(x, context = latents, mask = mask)
+        x = self.attn_layers4(x, context = latents, mask = mask, context_mask =get_ar_mask(x2//16, x1))
         x = self.attn_layers2(x, mask = mask)
         latents = _latent_shift_back(latents, latents_last)
         x = x.reshape(x1,x2,512)
