@@ -287,12 +287,13 @@ class CompoundWordTransformerWrapper(nn.Module):
             **kwargs
     ):
         mask = x[..., 0].bool()	  
-        x1, x2 = x.shape
-        padding_size = x2 - (16 % x2) if n % x != 0 else 0
-        padding = (0, 0, 0, padding_size)
+        x1, x2, x3= x.shape
+        padding_size = x2 - (16 % x2) if 16 % x != 0 else 0
+        padding = (0, 0, 0, padding_size
         x = pad(x, padding, "constant", 0)
-	x1, x2 = x.shape
+        x1, x2 = x.shape
         emb_type = self.word_emb_type(x[..., 0])
+        print(x.shape)
 
         y = x[:, :, 1:7] - 2
         i_special_minus1 = 12
@@ -311,7 +312,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         j_tensor = self.oct_emb(j_tensor.reshape(-1, x2, 1)).squeeze(2)
         k_tensor = self.dur_emb(k_tensor.reshape(-1, x2, 1)).squeeze(2)
         z = self.token_linear(torch.cat([i_tensor,j_tensor,k_tensor], dim = -1))
+        print(z.shape)
         z = self.token_linear1(torch.cat([emb_type,z], dim = -1))
+        print(z.shape)
         z = z.reshape(-1,16,512)
         z = z + self.pos_emb(z)
         latents = self.lat_emb(torch.arange(x2/16,device = x.device))	
