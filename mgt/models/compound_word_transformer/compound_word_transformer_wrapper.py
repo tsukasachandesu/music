@@ -15,8 +15,8 @@ from torch.nn.functional import pad
 
 def _latent_shift(latents):
     """latents shape change: b t m d -> (b t) m d."""
-    latents_leading, latents_last = latents[:-1, :,:], latents[-1:, :,:]
-    latents = torch.cat([torch.zeros_like(latents_last), latents_leading], dim=0)
+    latents_leading, latents_last = latents[:, :-1,:], latents[:, -1:,:]
+    latents = torch.cat([torch.zeros_like(latents_last), latents_leading], dim=1)
     return latents, latents_last
 
 def _latent_shift_back(latents, latents_last):
@@ -328,8 +328,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         x = x + self.pos_emb(x)
         latents = latents + self.pos_emb1(latents)
-        latents = latents.repeat((x2//16, 1,1))
         latents, latents_last = _latent_shift(latents)
+        latents = latents.repeat((x2//16, 1,1))
         latents = self.emb_dropout(latents) 
         x = self.emb_dropout(x) 
         x = self.attn_layers4(x, context = latents, mask = mask, context_mask =get_ar_mask(x2//16, x1,x.device))
@@ -339,8 +339,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         x = self.emb_dropout(x) 
         x = self.attn_layers2(x, mask = mask)
         x = self.norm(x)
-        
-        latents = _latent_shift_back(latents, latents_last)
         x = x.reshape(x1,x2,512)
         
         if padding_size != 0:
