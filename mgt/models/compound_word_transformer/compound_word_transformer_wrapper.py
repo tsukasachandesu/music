@@ -290,7 +290,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         x1, x2 = mask.shape
 
-        if 16 % x != 0:
+        if 16 % x2 != 0:
           padding = (0, 0, 0,  x2 - (16 % x2))
           x = pad(x, padding, "constant", 0)
 
