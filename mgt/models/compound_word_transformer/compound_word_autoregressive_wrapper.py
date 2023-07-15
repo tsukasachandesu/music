@@ -141,7 +141,6 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         self.ignore_index = ignore_index
         self.net = net
         self.max_seq_len = net.max_seq_len
-        self.criterion = AsymmetricLossOptimized(gamma_neg=4, gamma_pos=1, clip=0.05, disable_torch_grad_focal_loss=False)        
 
     @torch.no_grad()
     def generate(self, prompt, output_length=100, selection_temperatures=None, selection_probability_tresholds=None):
@@ -177,7 +176,7 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
 
         h = self.net.forward_hidden(xi,**kwargs)
         
-        proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration = self.net.forward_output(h)
+        proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, proj_duration1 = self.net.forward_output(h)
  
         type_loss = calculate_loss(proj_type, target[..., 0], type_mask(target))
         barbeat_loss = calculate_loss(proj_barbeat, target[..., 1], type_mask(target))
@@ -186,8 +185,8 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         note_name_loss = calculate_loss(proj_note_name, target[..., 4], type_mask(target))
         octave_loss = calculate_loss(proj_octave, target[..., 5], type_mask(target))
         duration_loss = calculate_loss(proj_duration, target[..., 6], type_mask(target))
-        
-        return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss
+        duration_loss1 = calculate_loss(proj_duration1, target[..., 7], type_mask(target))
+        return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss, duration_loss1
    
    
 
