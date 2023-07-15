@@ -296,6 +296,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         emb_type = self.word_emb_type(x[..., 0])
         x1, x2, x3 = emb_type.shape
+        mask = x[..., 0].bool()	
 	    
         y = x[:, :, 1:7] - 2
         i_special_minus1 = 12
@@ -317,7 +318,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         z = self.token_linear(torch.cat([i_tensor,j_tensor,k_tensor], dim = -1))
         z = torch.cat([emb_type,z], dim = 0)
         z = z.reshape(x1, x2, -1)
-        z = self.token_linear1(z)
+        z = self.token_linear1(z, mask=mask, return_hiddens=False)
         z = z + self.pos_emb(z)
         z = self.dec_attn(z)
         return z
