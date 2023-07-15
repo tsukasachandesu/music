@@ -113,13 +113,13 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.max_seq_len = max_seq_len
 
         self.word_emb_type = CompoundTransformerEmbeddings(self.num_tokens[0], self.emb_sizes[0])
-        self.word_emb_barbeat1 = CompoundTransformerEmbeddings(self.num_tokens[1], self.emb_sizes[1])
-        self.word_emb_barbeat2 = CompoundTransformerEmbeddings(self.num_tokens[1], self.emb_sizes[1])
-        self.word_emb_barbeat3 = CompoundTransformerEmbeddings(self.num_tokens[1], self.emb_sizes[1])
-        self.word_emb_barbeat4 = CompoundTransformerEmbeddings(self.num_tokens[1], self.emb_sizes[1])
-        self.word_emb_barbeat5 = CompoundTransformerEmbeddings(self.num_tokens[1], self.emb_sizes[1])
-        self.word_emb_barbeat6 = CompoundTransformerEmbeddings(self.num_tokens[1], self.emb_sizes[1])
-        self.word_emb_barbeat7 = CompoundTransformerEmbeddings(self.num_tokens[1], self.emb_sizes[1]) 
+        self.word_emb_barbeat1 = CompoundTransformerEmbeddings(self.num_tokens[1], self.emb_sizes[2])
+        self.word_emb_barbeat2 = CompoundTransformerEmbeddings(self.num_tokens[2], self.emb_sizes[2])
+        self.word_emb_barbeat3 = CompoundTransformerEmbeddings(self.num_tokens[2], self.emb_sizes[2])
+        self.word_emb_barbeat4 = CompoundTransformerEmbeddings(self.num_tokens[2], self.emb_sizes[2])
+        self.word_emb_barbeat5 = CompoundTransformerEmbeddings(self.num_tokens[2], self.emb_sizes[2])
+        self.word_emb_barbeat6 = CompoundTransformerEmbeddings(self.num_tokens[2], self.emb_sizes[2])
+        self.word_emb_barbeat7 = CompoundTransformerEmbeddings(self.num_tokens[2], self.emb_sizes[2]) 
         
         # individual output
         
@@ -158,7 +158,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         self.compound_word_embedding_size = np.sum(emb_sizes)
 
-        self.pos_emb = AbsolutePositionalEmbedding(512, 16) 
+        self.pos_emb = AbsolutePositionalEmbedding(512, 8) 
         self.pos_emb1 = AbsolutePositionalEmbedding(512, max_seq_len)
         
         self.emb_dropout = nn.Dropout(emb_dropout)
