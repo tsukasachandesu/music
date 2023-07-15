@@ -26,7 +26,7 @@ def _latent_shift_back(latents, latents_last):
 
 def get_ar_mask(seq_len, batch,dtype=torch.float32):
     valid_locs = torch.tril(torch.ones([seq_len, seq_len], dtype=dtype)).repeat((batch, 1))
-    return valid_locs
+    return valid_locs.bool()
     
 def exists(val):
     return val is not None
