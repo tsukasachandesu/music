@@ -150,12 +150,12 @@ class CompoundWordTransformerModel(object):
                 ff_dropout=self.dropout,  # feedforward dropout
                 ff_no_bias = True,
                 attn_one_kv_head = True,
-                alibi_pos_bias = True, # turns on ALiBi positional embedding
+                alibi_pos_bias = True, 
                 alibi_num_heads = 4,
             ),
             attn_layers1=Encoder(
                 dim=512,
-                depth=2,
+                depth=4,
                 heads=8,
                 ff_glu = True,
                 ff_swish = True,
@@ -170,7 +170,7 @@ class CompoundWordTransformerModel(object):
             ) ,
             attn_layers2=CrossAttender(
                 dim=512,
-                depth=2,
+                depth=4,
                 heads=8,
                 ff_glu = True,
                 ff_swish = True,
