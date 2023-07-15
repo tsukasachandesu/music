@@ -280,7 +280,7 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_duration.reshape(-1,1,512),
             ], dim = 1)
         
-        x = emb_linear + self.pos_emb2(x)
+        x = x + self.pos_emb2(x)
         mask = mask.reshape(-1,1).squeeze(1)
         mask = repeat(mask, 'b -> b a', a=8)
         
