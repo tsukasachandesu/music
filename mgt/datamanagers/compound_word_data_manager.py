@@ -62,54 +62,51 @@ class CompoundWordDataManager(DataManager):
                     d = []
                     for i in a:
                       if i[0] == 2:
-                        if i == [2,0,0]:
+                        if i == [1,0,0]:
                           d.append(i)
                         b = i[1]
                       elif i[0] == 3:
                         c = i[2]
-                        d.append([3,b,c])
-                      else:
-                        d.append(i)  
+                        d.append([2,b,c])
                         
                     cur = 0
                     for i in d:
-                        if i == [2, 0, 0]:
+                        if i == [1, 0, 0]:
                             cur = cur + 1
                             
                     p =[[] * 1 for i in range(cur*16+1)]
                                         
                     cur = -1
                     for i in d:
-                        if i == [2, 0, 0]:
+                        if i == [1, 0, 0]:
                             cur = cur + 1
-                        if i[0] == 3:
+                        if i[0] == 2:
                             p[i[1] + cur * 16 -1].append([i[0],i[1],i[2]])
                                    
                     pp = []
                     cur = 0
                     for i in p:
                         if cur % 16==0:
-                            pp.append([[2, 0, 0]])
+                            pp.append([[1, 0, 0]])
                         if i:
                             pp.append(i)
                         cur = cur + 1
                        
                     p  = []
                     for i in pp:
-                        n =[0,0,1,1,1,1,1,1]
-                        r = 2
-                        for j in i:
-                            n[0] = j[0]
-                            n[1] = j[1]
-                            n[r] = j[2] + 2
-                            
-                            if r >= 7:
-                                break
-                            r = r + 1
-                        p.append(n)
-                        
-                    if p[-1] == [2, 0, 1,1,1,1,1,1]:
-                        del p[-1]
+                        if i == [1, 0, 0]:
+                            p.append([1,0,0,0,0,0,0,0])
+                        else:
+                            n =[0,0,1,1,1,1,1,1]
+                            r = 2
+                            for j in i:
+                                n[0] = j[0]
+                                n[1] = j[1]
+                                n[r] = j[2] + 2
+                                if r >= 7:
+                                    break
+                                r = r + 1
+                            p.append(n)
                         
                     pq = []
                     for i in p:
@@ -133,10 +130,11 @@ class CompoundWordDataManager(DataManager):
         q = []
         for i in data:
             for j in range(6):
-                if i[j+1] != 0 and i[j+1] != 1:
+                if i[0] == 1:
+                    q.append([2,0,0,0,0,0,0,0])
+                else:
                     q.append([2,i[0],0,0,0,0,0,0])
                     q.append([3,i[0],0,0,*inverse_dic[int(i[j+1]-2)],31])
-            if i[0] == 16:
-                q.append([2,0,0,0,0,0,0,0])
+
         remi = self.compound_word_mapper.map_to_remi(q)
         return MidiToolkitWrapper(self.to_midi_mapper.to_midi(remi))
