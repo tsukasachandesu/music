@@ -2,7 +2,7 @@ import numpy as np
 from typing import List
 import random
 
-COMPOUND_WORD_PADDING = [0, 0, 0, 0, 0,0,0,0,0]
+COMPOUND_WORD_PADDING = [0, 0, 0, 0, 0,0,0]
 COMPOUND_WORD_BAR =     [0, 0, 0, 0, 0,0,0]
 
 def pad(array: np.ndarray, max_sequence_length: int, padding_compound_word: np.ndarray = None) -> np.ndarray:
