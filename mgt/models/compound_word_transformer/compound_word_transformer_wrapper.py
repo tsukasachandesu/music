@@ -94,6 +94,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         if emb_sizes is None:
             emb_sizes = [
+                512,
                 512,  # Bar / Beat
                 512,  # Tempo
                 512,  # Instrument
@@ -118,6 +119,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.word_emb_barbeat4 = CompoundTransformerEmbeddings(self.num_tokens[1], self.emb_sizes[1])
         self.word_emb_barbeat5 = CompoundTransformerEmbeddings(self.num_tokens[1], self.emb_sizes[1])
         self.word_emb_barbeat6 = CompoundTransformerEmbeddings(self.num_tokens[1], self.emb_sizes[1])
+        self.word_emb_barbeat7 = CompoundTransformerEmbeddings(self.num_tokens[1], self.emb_sizes[1]) 
         
         # individual output
         
@@ -148,6 +150,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.proj_duration = nn.Sequential(
             nn.Linear(dim, self.num_tokens[6])
         )
+        self.proj_duration1 = nn.Sequential(
+            nn.Linear(dim, self.num_tokens[7])
+        )
 
         # in_features is equal to dimension plus dimensions of the type embedding
 
@@ -166,8 +171,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         self.norm = RMSNorm(512)
         
-        self.in_linear = nn.Linear(512*7, 512)
-        self.in_linear1 = nn.Linear(512*16, 512)
+        self.in_linear = nn.Linear(512*8, 512)
+        self.in_linear1 = nn.Linear(512*8, 512)
 
         self.init_()
 
@@ -179,6 +184,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         nn.init.normal_(self.word_emb_barbeat4.weight(), std=0.02)
         nn.init.normal_(self.word_emb_barbeat5.weight(), std=0.02)
         nn.init.normal_(self.word_emb_barbeat6.weight(), std=0.02)
+        nn.init.normal_(self.word_emb_barbeat7.weight(), std=0.02)
         
     def forward_output_sampling(self, h, selection_temperatures=None, selection_probability_tresholds=None):
         # sample type
@@ -196,6 +202,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         proj_note_name = self.proj_note_name(h)
         proj_octave = self.proj_octave(h)
         proj_duration = self.proj_duration(h)
+        proj_duration1 = self.proj_duration1(h)
         
         # sampling gen_cond
         cur_word_type = sampling(
@@ -233,6 +240,11 @@ class CompoundWordTransformerWrapper(nn.Module):
             probability_treshold=selection_probability_tresholds.get(6, None),
             temperature=selection_temperatures.get(6, 1.0))
 
+        cur_word_duration1 = sampling(
+            proj_duration1,
+            probability_treshold=selection_probability_tresholds.get(7, None),
+            temperature=selection_temperatures.get(7, 1.0))
+        
         # collect
         next_arr = np.array([
             cur_word_type,
@@ -241,7 +253,8 @@ class CompoundWordTransformerWrapper(nn.Module):
             cur_word_instrument,
             cur_word_note_name,
             cur_word_octave,
-            cur_word_duration 
+            cur_word_duration,
+            cur_word_duration1
         ])
         return next_arr
 
@@ -256,8 +269,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         proj_note_name = self.proj_note_name(h)
         proj_octave = self.proj_octave(h)
         proj_duration = self.proj_duration(h)
+        proj_duration1 = self.proj_duration1(h)
                            
-        return proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration
+        return proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, proj_duration1
 
     def forward_hidden(
             self,
@@ -268,13 +282,14 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         x1, x2, x3 = x.shape 
         padding_size = 0
-        if x2 % 16 != 0:
-          padding_size = 16 - (x2 % 16) 
+        
+        if x2 % 8 != 0:
+          padding_size = 8 - (x2 % 8) 
           padding = (0, 0, 0, padding_size)
           x = pad(x, padding, "constant", 0)	
 
         mask = x[..., 0].bool()
-        mask = mask.reshape(-1,16)
+        mask = mask.reshape(-1,8)
 
         emb_type = self.word_emb_type(x[..., 0])
         emb_barbeat = self.word_emb_barbeat1(x[..., 1])
@@ -283,7 +298,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_note_name =self.word_emb_barbeat4(x[..., 4])
         emb_octave = self.word_emb_barbeat5(x[..., 5])
         emb_duration = self.word_emb_barbeat6(x[..., 6])
-
+        emb_duration1 = self.word_emb_barbeat7(x[..., 7])
         x = torch.cat(
             [
                 emb_type,
@@ -293,17 +308,18 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_note_name,
                 emb_octave,
                 emb_duration,
+                emb_duration1
                 
             ], dim = -1)
         
         x = self.in_linear(x) 
         x1, x2, x3 = x.shape
         
-        latents = x.reshape(x1,-1,512*16)
+        latents = x.reshape(x1,-1,512*8)
         latents = self.in_linear1(latents) 
         latents = latents.reshape(-1,1,512)
         
-        x = x.reshape(-1,16,512)
+        x = x.reshape(-1,8,512)
         x = x + self.pos_emb(x)
         x = self.emb_dropout(x) 
         x = self.attn_layers5(x, mask = mask)
@@ -325,10 +341,10 @@ class CompoundWordTransformerWrapper(nn.Module):
         latents = latents + self.pos_emb1(latents)
 
         latents, latents_last = _latent_shift(latents)
-        latents = latents.repeat((x2//16, 1,1))
+        latents = latents.repeat((x2//8, 1,1))
         latents = self.emb_dropout(latents) 
         
-        x = self.attn_layers4(x, context = latents, mask = mask, context_mask =get_ar_mask(x2//16, x1,x.device))
+        x = self.attn_layers4(x, context = latents, mask = mask, context_mask =get_ar_mask(x2//8, x1,x.device))
         x = self.norm(x)
         
         x = x + self.pos_emb(x)
