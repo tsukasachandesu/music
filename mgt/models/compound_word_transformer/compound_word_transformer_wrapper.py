@@ -297,13 +297,13 @@ class CompoundWordTransformerWrapper(nn.Module):
         x = self.attn_layers1(y, context = x.reshape(-1,1,512), mask = mask.reshape(-1,1).repeat((1, 8)), context_mask = mask.reshape(-1,1))
         x = self.attn_layers2(x, mask = mask.reshape(-1,1).repeat((1, 8)))
         
-        proj_type = self.proj_type(x[:,0,:].reshpae(x1,-1,512))
-        proj_barbeat = self.proj_barbeat(x[:,1,:].reshpae(x1,-1,512))
-        proj_tempo = self.proj_tempo(x[:,2,:].reshpae(x1,-1,512))
-        proj_instrument = self.proj_instrument(x[:,3,:].reshpae(x1,-1,512))
-        proj_note_name = self.proj_note_name(x[:,4,:].reshpae(x1,-1,512))
-        proj_octave = self.proj_octave(x[:,5,:].reshpae(x1,-1,512))
-        proj_duration = self.proj_duration(x[:,6,:].reshpae(x1,-1,512))
-        proj_duration1 = self.proj_duration1(x[:,7,:].reshpae(x1,-1,512))
+        proj_type = self.proj_type(x[:,0,:].reshape(x1,-1,512))
+        proj_barbeat = self.proj_barbeat(x[:,1,:].reshape(x1,-1,512))
+        proj_tempo = self.proj_tempo(x[:,2,:].reshape(x1,-1,512))
+        proj_instrument = self.proj_instrument(x[:,3,:].reshape(x1,-1,512))
+        proj_note_name = self.proj_note_name(x[:,4,:].reshape(x1,-1,512))
+        proj_octave = self.proj_octave(x[:,5,:].reshape(x1,-1,512))
+        proj_duration = self.proj_duration(x[:,6,:].reshape(x1,-1,512))
+        proj_duration1 = self.proj_duration1(x[:,7,:].reshape(x1,-1,512))
         
         return proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, proj_duration1
