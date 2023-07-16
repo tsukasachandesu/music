@@ -142,7 +142,7 @@ class CompoundWordTransformerModel(object):
             max_seq_len=self.max_sequence_length,
             attn_layers=Decoder(
                 dim=self.dim,
-                depth=6,
+                depth=1,
                 heads=self.heads,
                 ff_glu = True,
                 ff_swish = True,
@@ -157,7 +157,7 @@ class CompoundWordTransformerModel(object):
             ),
             attn_layers1=CrossAttender(
                 dim=512,
-                depth=6,
+                depth=1,
                 heads=10,
                 ff_glu = True,
                 ff_swish = True,
@@ -172,7 +172,7 @@ class CompoundWordTransformerModel(object):
             ),
             attn_layers2=Encoder(
                 dim=512,
-                depth=4,
+                depth=1,
                 heads=8,
                 ff_glu = True,
                 ff_swish = True,
