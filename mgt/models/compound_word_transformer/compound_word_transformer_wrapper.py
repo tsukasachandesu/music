@@ -84,6 +84,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             attn_layers,
             attn_layers1,
             attn_layers2,
+            attn_layers3,
             emb_dim=None,
             emb_dropout=0.,
             use_pos_emb=True,
@@ -168,6 +169,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.attn_layers3 = attn_layers1 
         self.attn_layers4 = attn_layers1
         self.attn_layers5 = attn_layers
+        self.attn_layers6 = attn_layers3
         
         self.norm = RMSNorm(512)
         
@@ -369,6 +371,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         if padding_size != 0:
           x = x[:,:-padding_size,:]
+            
+        x = self.attn_layers5(x)
             
         return x, self.proj_type(x)
 
