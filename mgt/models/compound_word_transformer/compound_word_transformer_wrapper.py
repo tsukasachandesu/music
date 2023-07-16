@@ -125,34 +125,34 @@ class CompoundWordTransformerWrapper(nn.Module):
         # individual output
         
         self.proj_type = nn.Sequential(
-            nn.Linear(dim*9, self.num_tokens[0])
+            nn.Linear(dim*8, self.num_tokens[0])
         )
         
         self.proj_barbeat = nn.Sequential(
-            nn.Linear(dim*9, self.num_tokens[1])
+            nn.Linear(dim*8, self.num_tokens[1])
         )
         
         self.proj_tempo = nn.Sequential(
-            nn.Linear(dim*9, self.num_tokens[2])
+            nn.Linear(dim*8, self.num_tokens[2])
         )
         
         self.proj_instrument = nn.Sequential(
-            nn.Linear(dim*9, self.num_tokens[3])
+            nn.Linear(dim*8, self.num_tokens[3])
         )
         
         self.proj_note_name = nn.Sequential(
-            nn.Linear(dim*9, self.num_tokens[4])
+            nn.Linear(dim*8, self.num_tokens[4])
         )
         
         self.proj_octave = nn.Sequential(
-            nn.Linear(dim*9, self.num_tokens[5])
+            nn.Linear(dim*8, self.num_tokens[5])
         )
         
         self.proj_duration = nn.Sequential(
-            nn.Linear(dim*9, self.num_tokens[6])
+            nn.Linear(dim*8, self.num_tokens[6])
         )
         self.proj_duration1 = nn.Sequential(
-            nn.Linear(dim*9, self.num_tokens[7])
+            nn.Linear(dim*8, self.num_tokens[7])
         )
 
         # in_features is equal to dimension plus dimensions of the type embedding
@@ -321,12 +321,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         x = self.emb_dropout(x) 
         x = self.attn_layers(x, mask = mask)
         x = self.norm(x)
-
-        print(x.shape)
-
+        
         y = torch.cat(
             [
-                x.reshape(-1,1,512),
                 emb_type.reshape(-1,1,512),
                 emb_barbeat.reshape(-1,1,512),
                 emb_tempo.reshape(-1,1,512),
@@ -336,21 +333,18 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_duration.reshape(-1,1,512),
                 emb_duration1.reshape(-1,1,512),
             ], dim = 1)
-
-        print(y.shape)
         
-        mask = mask.reshape(-1,1).repeat((1, 9))
+        mask1 = mask.reshape(-1,1).repeat((1, 8))
 
-        print(mask.shape)
+        x = self.attn_layers1(y, context = x.reshape(-1,1,512), mask = mask1, context_mask = mask)
 
-        print(get_ar_mask(x2, x1, x.device).shape)
-
-        
-        x = self.attn_layers1(y, context = x.repeat((x2, 1 , 1)), mask = mask, context_mask = get_ar_mask(x2, x1, x.device))
+        print(x.shape)
         
         x4,x5,x6 = x.shape
         x = x.reshape(x4,1,-1)
         x7,x8,x9 = x.shape
         x = x.reshape(x1,-1,x9)
+        
+        print(x.shape)
         
         return x, self.proj_type(x)
