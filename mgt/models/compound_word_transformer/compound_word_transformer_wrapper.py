@@ -139,7 +139,7 @@ class Block(nn.Module):
         for _ in range(8):
             self.layers.append(nn.ModuleList([
                 self.attn(),
-                self.mlpf
+                self.mlpf()
             ]))
         
     def forward(self, x):
