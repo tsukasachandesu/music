@@ -137,7 +137,7 @@ class Block(nn.Module):
         super().__init__()
 
         self.layers = nn.ModuleList([])
-        for _ in range(1):
+        for _ in range(12):
             self.layers.append(nn.ModuleList([
                 CausalSelfAttention(),
                 FeedForward()
