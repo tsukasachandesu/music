@@ -158,23 +158,18 @@ class CompoundWordTransformerWrapper(nn.Module):
         # in_features is equal to dimension plus dimensions of the type embedding
 
         self.compound_word_embedding_size = np.sum(emb_sizes)
+        
         self.project_concat_type = nn.Linear(dim + self.emb_sizes[0], dim)
-        self.pos_emb = AbsolutePositionalEmbedding(512, 16) 
-        self.pos_emb1 = AbsolutePositionalEmbedding(512, max_seq_len)
+        
+        self.pos_emb = AbsolutePositionalEmbedding(512, max_seq_len*2) 
         
         self.emb_dropout = nn.Dropout(emb_dropout)
         
-        self.attn_layers1 = attn_layers
-        self.attn_layers2 = attn_layers
-        self.attn_layers3 = attn_layers1 
-        self.attn_layers4 = attn_layers1
-        self.attn_layers5 = attn_layers
-        self.attn_layers6 = attn_layers3
+        self.attn_layers = attn_layers
         
         self.norm = RMSNorm(512)
         
         self.in_linear = nn.Linear(512*8, 512)
-        self.in_linear1 = nn.Linear(512*16, 512)
 
         self.init_()
 
@@ -187,7 +182,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         nn.init.normal_(self.word_emb_barbeat5.weight(), std=0.02)
         nn.init.normal_(self.word_emb_barbeat6.weight(), std=0.02)
         nn.init.normal_(self.word_emb_barbeat7.weight(), std=0.02)
-
 
     def forward_output_sampling(self, h, y_type, selection_temperatures=None, selection_probability_tresholds=None):
         # sample type
@@ -296,16 +290,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             **kwargs
     ):
         
-        x1, x2, x3 = x.shape 
-        padding_size = 0
-        
-        if x2 % 16 != 0:
-          padding_size = 16 - (x2 % 16) 
-          padding = (0, 0, 0, padding_size)
-          x = pad(x, padding, "constant", 0)	
-
         mask = x[..., 0].bool()
-        mask = mask.reshape(-1,16)
 
         emb_type = self.word_emb_type(x[..., 0])
         emb_barbeat = self.word_emb_barbeat1(x[..., 1])
@@ -315,6 +300,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_octave = self.word_emb_barbeat5(x[..., 5])
         emb_duration = self.word_emb_barbeat6(x[..., 6])
         emb_duration1 = self.word_emb_barbeat7(x[..., 7])
+        
         x = torch.cat(
             [
                 emb_type,
@@ -329,57 +315,10 @@ class CompoundWordTransformerWrapper(nn.Module):
             ], dim = -1)
         
         x = self.in_linear(x) 
-        y = x
         x1, x2, x3 = x.shape
-        
-        latents = x.reshape(x1,-1,512*16)
-        latents = self.in_linear1(latents) 
-        latents = latents.reshape(-1,1,512)
-        
-        x = x.reshape(-1,16,512)
         x = x + self.pos_emb(x)
         x = self.emb_dropout(x) 
-        x = self.attn_layers5(x, mask = mask)
+        x = self.attn_layers(x, mask = mask)
         x = self.norm(x)
         
-        x = x + self.pos_emb(x)
-        x = self.emb_dropout(x) 
-
-        latents = latents + self.pos_emb1(latents)
-        latents = self.emb_dropout(latents)
-        latents = self.attn_layers3(latents, context = x, context_mask = mask)
-        latents = self.norm(latents)
-
-        latents = latents.reshape(x1,-1,512)
-        z = latents
-        
-        latents = latents + self.pos_emb1(latents)
-        latents = self.emb_dropout(latents) 
-        latents = self.attn_layers1(latents)
-        latents = self.norm(latents)
-        
-        zz = latents
-        
-        latents = latents + self.pos_emb1(latents)
-        latents, latents_last = _latent_shift(latents)
-        latents1 = latents
-        latents1 = latents1.reshape(-1,1,512)
-        x = torch.cat( [latents1, x],dim =1 )
-        latents = latents.repeat((x2//16, 1,1))
-        latents = self.emb_dropout(latents) 
-        
-        x = self.attn_layers4(x, context = latents, mask = None, context_mask =get_ar_mask(x2//16, x1,x.device))
-        x = self.norm(x)
-        x = x[:,1:,:]
-        
-        x = x + self.pos_emb(x)
-        x = self.emb_dropout(x) 
-        x = self.attn_layers2(x, mask = mask)
-        x = self.norm(x)
-        x = x.reshape(x1,x2,512)
-        
-        if padding_size != 0:
-          x = x[:,:-padding_size,:]
-                        
-        return x, self.proj_type(x), y, z ,zz
-
+        return x, self.proj_type(x)
