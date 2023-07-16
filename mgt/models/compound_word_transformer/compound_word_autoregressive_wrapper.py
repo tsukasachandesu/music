@@ -188,6 +188,9 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         
         for _ in range(output_length):
             a, b, c, d, e, f, g, h = self.net.forward_hidden(out)
+            print(f.shape)   
+            f = top_k(f[:, -1:, :], thres = filter_thres)
+            
             print(c.shape)            
             print(b.shape)            
             a = top_k(a[:, -1:, :], thres = filter_thres)
