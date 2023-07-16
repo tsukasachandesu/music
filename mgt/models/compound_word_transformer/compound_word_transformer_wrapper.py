@@ -322,6 +322,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         x = self.attn_layers(x, mask = mask)
         x = self.norm(x)
 
+        print(x.shape)
+
         y = torch.cat(
             [
                 x.reshape(-1,1,512),
@@ -334,9 +336,15 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_duration.reshape(-1,1,512),
                 emb_duration1.reshape(-1,1,512),
             ], dim = 1)
+
+        print(y.shape)
         
         mask = mask.reshape(-1,1).repeat((1, 9))
-                
+
+        print(mask.shape)
+
+        print(get_ar_mask(x2, x1, x.device).shape)
+        
         x = self.attn_layers1(y, context = x.repeat((x2, 1 , 1)), mask = mask, context_mask = get_ar_mask(x2, x1, x.device))
         
         x4,x5,x6 = x.shape
