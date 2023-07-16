@@ -274,9 +274,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         self.layers = nn.ModuleList([])
         for _ in range(8):
-            self.layers.append(nn.ModuleList([
-                Block(),
-            ]))
+            self.layers.append(Block())
 
         self.attn = Block()
         
