@@ -161,11 +161,7 @@ def calculate_loss(predicted, target, loss_mask):
     loss = torch.sum(loss) / trainable_values
     return loss
     
-def samp(x,filter_thres=0.9,temperature=1.0):
-    print(x.shape)
-    x = top_k(x[:, -1:, :], thres = filter_thres)
-    x = gumbel_sample(x, temperature = temperature)
-    return x
+
 
 class CompoundWordAutoregressiveWrapper(nn.Module):
     def __init__(self, net: CompoundWordTransformerWrapper, ignore_index=-100, pad_value=None):
@@ -188,12 +184,31 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         out = torch.tensor(np.array([last_token])).long().to(get_device())
 
         print('------ generate ------')
-
+        filter_thres = 0.9
+        temperature = 1
+        
         for _ in range(output_length):
-            proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, proj_duration1 = self.net.forward_hidden(out)
-            x = torch.cat([proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, proj_duration1],dim=0)
-            x = self.samp(x)
-            out = torch.cat((out, x.reshape(1,1,8)), dim = 1)
+            a, b, c, d, e, f, g, h = self.net.forward_hidden(out)
+            a = top_k(a[:, -1:, :], thres = filter_thres)
+            a = gumbel_sample(a, temperature = temperature)
+            b = top_k(b[:, -1:, :], thres = filter_thres)
+            b = gumbel_sample(b, temperature = temperature)
+            c = top_k(c[:, -1:, :], thres = filter_thres)
+            c = gumbel_sample(c, temperature = temperature)
+            d = top_k(d[:, -1:, :], thres = filter_thres)
+            d = gumbel_sample(d, temperature = temperature)  
+            e = top_k(e[:, -1:, :], thres = filter_thres)
+            e = gumbel_sample(e, temperature = temperature)
+            f = top_k(f[:, -1:, :], thres = filter_thres)
+            f = gumbel_sample(f, temperature = temperature)
+            g = top_k(g[:, -1:, :], thres = filter_thres)
+            g = gumbel_sample(g, temperature = temperature)
+            h = top_k(h[:, -1:, :], thres = filter_thres)
+            h = gumbel_sample(h, temperature = temperature) 
+            print(h.shape)
+            sam = torch.stack([a,b,c,d,e,f,g,h], dim = 2)
+            print(sam.shape)
+            out = torch.cat([out, sam], dim = 1)
             print(out.shape)
 
         return out.cpu().detach().numpy()
