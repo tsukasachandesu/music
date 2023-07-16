@@ -373,7 +373,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         x1, x2, x3 = x.shape 
         padding_size = 0
-        
+        mask1 = x[..., 0].bool()
         if x2 % 16 != 0:
           padding_size = 16 - (x2 % 16) 
           padding = (0, 0, 0, padding_size)
@@ -438,8 +438,8 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_duration1.reshape(-1,1,512),
             ], dim = 1)
         
-        x = self.attn_layers1(y, context = x.reshape(-1,1,512), mask = mask.reshape(-1,1).repeat((1, 8)), context_mask = mask.reshape(-1,1))
-        x = self.attn_layers2(x, mask = mask.reshape(-1,1).repeat((1, 8)))
+        x = self.attn_layers1(y, context = x.reshape(-1,1,512), mask = mask1.reshape(-1,1).repeat((1, 8)), context_mask = mask1.reshape(-1,1))
+        x = self.attn_layers2(x, mask = mask1.reshape(-1,1).repeat((1, 8)))
 
         proj_type = self.proj_type(x[:,0,:].reshape(x1,-1,512))
         proj_barbeat = self.proj_barbeat(x[:,1,:].reshape(x1,-1,512))
