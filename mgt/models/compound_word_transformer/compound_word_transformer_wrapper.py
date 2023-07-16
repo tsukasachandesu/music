@@ -278,7 +278,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         self.attn_layers1 = attn_layers1
         self.attn_layers2 = attn_layers2
-
+        self.attn_layers = attn_layers
+        
         self.layers = Block()
         
         self.norm = RMSNorm(512)
@@ -393,8 +394,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         x1, x2, x3 = x.shape
         x = x + self.pos_emb(x)
         x = self.emb_dropout(x) 
-        
-        x = self.layers(x)
+        x = self.attn_layers(x)
         x = self.norm(x)
         
         y = torch.cat(
