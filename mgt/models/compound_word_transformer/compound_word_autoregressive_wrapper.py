@@ -80,6 +80,10 @@ def calculate_loss1(predicted, target, loss_mask):
     loss = torch.sum(loss) / trainable_values
 
     return loss
+    
+def calculate_loss3(predicted, target):
+    loss = F.mse_loss(predicted[:, ...], target, reduction = 'mean')
+    return loss
 
 def calculate_loss2(predicted, target, loss_mask):
     trainable_values = torch.sum(loss_mask)
@@ -150,7 +154,7 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         final_res = prompt.copy()
         last_token = final_res[-self.max_seq_len:]
         input_ = torch.tensor(np.array([last_token])).long().to(get_device())
-        h, y_type  = self.net.forward_hidden(input_)
+        h, y_type , a, b, c = self.net.forward_hidden(input_)
 
         print('------ generate ------')
         for _ in range(output_length):
@@ -166,7 +170,7 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
             # forward
             last_token = final_res[-self.max_seq_len:]
             input_ = torch.tensor(np.array([last_token])).long().to(get_device())
-            h, y_type = self.net.forward_hidden(input_)
+            h, y_type , a,b ,c= self.net.forward_hidden(input_)
 
         return final_res
 
@@ -175,7 +179,7 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         xi = x[:, :-1, :]
         target = x[:, 1:, :]
 
-        h, proj_type = self.net.forward_hidden(xi,**kwargs)
+        h, proj_type, a , b , c = self.net.forward_hidden(xi,**kwargs)
         
         proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, proj_duration1 = self.net.forward_output(h, target)
  
@@ -188,7 +192,7 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         duration_loss = calculate_loss(proj_duration, target[..., 6], type_mask(target))
         duration_loss1 = calculate_loss(proj_duration1, target[..., 7], type_mask(target))
         
-        return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss, duration_loss1
+        return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss, duration_loss1, calculate_loss1(h[:,:-1,:], a[:,1:,:], type_mask(target)[:,1:]), calculate_loss3(c[:,:-1,:], b[:,1:,:])
    
    
 
