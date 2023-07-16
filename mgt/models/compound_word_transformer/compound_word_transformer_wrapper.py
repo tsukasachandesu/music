@@ -408,20 +408,24 @@ class CompoundWordTransformerWrapper(nn.Module):
         x = x + self.pos_emb(x)
         x = self.norm(x)
         x = self.emb_dropout(x)
-
+        print(x.shape)
         x = self.layers1(x)
-        
+        print(x.shape)
         x1, x2, x3 = x.shape
         
         latents = x.reshape(x1,x2//16,512*16)
         latents = self.in_linear1(latents)
         latents = latents + self.pos_emb(latents)
+        print(latents.shape)
         latents = self.layers2(latents)
+        print(latents.shape)
         latents, latents_last = _latent_shift(latents)
         latents = latents.reshape(-1,1,512)
 
         x = x.reshape(-1,x2//16,512)
+        print(x.shape)
         x = self.attn_layers3(x, context = latents, mask = None, context_mask = None)
+        print(x.shape)
         x = x.reshape(x1,-1,512)
         x = self.layers3(x)
         
