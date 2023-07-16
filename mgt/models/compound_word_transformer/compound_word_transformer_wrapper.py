@@ -329,6 +329,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             ], dim = -1)
         
         x = self.in_linear(x) 
+        y = x
         x1, x2, x3 = x.shape
         
         latents = x.reshape(x1,-1,512*16)
@@ -350,12 +351,16 @@ class CompoundWordTransformerWrapper(nn.Module):
         latents = self.norm(latents)
 
         latents = latents.reshape(x1,-1,512)
+        z = latents
+        
         latents = latents + self.pos_emb1(latents)
         latents = self.emb_dropout(latents) 
         latents = self.attn_layers1(latents)
         latents = self.norm(latents)
+        
+        zz = latents
+        
         latents = latents + self.pos_emb1(latents)
-
         latents, latents_last = _latent_shift(latents)
         latents1 = latents
         latents1 = latents1.reshape(-1,1,512)
@@ -376,5 +381,5 @@ class CompoundWordTransformerWrapper(nn.Module):
         if padding_size != 0:
           x = x[:,:-padding_size,:]
                         
-        return x, self.proj_type(x)
+        return x, self.proj_type(x), y, z ,zz
 
