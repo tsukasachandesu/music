@@ -334,9 +334,7 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_duration1.reshape(-1,1,512),
             ], dim = 1)
         
-        mask1 = mask.reshape(-1,1).repeat((1, 8))
-
-        x = self.attn_layers1(y, context = x.reshape(-1,1,512), mask = mask1, context_mask = mask)
+        x = self.attn_layers1(y, context = x.reshape(-1,1,512), mask = mask.reshape(-1,1).repeat((1, 8)), context_mask = mask.reshape(-1,1))
 
         print(x.shape)
         
