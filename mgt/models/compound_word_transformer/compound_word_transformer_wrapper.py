@@ -365,6 +365,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         x = self.attn_layers4(x, context = latents, mask = mask, context_mask =get_ar_mask(x2//16, x1,x.device))
         x = self.norm(x)
+        x = x[:,1:,:]
         
         x = x + self.pos_emb(x)
         x = self.emb_dropout(x) 
