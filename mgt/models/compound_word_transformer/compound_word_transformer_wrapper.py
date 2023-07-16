@@ -37,6 +37,111 @@ class RMSNorm(nn.Module):
         normed = F.normalize(x, dim = -1)
         return normed * self.scale * self.gamma
 
+class NewGELU(nn.Module):
+    """
+    Implementation of the GELU activation function currently in Google BERT repo (identical to OpenAI GPT).
+    Reference: Gaussian Error Linear Units (GELU) paper: https://arxiv.org/abs/1606.08415
+    """
+
+    def forward(self, x):
+        return 0.5 * x * (1.0 + torch.tanh(math.sqrt(2.0 / math.pi) * (x + 0.044715 * torch.pow(x, 3.0))))
+
+
+class CausalSelfAttention(nn.Module):
+    """
+    A vanilla multi-head masked self-attention layer with a projection at the end.
+    It is possible to use torch.nn.MultiheadAttention here but I am including an
+    explicit implementation here to show that there is nothing too scary here.
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.n_embd = 512
+        self.n_heads = 8
+        self.query_projection = nn.Linear(512, 512)
+        self.key_projection = nn.Linear(512, 512)
+        self.value_projection = nn.Linear(512, 512)
+        self.out_projection = nn.Linear(512, 512)
+        self.dropout = nn.Dropout(0.1)
+        self.eps = 1e-6
+
+    def kernel_method(self, x):
+        return torch.sigmoid(x)
+
+    def causal_dot_product(self, q, k, v):
+        kv = torch.einsum("nhld,nhlm->nhldm", k, v)
+        kv = torch.cumsum(kv, dim=2)
+        qkv = torch.einsum("nhld,nhldm->nhlm", q, kv)
+        return qkv
+
+    def forward(self, x):
+        queries, values, keys = x, x, x
+        ## 1. Linear projection
+        B, L, _ = queries.shape
+        _, S, _ = keys.shape
+        queries = self.query_projection(queries).view(B, L, self.n_heads, -1)
+        keys = self.key_projection(keys).view(B, S, self.n_heads, -1)
+        values = self.value_projection(values).view(B, S, self.n_heads, -1)
+        queries = queries.transpose(1, 2)
+        keys = keys.transpose(1, 2)
+        values = values.transpose(1, 2)
+        # 2. Non-negative projection
+        queries = self.kernel_method(queries)
+        keys = self.kernel_method(keys)
+        ## 3. Causal Flow-Attention
+        # (1) Calculate incoming and outgoing flow
+        sink_incoming = 1.0 / (torch.einsum("nhld,nhld->nhl", queries + self.eps, keys.cumsum(dim=2) + self.eps))
+        source_outgoing = 1.0 / (torch.einsum("nhld,nhld->nhl", keys + self.eps, queries.cumsum(dim=2) + self.eps))
+        # approximate normal conservation col and row by multiplying corresponding element number
+        normal = (((torch.arange(queries.shape[2])).float() + 1.0)).to(queries.device)[None, None, :]
+        sink_incoming = sink_incoming * normal
+        source_outgoing = source_outgoing * normal
+        # (2) conservation refine for source and sink
+        conserved_sink = torch.einsum("nhld,nhld->nhl", queries + self.eps,
+                                      (keys * source_outgoing[:, :, :, None]).cumsum(dim=2) + self.eps) / normal
+        conserved_source = torch.einsum("nhld,nhld->nhl", keys + self.eps,
+                                        (queries * sink_incoming[:, :, :, None]).cumsum(
+                                            dim=2) + self.eps) / normal
+        conserved_source = torch.clamp(conserved_source, min=-1.0, max=1.0)  # for stability
+        # (3) Competition & Allocation
+        sink_allocation = torch.sigmoid(conserved_sink)
+        conserved_source = torch.exp(conserved_source)
+        source_competition = (conserved_source / conserved_source.cumsum(dim=-1)) * normal
+        # (4) Causal dot product
+        x = (self.causal_dot_product(queries * (sink_incoming[:, :, :, None] / normal[:, :, :, None]),
+                                     # for value normalization
+                                     keys,
+                                     values * source_competition[:, :, :, None])  # competition
+             * sink_allocation[:, :, :, None]).transpose(1, 2)  # allocation
+        ## (5) Final projection
+        x = x.reshape(B, L, -1)
+        x = self.out_projection(x)
+        x = self.dropout(x)
+        return x
+
+class Block(nn.Module):
+    """ an unassuming Transformer block """
+
+    def __init__(self):
+        super().__init__()
+        self.ln_1 = nn.LayerNorm(512)
+        self.attn = CausalSelfAttention()
+        self.ln_2 = RMSNorm(512)
+        self.mlp = nn.ModuleDict(dict(
+            c_fc=nn.Linear(512, 4 * 512),
+            c_proj=nn.Linear(4 * 512, 512),
+            act=NewGELU(),
+            dropout=nn.Dropout(0.1),
+        ))
+        m = self.mlp
+        self.mlpf = lambda x: m.dropout(m.c_proj(m.act(m.c_fc(x))))  # MLP forward
+
+    def forward(self, x):
+        x = x + self.attn(self.ln_1(x))
+        x = x + self.mlpf(self.ln_2(x))
+        return x
+
+
 def softmax_with_temperature(logits, temperature):
     probs = np.exp(logits / temperature) / np.sum(np.exp(logits / temperature))
     return probs
@@ -166,6 +271,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.attn_layers = attn_layers
         self.attn_layers1 = attn_layers1
         self.attn_layers2 = attn_layers2
+        self.attn = Block()
         
         self.norm = RMSNorm(512)
         
@@ -281,6 +387,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         x = x + self.pos_emb(x)
         x = self.emb_dropout(x) 
         x = self.attn_layers(x, mask = mask)
+        x = self.attn(x)
         x = self.norm(x)
         
         y = torch.cat(
