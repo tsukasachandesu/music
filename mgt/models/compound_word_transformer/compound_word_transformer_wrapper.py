@@ -271,6 +271,13 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.attn_layers = attn_layers
         self.attn_layers1 = attn_layers1
         self.attn_layers2 = attn_layers2
+
+        self.layers = nn.ModuleList([])
+        for _ in range(8):
+            self.layers.append(nn.ModuleList([
+                Block(),
+            ]))
+
         self.attn = Block()
         
         self.norm = RMSNorm(512)
@@ -296,7 +303,6 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         if selection_temperatures is None:
             selection_temperatures = {}
-        print(proj_type.shape)
 
         cur_word_type = sampling(
             proj_type,
@@ -386,8 +392,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         x1, x2, x3 = x.shape
         x = x + self.pos_emb(x)
         x = self.emb_dropout(x) 
-        x = self.attn_layers(x, mask = mask)
-        x = self.attn(x)
+        x = self.layers(x)
         x = self.norm(x)
         
         y = torch.cat(
