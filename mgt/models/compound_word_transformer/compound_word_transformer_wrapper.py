@@ -57,14 +57,13 @@ class CausalSelfAttention(nn.Module):
     def __init__(self):
         super().__init__()
         self.n_embd = 512
-        self.n_heads = 8
+        self.n_heads = 512
         self.query_projection = nn.Linear(512, 512)
         self.key_projection = nn.Linear(512, 512)
         self.value_projection = nn.Linear(512, 512)
         self.out_projection = nn.Linear(512, 512)
         self.dropout = nn.Dropout(0.1)
         self.eps = 1e-6
-        self.norm = RMSNorm(512)
 
     def kernel_method(self, x):
         return torch.sigmoid(x)
@@ -118,35 +117,29 @@ class CausalSelfAttention(nn.Module):
         x = x.reshape(B, L, -1)
         x = self.out_projection(x)
         x = self.dropout(x)
-        return self.norm(x)
+        return x
 
-def FeedForward(dim = 512, mult = 4, dropout = 0.1):
-    hidden_dim = int(dim * mult)
-    return nn.Sequential(
-        nn.Linear(dim, hidden_dim, bias = False),
-        NewGELU(),
-        nn.Dropout(dropout),
-        nn.Linear(hidden_dim, dim, bias = False),
-        RMSNorm(512)
-    )
 
 class Block(nn.Module):
     """ an unassuming Transformer block """
 
     def __init__(self):
         super().__init__()
+        self.ln_1 = nn.LayerNorm(512)
+        self.attn = CausalSelfAttention()
+        self.ln_2 = nn.LayerNorm(512)
+        self.mlp = nn.ModuleDict(dict(
+            c_fc=nn.Linear(512, 4 * 512),
+            c_proj=nn.Linear(4 * 512, 512),
+            act=NewGELU(),
+            dropout=nn.Dropout(0.1),
+        ))
+        m = self.mlp
+        self.mlpf = lambda x: m.dropout(m.c_proj(m.act(m.c_fc(x))))  # MLP forward
 
-        self.layers = nn.ModuleList([])
-        for _ in range(12):
-            self.layers.append(nn.ModuleList([
-                CausalSelfAttention(),
-                FeedForward()
-            ]))
-        
     def forward(self, x):
-        for attn, ff in self.layers:
-            x = x + attn(x)
-            x = ff(x) + x
+        x = x + self.attn(self.ln_1(x))
+        x = x + self.mlpf(self.ln_2(x))
         return x
 
 
@@ -278,9 +271,13 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         self.attn_layers1 = attn_layers1
         self.attn_layers2 = attn_layers2
-        self.attn_layers = attn_layers
         
-        self.layers = Block()
+        self.layers1 = Block()
+        self.layers2 = Block()
+        self.layers3 = Block() 
+        self.layers4 = Block()
+        self.layers5 = Block()
+        self.layers6 = Block()     
         
         self.norm = RMSNorm(512)
         
@@ -394,7 +391,14 @@ class CompoundWordTransformerWrapper(nn.Module):
         x1, x2, x3 = x.shape
         x = x + self.pos_emb(x)
         x = self.emb_dropout(x) 
-        x = self.attn_layers(x)
+        
+        x = self.layers1(x)
+        x = self.layers2(x)
+        x = self.layers3(x)
+        x = self.layers4(x)     
+        x = self.layers5(x)
+        x = self.layers6(x)
+        
         x = self.norm(x)
         
         y = torch.cat(
