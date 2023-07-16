@@ -277,7 +277,13 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.layers3 = Block() 
         self.layers4 = Block()
         self.layers5 = Block()
-        self.layers6 = Block()     
+        self.layers6 = Block()   
+        self.layers7 = Block()
+        self.layers8 = Block()
+        self.layers9 = Block()
+        self.layers10 = Block()
+        self.layers11 = Block()
+        self.layers12 = Block()        
         
         self.norm = RMSNorm(512)
         
@@ -398,6 +404,13 @@ class CompoundWordTransformerWrapper(nn.Module):
         x = self.layers4(x)     
         x = self.layers5(x)
         x = self.layers6(x)
+        x = self.layers7(x)
+        x = self.layers8(x)
+        x = self.layers9(x)
+        x = self.layers10(x)     
+        x = self.layers11(x)
+        x = self.layers12(x)
+        
         
         x = self.norm(x)
         
