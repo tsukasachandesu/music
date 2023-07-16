@@ -363,7 +363,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         latents = latents.repeat((x2//16, 1,1))
         latents = self.emb_dropout(latents) 
         
-        x = self.attn_layers4(x, context = latents, mask = mask, context_mask =get_ar_mask(x2//16, x1,x.device))
+        x = self.attn_layers4(x, context = latents, mask = None, context_mask =get_ar_mask(x2//16, x1,x.device))
         x = self.norm(x)
         x = x[:,1:,:]
         
