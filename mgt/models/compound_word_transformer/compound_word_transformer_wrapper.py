@@ -276,7 +276,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         self.emb_dropout = nn.Dropout(emb_dropout)
         
-        self.attn_layers = attn_layers
         self.attn_layers1 = attn_layers1
         self.attn_layers2 = attn_layers2
 
@@ -396,8 +395,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         x = self.emb_dropout(x) 
         
         x = self.layers(x)
-  
-            
         x = self.norm(x)
         
         y = torch.cat(
