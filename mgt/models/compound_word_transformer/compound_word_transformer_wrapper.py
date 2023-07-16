@@ -272,6 +272,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.attn_layers1 = attn_layers1
         self.attn_layers2 = attn_layers2
         
+        self.attn_layers3 = attn_layers1        
         self.layers1 = Block()
         self.layers2 = Block()
         self.layers3 = Block() 
@@ -288,7 +289,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.norm = RMSNorm(512)
         
         self.in_linear = nn.Linear(512*8, 512)
-
+        self.in_linear1 = nn.Linear(512*16, 512)
+        
         self.init_()
 
     def init_(self):
@@ -369,6 +371,14 @@ class CompoundWordTransformerWrapper(nn.Module):
             **kwargs
     ):
         
+        x1, x2, x3 = x.shape 
+        padding_size = 0
+        
+        if x2 % 16 != 0:
+          padding_size = 16 - (x2 % 16) 
+          padding = (0, 0, 0, padding_size)
+          x = pad(x, padding, "constant", 0)	
+            
         mask = x[..., 0].bool()
 
         emb_type = self.word_emb_type(x[..., 0])
@@ -396,23 +406,24 @@ class CompoundWordTransformerWrapper(nn.Module):
         x = self.in_linear(x) 
         x1, x2, x3 = x.shape
         x = x + self.pos_emb(x)
-        x = self.emb_dropout(x) 
-        
-        x = self.layers1(x)
-        x = self.layers2(x)
-        x = self.layers3(x)
-        x = self.layers4(x)     
-        x = self.layers5(x)
-        x = self.layers6(x)
-        x = self.layers7(x)
-        x = self.layers8(x)
-        x = self.layers9(x)
-        x = self.layers10(x)     
-        x = self.layers11(x)
-        x = self.layers12(x)
-        
-        
         x = self.norm(x)
+        x = self.emb_dropout(x)
+
+        x = self.layers1(x)
+        
+        x1, x2, x3 = x.shape
+        
+        latents = x.reshape(x1,x2//16,512*16)
+        latents = self.in_linear1(latents)
+        latents = latents + self.pos_emb(latents)
+        latents = self.layers2(latents)
+        latents, latents_last = _latent_shift(latents)
+        latents = latents.reshape(-1,1,512)
+
+        x = x.reshape(-1,x2//16,512)
+        x = self.attn_layers3(x, context = latents, mask = None, context_mask = None)
+        x = x.reshape(x1,-1,512)
+        x = self.layers3(x)
         
         y = torch.cat(
             [
@@ -428,6 +439,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         x = self.attn_layers1(y, context = x.reshape(-1,1,512), mask = mask.reshape(-1,1).repeat((1, 8)), context_mask = mask.reshape(-1,1))
         x = self.attn_layers2(x, mask = mask.reshape(-1,1).repeat((1, 8)))
+
+        if padding_size != 0:
+          x = x[:,:-padding_size,:]
         
         proj_type = self.proj_type(x[:,0,:].reshape(x1,-1,512))
         proj_barbeat = self.proj_barbeat(x[:,1,:].reshape(x1,-1,512))
