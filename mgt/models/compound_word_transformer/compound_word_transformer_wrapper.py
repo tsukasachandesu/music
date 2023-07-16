@@ -434,13 +434,14 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_duration.reshape(-1,1,512),
                 emb_duration1.reshape(-1,1,512),
             ], dim = 1)
-        
+        print(y.shape)
         x = self.attn_layers1(y, context = x.reshape(-1,1,512), mask = mask.reshape(-1,1).repeat((1, 8)), context_mask = mask.reshape(-1,1))
+        print(x.shape)
         x = self.attn_layers2(x, mask = mask.reshape(-1,1).repeat((1, 8)))
-
+        print(x.shape)
         if padding_size != 0:
           x = x[:,:-padding_size,:]
-        
+        print(x.shape)
         proj_type = self.proj_type(x[:,0,:].reshape(x1,-1,512))
         proj_barbeat = self.proj_barbeat(x[:,1,:].reshape(x1,-1,512))
         proj_tempo = self.proj_tempo(x[:,2,:].reshape(x1,-1,512))
