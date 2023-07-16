@@ -222,6 +222,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         proj_note_name = self.proj_note_name(h)
         proj_octave = self.proj_octave(h)
         proj_duration = self.proj_duration(h)
+
+       print(proj_type.shape)
         
         # sampling gen_cond
         cur_word_type = sampling(
