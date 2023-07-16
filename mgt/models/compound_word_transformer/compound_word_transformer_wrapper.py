@@ -124,7 +124,7 @@ class Block(nn.Module):
 
     def __init__(self):
         super().__init__()
-        self.ln_1 = nn.LayerNorm(512)
+        self.ln_1 = RMSNorm(512)
         self.attn = CausalSelfAttention()
         self.ln_2 = RMSNorm(512)
         self.mlp = nn.ModuleDict(dict(
@@ -135,10 +135,17 @@ class Block(nn.Module):
         ))
         m = self.mlp
         self.mlpf = lambda x: m.dropout(m.c_proj(m.act(m.c_fc(x))))  # MLP forward
-
+        self.layers = nn.ModuleList([])
+        for _ in range(8):
+            self.layers.append(nn.ModuleList([
+                self.attn(),
+                self.mlpf
+            ]))
+        
     def forward(self, x):
-        x = x + self.attn(self.ln_1(x))
-        x = x + self.mlpf(self.ln_2(x))
+        for attn, ff in self.layers:
+            x = x + self.attn(self.ln_1(x))
+            x = ff(self.ln_2(x)) + x
         return x
 
 
@@ -272,11 +279,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.attn_layers1 = attn_layers1
         self.attn_layers2 = attn_layers2
 
-        self.layers = nn.ModuleList([])
-        for _ in range(8):
-            self.layers.append(nn.ModuleList([
-                Block()
-            ]))
+        self.layers = Block()
         
         self.norm = RMSNorm(512)
         
@@ -391,8 +394,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         x = x + self.pos_emb(x)
         x = self.emb_dropout(x) 
         
-        for lay in self.layers:
-            x = lay(x)
+        x = self.layers(x)
+  
             
         x = self.norm(x)
         
