@@ -188,11 +188,15 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         
         for _ in range(output_length):
             a, b, c, d, e, f, g, h = self.net.forward_hidden(out)
+            print(a.shape)
             a = top_k(a[:, -1:, :], thres = filter_thres)
+            print(a.shape)
             a = gumbel_sample(a, temperature = temperature)
+            print(a.shape)
             b = top_k(b[:, -1:, :], thres = filter_thres)
             b = gumbel_sample(b, temperature = temperature)
             c = top_k(c[:, -1:, :], thres = filter_thres)
+            print(c.shape)
             c = gumbel_sample(c, temperature = temperature)
             d = top_k(d[:, -1:, :], thres = filter_thres)
             d = gumbel_sample(d, temperature = temperature)  
