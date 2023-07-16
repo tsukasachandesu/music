@@ -190,6 +190,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         if selection_temperatures is None:
             selection_temperatures = {}
+        print(proj_type.shape)
 
         cur_word_type = sampling(
             proj_type,
