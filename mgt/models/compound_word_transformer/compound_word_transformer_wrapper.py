@@ -174,7 +174,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.norm = RMSNorm(512)
         
         self.in_linear = nn.Linear(512*8, 512)
-        self.in_linear1 = nn.Linear(512*8, 512)
+        self.in_linear1 = nn.Linear(512*16, 512)
 
         self.init_()
 
@@ -299,13 +299,13 @@ class CompoundWordTransformerWrapper(nn.Module):
         x1, x2, x3 = x.shape 
         padding_size = 0
         
-        if x2 % 8 != 0:
-          padding_size = 8 - (x2 % 8) 
+        if x2 % 16 != 0:
+          padding_size = 16 - (x2 % 16) 
           padding = (0, 0, 0, padding_size)
           x = pad(x, padding, "constant", 0)	
 
         mask = x[..., 0].bool()
-        mask = mask.reshape(-1,8)
+        mask = mask.reshape(-1,16)
 
         emb_type = self.word_emb_type(x[..., 0])
         emb_barbeat = self.word_emb_barbeat1(x[..., 1])
@@ -331,11 +331,11 @@ class CompoundWordTransformerWrapper(nn.Module):
         x = self.in_linear(x) 
         x1, x2, x3 = x.shape
         
-        latents = x.reshape(x1,-1,512*8)
+        latents = x.reshape(x1,-1,512*16)
         latents = self.in_linear1(latents) 
         latents = latents.reshape(-1,1,512)
         
-        x = x.reshape(-1,8,512)
+        x = x.reshape(-1,16,512)
         x = x + self.pos_emb(x)
         x = self.emb_dropout(x) 
         x = self.attn_layers5(x, mask = mask)
@@ -357,10 +357,10 @@ class CompoundWordTransformerWrapper(nn.Module):
         latents = latents + self.pos_emb1(latents)
 
         latents, latents_last = _latent_shift(latents)
-        latents = latents.repeat((x2//8, 1,1))
+        latents = latents.repeat((x2//16, 1,1))
         latents = self.emb_dropout(latents) 
         
-        x = self.attn_layers4(x, context = latents, mask = mask, context_mask =get_ar_mask(x2//8, x1,x.device))
+        x = self.attn_layers4(x, context = latents, mask = mask, context_mask =get_ar_mask(x2//16, x1,x.device))
         x = self.norm(x)
         
         x = x + self.pos_emb(x)
@@ -371,8 +371,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         if padding_size != 0:
           x = x[:,:-padding_size,:]
-            
-        x = self.attn_layers5(x)
-            
+                        
         return x, self.proj_type(x)
 
