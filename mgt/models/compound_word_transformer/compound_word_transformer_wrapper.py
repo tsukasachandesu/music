@@ -357,6 +357,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         latents = latents + self.pos_emb1(latents)
 
         latents, latents_last = _latent_shift(latents)
+        latents1 = latents
+        latents1 = latents1.reshpae(-1,1,512)
+        x = torch.cat( [latents1, x],dim =1 )
         latents = latents.repeat((x2//16, 1,1))
         latents = self.emb_dropout(latents) 
         
