@@ -186,15 +186,14 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         final_res = prompt.copy()
         last_token = final_res[-self.max_seq_len:]
         out = torch.tensor(np.array([last_token])).long().to(get_device())
-        print(out.shape)
 
         print('------ generate ------')
 
         for _ in range(output_length):
             proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, proj_duration1 = self.net.forward_hidden(out)
-            sample = torch.stack([self.samp(proj_type), self.samp(proj_barbeat), self.samp(proj_tempo), self.samp(proj_instrument), self.samp(proj_note_name), self.samp(proj_octave), self.samp(proj_duration), self.samp(proj_duration1)], dim = -1)
-            print(sample.shape)
-            out = torch.cat((out, sample), dim = 1)
+            x = torch.cat([proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, proj_duration1],dim=0)
+            x = self.samp(x)
+            out = torch.cat((out, x.reshape(1,1,8)), dim = 1)
             print(out.shape)
 
         return out.cpu().detach().numpy()
