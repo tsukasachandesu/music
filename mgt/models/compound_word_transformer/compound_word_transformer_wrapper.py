@@ -159,7 +159,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         self.compound_word_embedding_size = np.sum(emb_sizes)
         
-        self.project_concat_type = nn.Linear(dim*8 + self.emb_sizes[0], dim)
+        self.project_concat_type = nn.Linear(dim*8 + self.emb_sizes[0], dim*8)
         
         self.pos_emb = AbsolutePositionalEmbedding(512, max_seq_len*2) 
         
@@ -271,7 +271,9 @@ class CompoundWordTransformerWrapper(nn.Module):
                        ):
                            
         tf_skip_type = self.word_emb_type(target[..., 0])
+        print(tf_skip_type.shape)
         y_concat_type = torch.cat([h, tf_skip_type], dim=-1)
+        print(y_concat_type.shape)
         y_ = self.project_concat_type(y_concat_type)
 
         proj_barbeat = self.proj_barbeat(y_)
