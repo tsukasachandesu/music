@@ -345,7 +345,6 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         print(get_ar_mask(x2, x1, x.device).shape)
 
-        print(x.repeat((x2, 1 , 1).shape)
         
         x = self.attn_layers1(y, context = x.repeat((x2, 1 , 1)), mask = mask, context_mask = get_ar_mask(x2, x1, x.device))
         
