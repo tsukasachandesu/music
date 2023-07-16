@@ -180,22 +180,26 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         print('------ initiate ------')
         final_res = prompt.copy()
         last_token = final_res[-self.max_seq_len:]
-        out = torch.tensor(np.array([last_token])).long().to(get_device())
+        input_ = torch.tensor(np.array([last_token])).long().to(get_device())
+        h, y_type = self.net.forward_hidden(input_)
 
         print('------ generate ------')
-        filter_thres = 0.9
-        temperature = 1
-        
         for _ in range(output_length):
-            a, b, c, d, e, f, g, h = self.net.forward_hidden(out)
+            # sample others
+            next_arr = self.net.forward_output_sampling(
+                h[:, -1:, :],
+                y_type[:, -1:, :],
+                selection_temperatures=selection_temperatures,
+                selection_probability_tresholds=selection_probability_tresholds)
 
+            final_res.append(next_arr.tolist())
 
-            sam = torch.stack([gumbel_sample(top_k(a[:, -1:, :], thres = filter_thres), temperature = temperature),gumbel_sample(top_k(b[:, -1:, :], thres = filter_thres), temperature = temperature),gumbel_sample(top_k(c[:, -1:, :], thres = filter_thres), temperature = temperature),gumbel_sample(top_k(d[:, -1:, :], thres = filter_thres), temperature = temperature),gumbel_sample(top_k(e[:, -1:, :], thres = filter_thres), temperature = temperature),gumbel_sample(top_k(f[:, -1:, :], thres = filter_thres), temperature = temperature),gumbel_sample(top_k(g[:, -1:, :], thres = filter_thres), temperature = temperature),gumbel_sample(top_k(h[:, -1:, :], thres = filter_thres), temperature = temperature)], dim = 2)
-            print(sam.shape)
-            out = torch.cat([out, sam], dim = 1)
-            print(out.shape)
+            # forward
+            last_token = final_res[-self.max_seq_len:]
+            input_ = torch.tensor(np.array([last_token])).long().to(get_device())
+            h, y_type = self.net.forward_hidden(input_)
 
-        return out.cpu().detach().numpy()
+        return final_res
 
     def train_step(self, x, **kwargs):
                 
