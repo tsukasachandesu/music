@@ -119,33 +119,32 @@ class CausalSelfAttention(nn.Module):
         x = self.dropout(x)
         return x
 
+def FeedForward(dim = 512, mult = 4, dropout = 0.1):
+    hidden_dim = int(dim * mult)
+    return nn.Sequential(
+        nn.Linear(dim, hidden_dim, bias = False),
+        NewGELU(),
+        nn.Dropout(dropout),
+        nn.Linear(hidden_dim, dim, bias = False)
+    )
+
 class Block(nn.Module):
     """ an unassuming Transformer block """
 
     def __init__(self):
         super().__init__()
-        self.ln_1 = RMSNorm(512)
-        self.attn = CausalSelfAttention()
-        self.ln_2 = RMSNorm(512)
-        self.mlp = nn.ModuleDict(dict(
-            c_fc=nn.Linear(512, 4 * 512),
-            c_proj=nn.Linear(4 * 512, 512),
-            act=NewGELU(),
-            dropout=nn.Dropout(0.1),
-        ))
-        m = self.mlp
-        self.mlpf = lambda x: m.dropout(m.c_proj(m.act(m.c_fc(x))))  # MLP forward
+
         self.layers = nn.ModuleList([])
         for _ in range(8):
             self.layers.append(nn.ModuleList([
-                self.attn(),
-                self.mlpf()
+                CausalSelfAttention(),
+                FeedForward()
             ]))
         
     def forward(self, x):
         for attn, ff in self.layers:
-            x = x + self.attn(self.ln_1(x))
-            x = ff(self.ln_2(x)) + x
+            x = x + attn(RMSNorm(x))
+            x = ff(RMSNorm(x)) + x
         return x
 
 
