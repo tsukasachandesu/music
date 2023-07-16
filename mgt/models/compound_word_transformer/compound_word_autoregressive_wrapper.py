@@ -8,6 +8,23 @@ from mgt.models.compound_word_transformer.compound_word_transformer_wrapper impo
 from mgt.models.utils import get_device
 from einops import rearrange, reduce, repeat
 
+def log(t, eps = 1e-20):
+    return t.clamp(min = eps).log()
+
+def gumbel_noise(t):
+    noise = torch.zeros_like(t).uniform_(0, 1)
+    return -log(-log(noise))
+
+def gumbel_sample(t, temperature = 1., dim = -1):
+    return ((t / max(temperature, 1e-10)) + gumbel_noise(t)).argmax(dim = dim)
+
+def top_k(logits, thres = 0.9):
+    k = int((1 - thres) * logits.shape[-1])
+    val, ind = torch.topk(logits, k)
+    probs = torch.full_like(logits, -torch.finfo(logits.dtype).max)
+    probs.scatter_(1, ind, val)
+    return probs
+
 class AsymmetricLossOptimized(nn.Module):
     ''' Notice - optimized version, minimizes memory allocation and gpu uploading,
     favors inplace operations'''
@@ -132,9 +149,23 @@ def calculate_loss(predicted, target, loss_mask):
     loss = F.cross_entropy(predicted[:, ...].permute(0, 2, 1), target, reduction='none')
     loss = loss * loss_mask
     loss = torch.sum(loss) / trainable_values
-
-
     return loss
+
+def calculate_loss(predicted, target, loss_mask):
+    trainable_values = torch.sum(loss_mask)
+    if trainable_values == 0:
+        return 0
+
+    loss = F.cross_entropy(predicted[:, ...].permute(0, 2, 1), target, reduction='none')
+    loss = loss * loss_mask
+    loss = torch.sum(loss) / trainable_values
+    return loss
+    
+def samp(x,filter_thres=0.9,temperature=1.0):
+    x = top_k(x[:, -1:, :], thres = filter_thres)
+    x = gumbel_sample(x, temperature = temperature)
+    x = rearrange(x, 'b -> b 1')
+    return x
 
 class CompoundWordAutoregressiveWrapper(nn.Module):
     def __init__(self, net: CompoundWordTransformerWrapper, ignore_index=-100, pad_value=None):
@@ -145,6 +176,7 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         self.ignore_index = ignore_index
         self.net = net
         self.max_seq_len = net.max_seq_len
+        self.samp = samp
 
     @torch.no_grad()
     def generate(self, prompt, output_length=100, selection_temperatures=None, selection_probability_tresholds=None):
@@ -153,25 +185,16 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         print('------ initiate ------')
         final_res = prompt.copy()
         last_token = final_res[-self.max_seq_len:]
-        input_ = torch.tensor(np.array([last_token])).long().to(get_device())
-        proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, proj_duration1 = self.net.forward_hidden(input_)
+        out = torch.tensor(np.array([last_token])).long().to(get_device())
 
         print('------ generate ------')
+
         for _ in range(output_length):
-            # sample others
-            next_arr = self.net.forward_output_sampling(
-                proj_type[:, -1:, :], proj_barbeat[:, -1:, :], proj_tempo[:, -1:, :], proj_instrument[:, -1:, :], proj_note_name[:, -1:, :], proj_octave[:, -1:, :], proj_duration[:, -1:, :], proj_duration1[:, -1:, :],
-                selection_temperatures=selection_temperatures,
-                selection_probability_tresholds=selection_probability_tresholds)
+            proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, proj_duration1 = self.net.forward_hidden(out)
+            sample = torch.cat([self.samp(proj_type), self.samp(proj_barbeat), self.samp(proj_tempo), self.samp(proj_instrument), self.samp(proj_note_name), self.samp(proj_octave), self.samp(proj_duration), self.samp(proj_duration1)], dim = -1)
+            out = torch.cat((out, sample), dim = 1)
 
-            final_res.append(next_arr.tolist())
-
-            # forward
-            last_token = final_res[-self.max_seq_len:]
-            input_ = torch.tensor(np.array([last_token])).long().to(get_device())
-            proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, proj_duration1 = self.net.forward_hidden(input_)
-
-        return final_res
+        return out.cpu().detach().numpy()
 
     def train_step(self, x, **kwargs):
                 
