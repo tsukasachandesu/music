@@ -187,7 +187,7 @@ class CompoundWordTransformerModel(object):
             ) ,
             attn_layers3=Decoder(
                 dim=self.dim,
-                depth=4,
+                depth=1,
                 heads=self.heads,
                 ff_glu = True,
                 ff_swish = True,
