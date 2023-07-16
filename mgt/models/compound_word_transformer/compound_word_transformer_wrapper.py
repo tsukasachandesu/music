@@ -64,7 +64,7 @@ class CausalSelfAttention(nn.Module):
         self.out_projection = nn.Linear(512, 512)
         self.dropout = nn.Dropout(0.1)
         self.eps = 1e-6
-        self.norm = RMSNorm()
+        self.norm = RMSNorm(512)
 
     def kernel_method(self, x):
         return torch.sigmoid(x)
@@ -122,7 +122,7 @@ class CausalSelfAttention(nn.Module):
 
 def FeedForward(dim = 512, mult = 4, dropout = 0.1):
     hidden_dim = int(dim * mult)
-    norm = RMSNorm()
+    norm = RMSNorm(512)
     return nn.Sequential(
         nn.Linear(dim, hidden_dim, bias = False),
         NewGELU(),
