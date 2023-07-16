@@ -417,11 +417,12 @@ class CompoundWordTransformerWrapper(nn.Module):
         latents = self.layers2(latents)
         latents, latents_last = _latent_shift(latents)
         latents = latents.reshape(-1,1,512)
-
+        print(x.shape)
         x = x.reshape(-1,16,512)
         x = self.attn_layers3(x, context = latents, mask = None, context_mask = None)
         x = x.reshape(x1,-1,512)
         x = self.layers3(x)
+        print(x.shape)
         
         if padding_size != 0:
           x = x[:,:-padding_size,:]
@@ -437,7 +438,7 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_duration.reshape(-1,1,512),
                 emb_duration1.reshape(-1,1,512),
             ], dim = 1)
-        
+        print(x.shape)
         x = self.attn_layers1(y, context = x.reshape(-1,1,512), mask = mask1.reshape(-1,1).repeat((1, 8)), context_mask = mask1.reshape(-1,1))
         x = self.attn_layers2(x, mask = mask1.reshape(-1,1).repeat((1, 8)))
 
