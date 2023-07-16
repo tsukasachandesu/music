@@ -122,13 +122,12 @@ class CausalSelfAttention(nn.Module):
 
 def FeedForward(dim = 512, mult = 4, dropout = 0.1):
     hidden_dim = int(dim * mult)
-    norm = RMSNorm(512)
     return nn.Sequential(
         nn.Linear(dim, hidden_dim, bias = False),
         NewGELU(),
         nn.Dropout(dropout),
-        nn.Linear(hidden_dim, dim, bias = False)
-        norm()
+        nn.Linear(hidden_dim, dim, bias = False),
+        RMSNorm(512)
     )
 
 class Block(nn.Module):
