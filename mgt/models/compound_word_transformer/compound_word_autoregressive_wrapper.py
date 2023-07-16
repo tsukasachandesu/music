@@ -163,10 +163,7 @@ def calculate_loss(predicted, target, loss_mask):
     
 def samp(x,filter_thres=0.9,temperature=1.0):
     x = top_k(x[:, -1:, :], thres = filter_thres)
-    print(x.shape)
     x = gumbel_sample(x, temperature = temperature)
-    print(x.shape)
-    x = rearrange(x, 'b -> b 1')
     return x
 
 class CompoundWordAutoregressiveWrapper(nn.Module):
@@ -188,12 +185,13 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         final_res = prompt.copy()
         last_token = final_res[-self.max_seq_len:]
         out = torch.tensor(np.array([last_token])).long().to(get_device())
+        print(out.shape)
 
         print('------ generate ------')
 
         for _ in range(output_length):
             proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, proj_duration1 = self.net.forward_hidden(out)
-            sample = torch.cat([self.samp(proj_type), self.samp(proj_barbeat), self.samp(proj_tempo), self.samp(proj_instrument), self.samp(proj_note_name), self.samp(proj_octave), self.samp(proj_duration), self.samp(proj_duration1)], dim = -1)
+            sample = torch.stack([self.samp(proj_type), self.samp(proj_barbeat), self.samp(proj_tempo), self.samp(proj_instrument), self.samp(proj_note_name), self.samp(proj_octave), self.samp(proj_duration), self.samp(proj_duration1)], dim = -1)
             out = torch.cat((out, sample), dim = 1)
 
         return out.cpu().detach().numpy()
