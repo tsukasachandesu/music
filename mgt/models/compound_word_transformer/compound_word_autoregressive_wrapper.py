@@ -162,6 +162,7 @@ def calculate_loss(predicted, target, loss_mask):
     return loss
     
 def samp(x,filter_thres=0.9,temperature=1.0):
+    print(x.shape)
     x = top_k(x[:, -1:, :], thres = filter_thres)
     x = gumbel_sample(x, temperature = temperature)
     return x
