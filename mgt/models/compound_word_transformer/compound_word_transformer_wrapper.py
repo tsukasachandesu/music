@@ -262,7 +262,7 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_duration.reshape(-1,1,512),
             ], dim = 1)
         x = x + self.pos_emb2(x)
-        x = self.attn_layers2(x, mask = mask.reshape(-1,1).repeat((1, 9)))
+        x = self.attn_layers2(x, mask = mask.reshape(-1,1).repeat((1,8)))
         proj_type = self.proj_type(x[:,1,:].reshape(x1,-1,512))
         proj_barbeat = self.proj_barbeat(x[:,2,:].reshape(x1,-1,512))
         proj_tempo = self.proj_tempo(x[:,3,:].reshape(x1,-1,512))
