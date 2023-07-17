@@ -260,9 +260,14 @@ class CompoundWordTransformerWrapper(nn.Module):
         proj_octave = self.proj_octave(y_)
         proj_duration = self.proj_duration(y_)
                            
-        filtered_logits = top_k(proj_barbeat, thres = 0.9)
-        sample = gumbel_sample(filtered_logits, temperature = 1)
-
+        sample1 = gumbel_sample(top_k(proj_barbeat, thres = 0.9), temperature = 1)
+        sample2 = gumbel_sample(top_k(proj_tempo, thres = 0.9), temperature = 1)
+        sample3 = gumbel_sample(top_k(proj_instrument, thres = 0.9), temperature = 1)
+        sample4 = gumbel_sample(top_k(proj_note_name, thres = 0.9), temperature = 1)                        
+        sample5 = gumbel_sample(top_k(proj_octave, thres = 0.9), temperature = 1)
+        sample6 = gumbel_sample(top_k(proj_duration, thres = 0.9), temperature = 1) 
+        print(sample6.shape)
+                           
         return proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration
 
 
