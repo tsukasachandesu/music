@@ -114,6 +114,10 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.proj_type = nn.Sequential(
             nn.Linear(dim, self.num_tokens[0])
         )
+
+        self.proj_barbeat1 = nn.Sequential(
+            nn.Linear(self.num_tokens[1], 13)
+        )
         
         self.proj_barbeat = nn.Sequential(
             nn.Linear(dim, self.num_tokens[1])
@@ -257,9 +261,10 @@ class CompoundWordTransformerWrapper(nn.Module):
                            
         sample = top_k(proj_barbeat, thres = 0.9)
         sample = gumbel_sample(sample, temperature = 1, dim = -1)
-        print(sample.shape)
+        t = self.proj_barbeat1(proj_barbeat)
+
                            
-        return proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration
+        return proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, t
 
 
     def forward_hidden(
