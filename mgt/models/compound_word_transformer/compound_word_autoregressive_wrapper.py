@@ -150,25 +150,15 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         
         proj = torch.cat([proj_barbeat.unsqueeze(3), proj_tempo.unsqueeze(3), proj_instrument.unsqueeze(3), proj_note_name.unsqueeze(3), proj_octave.unsqueeze(3), proj_duration.unsqueeze(3)],-1)
         x1,x2,x3,x4 = proj.shape
-        print(proj.shape)
         proj2 = proj[:,:,0,:].reshape(-1,x2,1,1).squeeze(3)
-        print(proj2.shape)
         proj = proj[:,:,1:,:]
-        print(proj.shape)
-        x1,x2,x3,x4 = proj.shape
         proj = proj.reshape(-1,x2,x3,1)
-        print(proj.shape)
-        x1,x2,x3 ,x4= proj.shape
-        proj = proj.reshape(x1,x2,64,-1)
-        print(proj.shape)
-        proj1 = torch.sum(proj,-1)
-        print(proj1.shape)
-        proj = torch.cat([proj2, proj1],-1)
-        print(proj.shape)
-        print(type_mask(target.repeat((6,1,1))))
+        proj = proj.reshape(x1*6,x2,64,-1)
+        proj = torch.sum(proj,-1)
+        proj = torch.cat([proj2, proj],-1)
         proj = calculate_loss(proj, k_tensor.reshape(-1,x2,1).squeeze(2), type_mask(target.repeat((6,1,1))))
         
-        return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss
+        return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss,proj
    
    
 
