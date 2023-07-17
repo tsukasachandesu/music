@@ -95,22 +95,21 @@ class CompoundWordDataManager(DataManager):
                     p  = []
                     for i in pp:
                         if i == [[1, 0, 0]]:
-                            p.append([1,0,0,0,0,0,0,0])
+                            p.append([17,0,0,0,0,0,0])
                         else:
-                            n =[0,0,0,0,0,0,0,0]
-                            r = 2
+                            n =[0,0,0,0,0,0,0]
+                            r = 1
                             for j in i:
-                                n[0] = j[0]
-                                n[1] = j[1]
+                                n[0] = j[1]
                                 n[r] = j[2] + 1
-                                if r >= 7:
+                                if r >= 6:
                                     break
                                 r = r + 1
                             p.append(n)
  
                     pq = []
                     for i in p:
-                        pq.append([i[0],i[1]]+sorted([i[2],i[3],i[4],i[5],i[6],i[7]], reverse=True))
+                        pq.append([i[0]]+sorted([i[1],i[2],i[3],i[4],i[5],i[6]], reverse=True))
                                
                     print(f'Extracted {len(pq)} compound words.') 
                     
@@ -129,13 +128,13 @@ class CompoundWordDataManager(DataManager):
         inverse_dic = {v: k for k, v in dic.items()}
         q = []
         for i in data:
-            if i[0] == 1:
+            if i[0] == 17:
                 q.append([2,0,0,0,0,0,0,0])
             else:
                 for j in range(6):
-                    if i[j+2] != 0 :
-                        q.append([2,i[1],0,0,0,0,0,0])
-                        q.append([3,i[1],0,0,*inverse_dic[int(i[j+2]-1)],31])
+                    if i[j+1] != 0:
+                        q.append([2,i[0],0,0,0,0,0,0])
+                        q.append([3,i[0],0,0,*inverse_dic[int(i[j+1]-1)],31])
 
         remi = self.compound_word_mapper.map_to_remi(q)
         return MidiToolkitWrapper(self.to_midi_mapper.to_midi(remi))
