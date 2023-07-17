@@ -187,7 +187,7 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         for _ in range(output_length):
             # sample others
             next_arr = self.net.forward_output_sampling(
-                proj_type[:, -1:, :],proj_barbeat[:, -1:, :], proj_tempo[:, -1:, :], proj_instrument[:, -1:, :], proj_note_name[:, -1:, :], proj_octave[:, -1:, :], proj_duration[:, -1:, :], proj_duration1[:, -1:, :]
+                proj_type[:, -1:, :],proj_barbeat[:, -1:, :], proj_tempo[:, -1:, :], proj_instrument[:, -1:, :], proj_note_name[:, -1:, :], proj_octave[:, -1:, :], proj_duration[:, -1:, :], proj_duration1[:, -1:, :],
                 selection_temperatures=selection_temperatures,
                 selection_probability_tresholds=selection_probability_tresholds)
 
