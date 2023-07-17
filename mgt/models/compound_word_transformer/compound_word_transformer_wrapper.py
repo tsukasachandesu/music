@@ -9,6 +9,7 @@ from torch import nn
 from x_transformers.x_transformers import AttentionLayers, default, AbsolutePositionalEmbedding, always
 from mgt.models.compound_word_transformer.compound_transformer_embeddings import CompoundTransformerEmbeddings
 from mgt.models.utils import get_device
+
 import torch.nn.functional as F
 import math
 from einops import rearrange, reduce, repeat
@@ -257,6 +258,12 @@ class CompoundWordTransformerWrapper(nn.Module):
         proj_note_name = self.proj_note_name(y_)
         proj_octave = self.proj_octave(y_)
         proj_duration = self.proj_duration(y_)
+
+        logits = proj_barbeat
+        val, ind = torch.topk(logits, int((0.1) * logits.shape[-1]))
+        probs = torch.full_like(logits, -torch.finfo(logits.dtype).max)
+        probs.scatter_(1, ind, val)
+        print(probs.shape)                         
                                                       
         return proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration
 
