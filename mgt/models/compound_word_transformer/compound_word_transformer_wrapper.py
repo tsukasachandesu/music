@@ -58,7 +58,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             num_tokens,
             max_seq_len,
             attn_layers1,
-            attn_layers2,
+            attn_layers,
             emb_dim=None,
             emb_dropout=0.,
             use_pos_emb=True,
@@ -138,9 +138,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         self.emb_dropout = nn.Dropout(emb_dropout)
         
-        self.attn_layers1 = attn_layers1
-        self.attn_layers2 = attn_layers2
-        self.attn_layers3 = attn_layers2 
+        self.attn_layers1 = attn_layers
+        self.attn_layers2 = attn_layers1
+        self.attn_layers3 = attn_layers1 
         
         self.in_linear = nn.Linear(512*8, 512)
         
