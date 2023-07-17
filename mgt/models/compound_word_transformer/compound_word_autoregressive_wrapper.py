@@ -144,7 +144,8 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         octave_loss = calculate_loss(proj_octave, target[..., 5], type_mask(target))
         duration_loss = calculate_loss(proj_duration, target[..., 6], type_mask(target))
         
-        proj_type1 = self.soft(proj_barbeat,)
+        proj_type1 = self.soft(proj_barbeat)
+        x1,x2,x3 = proj_type1.shape
         b = proj_type1[:,:,1:].unsqueeze(3).reshape(x1,x2,64,-1)
         print(b.shape)
         b = torch.sum(b,-1).squeeze(3)
