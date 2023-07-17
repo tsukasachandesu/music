@@ -69,7 +69,6 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         if emb_sizes is None:
             emb_sizes = [
-                512,
                 512,  # Bar / Beat
                 512,  # Tempo
                 512,  # Instrument
@@ -94,7 +93,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.word_emb_barbeat4 = CompoundTransformerEmbeddings(self.num_tokens[2], self.emb_sizes[2])
         self.word_emb_barbeat5 = CompoundTransformerEmbeddings(self.num_tokens[2], self.emb_sizes[2])
         self.word_emb_barbeat6 = CompoundTransformerEmbeddings(self.num_tokens[2], self.emb_sizes[2])
-        self.word_emb_barbeat7 = CompoundTransformerEmbeddings(self.num_tokens[2], self.emb_sizes[2]) 
         
         # individual output
         
@@ -125,9 +123,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.proj_duration = nn.Sequential(
             nn.Linear(dim, self.num_tokens[6])
         )
-        self.proj_duration1 = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[7])
-        )
 
         # in_features is equal to dimension plus dimensions of the type embedding
 
@@ -153,7 +148,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         nn.init.normal_(self.word_emb_barbeat4.weight(), std=0.02)
         nn.init.normal_(self.word_emb_barbeat5.weight(), std=0.02)
         nn.init.normal_(self.word_emb_barbeat6.weight(), std=0.02)
-        nn.init.normal_(self.word_emb_barbeat7.weight(), std=0.02)
 
     def forward_output_sampling(self, proj_type,proj_barbeat,proj_tempo,proj_instrument,proj_note_name,proj_octave,proj_duration,proj_duration1, selection_temperatures=None, selection_probability_tresholds=None):
         # sample type
@@ -198,11 +192,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             probability_treshold=selection_probability_tresholds.get(6, None),
             temperature=selection_temperatures.get(6, 1.0))
 
-        cur_word_duration1 = sampling(
-            proj_duration1,
-            probability_treshold=selection_probability_tresholds.get(7, None),
-            temperature=selection_temperatures.get(7, 1.0))
-        
+
         # collect
         next_arr = np.array([
             cur_word_type,
@@ -212,7 +202,6 @@ class CompoundWordTransformerWrapper(nn.Module):
             cur_word_note_name,
             cur_word_octave,
             cur_word_duration,
-            cur_word_duration1
         ])
         return next_arr
 
@@ -233,7 +222,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_note_name =self.word_emb_barbeat4(x[..., 4])
         emb_octave = self.word_emb_barbeat5(x[..., 5])
         emb_duration = self.word_emb_barbeat6(x[..., 6])
-        emb_duration1 = self.word_emb_barbeat7(x[..., 7])
         
         x = torch.cat(
             [
@@ -257,7 +245,6 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_note_name.reshape(-1,1,512),
                 emb_octave.reshape(-1,1,512),
                 emb_duration.reshape(-1,1,512),
-                emb_duration1.reshape(-1,1,512),
             ], dim = 1)
         
         x = self.in_linear(x)
@@ -274,7 +261,6 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_note_name.reshape(-1,1,512),
                 emb_octave.reshape(-1,1,512),
                 emb_duration.reshape(-1,1,512),
-                emb_duration1.reshape(-1,1,512),
             ], dim = 1)
         x = x + self.pos_emb2(x)
         x = self.attn_layers2(x, mask = mask.reshape(-1,1).repeat((1, 9)))
@@ -285,6 +271,5 @@ class CompoundWordTransformerWrapper(nn.Module):
         proj_note_name = self.proj_note_name(x[:,5,:].reshape(x1,-1,512))
         proj_octave = self.proj_octave(x[:,6,:].reshape(x1,-1,512))
         proj_duration = self.proj_duration(x[:,7,:].reshape(x1,-1,512))
-        proj_duration1 = self.proj_duration1(x[:,8,:].reshape(x1,-1,512))
         
-        return proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, proj_duration1
+        return proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration
