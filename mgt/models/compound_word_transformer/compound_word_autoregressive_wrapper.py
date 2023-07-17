@@ -146,19 +146,23 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         octave_loss = calculate_loss(proj_octave, target[..., 5], type_mask(target))
         duration_loss = calculate_loss(proj_duration, target[..., 6], type_mask(target))
         
-
-        
         proj = torch.cat([proj_barbeat.unsqueeze(3), proj_tempo.unsqueeze(3), proj_instrument.unsqueeze(3), proj_note_name.unsqueeze(3), proj_octave.unsqueeze(3), proj_duration.unsqueeze(3)],-1)
         x1,x2,x3,x4 = proj.shape
         proj2 = proj[:,:,0,:].reshape(-1,x2,1,1).squeeze(3)
         proj = proj[:,:,1:,:]
-        proj = proj.reshape(-1,x2,x3-1,1)
-        proj = proj.reshape(x1*6,x2,64,-1)
+        proj3 = proj.reshape(-1,x2,x3-1,1)
+        
+        proj = proj3.reshape(x1*6,x2,64,-1)
         proj = torch.sum(proj,-1)
         proj = torch.cat([proj2, proj],-1)
-        proj = calculate_loss(proj, k_tensor.reshape(-1,x2,1).squeeze(2), type_mask(target.repeat((6,1,1))))
+        proj4 = calculate_loss(proj, k_tensor.reshape(-1,x2,1).squeeze(2), type_mask(target.repeat((6,1,1))))
+
+        proj = proj3.reshape(x1*6,x2,-1,64)
+        proj = torch.sum(proj,-1)
+        proj = torch.cat([proj2, proj],-1)
+        proj5 = calculate_loss(proj, r_tensor.reshape(-1,x2,1).squeeze(2), type_mask(target.repeat((6,1,1))))
         
-        return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss,proj
+        return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss,proj4,proj5
    
    
 
