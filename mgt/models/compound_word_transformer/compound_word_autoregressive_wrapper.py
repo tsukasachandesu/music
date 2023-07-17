@@ -25,63 +25,6 @@ def top_k(logits, thres = 0.9):
     probs.scatter_(1, ind, val)
     return probs
 
-class AsymmetricLossOptimized(nn.Module):
-    ''' Notice - optimized version, minimizes memory allocation and gpu uploading,
-    favors inplace operations'''
-
-    def __init__(self, gamma_neg=4, gamma_pos=1, clip=0.05, eps=1e-8, disable_torch_grad_focal_loss=False):
-        super(AsymmetricLossOptimized, self).__init__()
-
-        self.gamma_neg = gamma_neg
-        self.gamma_pos = gamma_pos
-        self.clip = clip
-        self.disable_torch_grad_focal_loss = disable_torch_grad_focal_loss
-        self.eps = eps
-
-        # prevent memory allocation and gpu uploading every iteration, and encourages inplace operations
-        self.targets = self.anti_targets = self.xs_pos = self.xs_neg = self.asymmetric_w = self.loss = None
-
-    def forward(self, x, y,loss_mask):
-        """"
-        Parameters
-        ----------
-        x: input logits
-        y: targets (multi-label binarized vector)
-        """
-
-        self.targets = y
-        self.anti_targets = 1 - y
-
-        # Calculating Probabilities
-        self.xs_pos = torch.sigmoid(x)
-        self.xs_neg = 1.0 - self.xs_pos
-
-        # Asymmetric Clipping
-        if self.clip is not None and self.clip > 0:
-            self.xs_neg.add_(self.clip).clamp_(max=1)
-
-        # Basic CE calculation
-        self.loss = self.targets * torch.log(self.xs_pos.clamp(min=self.eps))
-        self.loss.add_(self.anti_targets * torch.log(self.xs_neg.clamp(min=self.eps)))
-
-        # Asymmetric Focusing
-        if self.gamma_neg > 0 or self.gamma_pos > 0:
-            if self.disable_torch_grad_focal_loss:
-                torch.set_grad_enabled(False)
-            self.xs_pos = self.xs_pos * self.targets
-            self.xs_neg = self.xs_neg * self.anti_targets
-            self.asymmetric_w = torch.pow(1 - self.xs_pos - self.xs_neg,
-                                          self.gamma_pos * self.targets + self.gamma_neg * self.anti_targets)
-            if self.disable_torch_grad_focal_loss:
-                torch.set_grad_enabled(True)
-            self.loss *= self.asymmetric_w
-
-            self.loss = self.loss * loss_mask.unsqueeze(-1)
-            trainable_values = torch.sum(loss_mask)
-            if trainable_values == 0:
-              return 0
-
-        return -self.loss.sum()/ trainable_values
 
 
 def type_mask(target):
@@ -93,21 +36,6 @@ def calculate_loss1(predicted, target, loss_mask):
         return 0
 
     loss = F.mse_loss(predicted[:, ...], target, reduction = 'none')
-    loss = loss * loss_mask.unsqueeze(-1)
-    loss = torch.sum(loss) / trainable_values
-
-    return loss
-    
-def calculate_loss3(predicted, target):
-    loss = F.mse_loss(predicted[:, ...], target, reduction = 'mean')
-    return loss
-
-def calculate_loss2(predicted, target, loss_mask):
-    trainable_values = torch.sum(loss_mask)
-    if trainable_values == 0:
-        return 0
-
-    loss = F.binary_cross_entropy(predicted[:, ...], target, reduction = 'none')
     loss = loss * loss_mask.unsqueeze(-1)
     loss = torch.sum(loss) / trainable_values
 
@@ -150,18 +78,6 @@ def calculate_loss(predicted, target, loss_mask):
     loss = loss * loss_mask
     loss = torch.sum(loss) / trainable_values
     return loss
-
-def calculate_loss(predicted, target, loss_mask):
-    trainable_values = torch.sum(loss_mask)
-    if trainable_values == 0:
-        return 0
-
-    loss = F.cross_entropy(predicted[:, ...].permute(0, 2, 1), target, reduction='none')
-    loss = loss * loss_mask
-    loss = torch.sum(loss) / trainable_values
-    return loss
-    
-
 
 class CompoundWordAutoregressiveWrapper(nn.Module):
     def __init__(self, net: CompoundWordTransformerWrapper, ignore_index=-100, pad_value=None):
