@@ -157,9 +157,9 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         barbeat2 = torch.cat([proj_type1[:,:,0].unsqueeze(2),b],-1)
         print(barbeat2.shape)
         print(r_tensor[..., 0].shape)
-        barbeat1 = calculate_loss(barbeat2, r_tensor[..., 0], type_mask(target))
-
-        barbeat1 = calculate_loss(barbeat1, k_tensor[..., 0], type_mask(target))
+        
+        barbeat3 = calculate_loss(barbeat2, r_tensor[..., 0], type_mask(target))
+        barbeat4 = calculate_loss(barbeat1, k_tensor[..., 0], type_mask(target))
         
         return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss, barbeat1
    
