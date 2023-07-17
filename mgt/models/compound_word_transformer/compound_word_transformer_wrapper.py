@@ -98,7 +98,6 @@ class CompoundWordTransformerWrapper(nn.Module):
             ]
 
         self.emb_sizes = emb_sizes
-
         dim = attn_layers.dim
         emb_dim = default(emb_dim, dim)
 
@@ -176,10 +175,9 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         if selection_temperatures is None:
             selection_temperatures = {}
-            
+
         y_type_logit = y_type[0, :]
         
-
         cur_word_type = sampling(
             y_type_logit,
             probability_treshold=selection_probability_tresholds.get(0, None),
@@ -261,12 +259,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         proj_duration = self.proj_duration(y_)
                            
         sample1 = gumbel_sample(top_k(proj_barbeat, thres = 0.9), temperature = 1)
-        sample2 = gumbel_sample(top_k(proj_tempo, thres = 0.9), temperature = 1)
-        sample3 = gumbel_sample(top_k(proj_instrument, thres = 0.9), temperature = 1)
-        sample4 = gumbel_sample(top_k(proj_note_name, thres = 0.9), temperature = 1)                        
-        sample5 = gumbel_sample(top_k(proj_octave, thres = 0.9), temperature = 1)
-        sample6 = gumbel_sample(top_k(proj_duration, thres = 0.9), temperature = 1) 
-        print(sample6.shape)
+        print(sample1.shape)
                            
         return proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration
 
