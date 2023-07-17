@@ -140,7 +140,7 @@ class CompoundWordTransformerModel(object):
             num_tokens=self.num_tokens,
             emb_sizes=self.emb_sizes,
             max_seq_len=self.max_sequence_length,
-            attn_layers=Decoder(
+            attn_layers1=Decoder(
                 dim=self.dim,
                 depth=9,
                 heads=self.heads,
@@ -155,7 +155,7 @@ class CompoundWordTransformerModel(object):
                 ff_no_bias = True,
                 attn_one_kv_head = True            
             ),
-            attn_layers1=CrossAttender(
+            attn_layers2=CrossAttender(
                 dim=512,
                 depth=1,
                 heads=10,
@@ -169,37 +169,7 @@ class CompoundWordTransformerModel(object):
                 attn_one_kv_head = True,
                 dynamic_pos_bias = True,                # set this to True
                 dynamic_pos_bias_log_distance = False   # whether to use log distance, as in SwinV2
-            ),
-            attn_layers2=Encoder(
-                dim=512,
-                depth=1,
-                heads=8,
-                ff_glu = True,
-                ff_swish = True,
-                use_rmsnorm = True,
-                dynamic_pos_bias = True,  
-                dynamic_pos_bias_log_distance = False,              
-                layer_dropout = self.dropout,
-                attn_dropout=self.dropout,  
-                ff_dropout=self.dropout,
-                ff_no_bias = True,
-                attn_one_kv_head = True
-            ) ,
-            attn_layers3=Decoder(
-                dim=self.dim,
-                depth=1,
-                heads=self.heads,
-                ff_glu = True,
-                ff_swish = True,
-                use_rmsnorm = True,
-                alibi_pos_bias = True,
-                alibi_num_heads = 4,   
-                layer_dropout = self.dropout,
-                attn_dropout=self.dropout,  # dropout post-attention
-                ff_dropout=self.dropout,  # feedforward dropout
-                ff_no_bias = True,
-                attn_one_kv_head = True            
-            ),
+            )
         )).to(get_device())
 
         return model
