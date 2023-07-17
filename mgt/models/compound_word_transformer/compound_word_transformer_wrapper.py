@@ -2,6 +2,7 @@
 # Sampling
 ################################################################################
 # -- temperature -- #
+
 import numpy as np
 import torch
 from torch import nn
@@ -129,7 +130,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.compound_word_embedding_size = np.sum(emb_sizes)
                 
         self.pos_emb1 = AbsolutePositionalEmbedding(512, max_seq_len) 
-        self.pos_emb2 = AbsolutePositionalEmbedding(512, 8)
+        self.pos_emb2 = AbsolutePositionalEmbedding(512, 7)
         
         self.emb_dropout = nn.Dropout(emb_dropout)
         
@@ -245,30 +246,22 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_octave.reshape(-1,1,512),
                 emb_duration.reshape(-1,1,512),
             ], dim = 1)
-        
+
         x = self.in_linear(x)
         x = x.reshape(x1,-1,512)
         x = x + self.pos_emb1(x)
         x = self.attn_layers1(x, mask = mask)
-        x = torch.cat(
-            [
-                x.reshape(-1,1,512),
-                emb_type.reshape(-1,1,512),
-                emb_barbeat.reshape(-1,1,512),
-                emb_tempo.reshape(-1,1,512),
-                emb_instrument.reshape(-1,1,512),
-                emb_note_name.reshape(-1,1,512),
-                emb_octave.reshape(-1,1,512),
-                emb_duration.reshape(-1,1,512),
-            ], dim = 1)
-        x = x + self.pos_emb2(x)
-        x = self.attn_layers2(x, mask = mask.reshape(-1,1).repeat((1,8)))
-        proj_type = self.proj_type(x[:,1,:].reshape(x1,-1,512))
-        proj_barbeat = self.proj_barbeat(x[:,2,:].reshape(x1,-1,512))
-        proj_tempo = self.proj_tempo(x[:,3,:].reshape(x1,-1,512))
-        proj_instrument = self.proj_instrument(x[:,4,:].reshape(x1,-1,512))
-        proj_note_name = self.proj_note_name(x[:,5,:].reshape(x1,-1,512))
-        proj_octave = self.proj_octave(x[:,6,:].reshape(x1,-1,512))
-        proj_duration = self.proj_duration(x[:,7,:].reshape(x1,-1,512))
+        x = x.reshape(-1,1,512)
+        y = y + self.pos_emb2(y)
+        x = self.attn_layers2(x, context = y, mask.reshape(-1,1), context_mask = mask.reshape(-1,1).repeat((1,8))
+        x = x.reshape(x1,-1,512)
         
-        return proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration
+        proj_type = self.proj_type(x)
+        proj_barbeat = self.proj_barbeat(x)
+        proj_tempo = self.proj_tempo(x)
+        proj_instrument = self.proj_instrument(x)
+        proj_note_name = self.proj_note_name(x)
+        proj_octave = self.proj_octave(x)
+        proj_duration = self.proj_duration(x)
+        
+        return return proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration
