@@ -258,8 +258,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         proj_octave = self.proj_octave(y_)
         proj_duration = self.proj_duration(y_)
                            
-        sample1 = gumbel_sample(top_k(proj_barbeat, thres = 0.9), temperature = 1)
-        print(sample1.shape)
+        top_k(proj_barbeat, thres = 0.9), temperature = 1)
                            
         return proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration
 
