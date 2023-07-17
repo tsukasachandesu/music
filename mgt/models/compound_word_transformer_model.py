@@ -153,12 +153,11 @@ class CompoundWordTransformerModel(object):
                 attn_dropout=self.dropout,  # dropout post-attention
                 ff_dropout=self.dropout,  # feedforward dropout
                 ff_no_bias = True,
-                attn_one_kv_head = True,
-                shift_tokens = 1
+                attn_one_kv_head = True
             ),
             attn_layers1=CrossAttender(
                 dim=512,
-                depth=1,
+                depth=8,
                 heads=8,
                 ff_glu = True,
                 ff_swish = True,
