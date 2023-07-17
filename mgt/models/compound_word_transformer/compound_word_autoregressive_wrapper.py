@@ -146,11 +146,14 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         octave_loss = calculate_loss(proj_octave, target[..., 5], type_mask(target))
         duration_loss = calculate_loss(proj_duration, target[..., 6], type_mask(target))
         
-        x1,x2,x3 = proj_barbeat.shape
+
         
         proj = torch.cat([proj_barbeat.unsqueeze(3), proj_tempo.unsqueeze(3), proj_instrument.unsqueeze(3), proj_note_name.unsqueeze(3), proj_octave.unsqueeze(3), proj_duration.unsqueeze(3)],-1)
         print(proj.shape)
-        proj = proj[:,:,1:,:].reshape(-1,x2,x3,1)
+        proj = proj[:,:,1:,:]
+        print(proj.shape)
+        x1,x2,x3,x4 = proj.shape
+        proj = proj.reshape(-1,x2,x3,1)
         print(proj.shape)
         x1,x2,x3 ,x4= proj.shape
         proj = proj.reshape(x1,x2,64,-1)
