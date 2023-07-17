@@ -15,16 +15,16 @@ import math
 from einops import rearrange, reduce, repeat
 from torch.nn.functional import pad
 
-def sample_gumbel(self, shape, eps=1e-20):
+def sample_gumbel(shape, eps=1e-20):
     U = torch.distributions.Uniform(0,1).sample(shape)
     return -torch.log(-torch.log(U + eps) + eps)
 
-def gumbel_softmax_sample(self, logits, tau, device, dim=1):
-    y = logits + self.sample_gumbel(logits.shape).to(device)
+def gumbel_softmax_sample(logits, tau, device, dim=1):
+    y = logits + sample_gumbel(logits.shape).to(device)
     return F.softmax(y / tau, dim=dim)
 
-def gumbel_softmax(self, logits, tau, device):
-    gumbel_sample = self.gumbel_softmax_sample(logits, tau, device)
+def gumbel_softmax(logits, tau, device):
+    gumbel_sample = gumbel_softmax_sample(logits, tau, device)
     idx_next = gumbel_sample.max(-1, keepdim=True)[1]
     onehot_idx_next = torch.nn.functional.one_hot(idx_next, num_classes=logits.shape[1]).squeeze()
     y = (onehot_idx_next-gumbel_sample).detach() + gumbel_sample
