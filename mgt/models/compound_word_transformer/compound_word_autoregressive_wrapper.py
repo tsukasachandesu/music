@@ -143,7 +143,8 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         note_name_loss = calculate_loss(proj_note_name, target[..., 4], type_mask(target))
         octave_loss = calculate_loss(proj_octave, target[..., 5], type_mask(target))
         duration_loss = calculate_loss(proj_duration, target[..., 6], type_mask(target))
-        proj_type1 = self.soft(proj_type)
+        
+        proj_type1 = self.soft(proj_barbeat,)
         b = proj_type1[:,:,1:]
         print(b.shape)
         b = b.unsqueeze(3)
