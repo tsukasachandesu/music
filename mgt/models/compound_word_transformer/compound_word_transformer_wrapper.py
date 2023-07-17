@@ -14,7 +14,12 @@ import torch.nn.functional as F
 import math
 from einops import rearrange, reduce, repeat
 from torch.nn.functional import pad
-
+def top_k(logits, thres = 0.9):
+    k = math.ceil((1 - thres) * logits.shape[-1])
+    val, ind = torch.topk(logits, k)
+    probs = torch.full_like(logits, float('-inf'))
+    probs.scatter_(1, ind, val)
+    return probs
 def log(t, eps = 1e-20):
     return torch.log(t.clamp(min = eps))
 def gumbel_noise(t):
@@ -249,8 +254,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         proj_note_name = self.proj_note_name(y_)
         proj_octave = self.proj_octave(y_)
         proj_duration = self.proj_duration(y_)
-
-        sample = gumbel_sample(proj_barbeat, temperature = 1, dim = -1)
+                           
+        sample = top_k(proj_barbeat, thres = 0.9)
+        sample = gumbel_sample(sample, temperature = 1, dim = -1)
         print(sample.shape)
                            
         return proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration
