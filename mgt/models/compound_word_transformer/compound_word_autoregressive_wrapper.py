@@ -155,7 +155,8 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         b = proj_type1[:,:,1:].unsqueeze(3).reshape(x1,x2,-1,64)
         b = torch.sum(b,-1)
         barbeat2 = torch.cat([proj_type1[:,:,0].unsqueeze(2),b],-1)
-        
+        print(barbeat2.shape)
+        print(r_tensor[..., 0].shape)
         barbeat1 = calculate_loss(barbeat2, r_tensor[..., 0], type_mask(target))
 
         barbeat1 = calculate_loss(barbeat1, k_tensor[..., 0], type_mask(target))
