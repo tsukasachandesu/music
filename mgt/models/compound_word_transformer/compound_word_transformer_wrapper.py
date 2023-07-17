@@ -264,4 +264,4 @@ class CompoundWordTransformerWrapper(nn.Module):
         proj_octave = self.proj_octave(x)
         proj_duration = self.proj_duration(x)
         
-        return return proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration
+        return proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration
