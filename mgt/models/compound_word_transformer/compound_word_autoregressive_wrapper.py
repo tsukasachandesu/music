@@ -135,10 +135,10 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         
         x1,x2,x3 = i_tensor.shape
         
-        indices = torch.arange(x2).to(ii_tensor.device)
+        indices = torch.arange(x2).to(i_tensor.device)
         mask = indices // (64 * 9) == 1
-        i_tensor = i_tensor[:, mask, :]
-        print(i_tensor.shape)
+        indices = indices[:, mask, :]
+        print(indices.shape)
         
         
         h, proj_type = self.net.forward_hidden(xi,**kwargs)
