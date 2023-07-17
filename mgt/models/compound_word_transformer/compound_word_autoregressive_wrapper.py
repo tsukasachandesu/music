@@ -148,10 +148,9 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         x1,x2,x3 = proj_type1.shape
         b = proj_type1[:,:,1:].unsqueeze(3).reshape(x1,x2,64,-1)
         b = torch.sum(b,-1)
+        print(b.shape)
         
-        x1,x2,x3 = proj_type1.shape
-        
-        a = torch.cat([proj_type1[:,:,0].squeeze(2),b],-1)
+        a = torch.cat([proj_type1[:,:,0].unsqueeze(2),b],-1)
         print(a.shape)
         a1 = calculate_loss(a1, i_tensor[..., 0], type_mask(target))
         a3 = calculate_loss(a3, k_tensor[..., 0], type_mask(target))
