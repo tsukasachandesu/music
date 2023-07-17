@@ -257,9 +257,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         proj_note_name = self.proj_note_name(y_)
         proj_octave = self.proj_octave(y_)
         proj_duration = self.proj_duration(y_)
-                           
-        top_k(proj_barbeat, thres = 0.9), temperature = 1)
-                           
+                                                      
         return proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration
 
 
