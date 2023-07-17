@@ -149,10 +149,11 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
 
         
         proj = torch.cat([proj_barbeat.unsqueeze(3), proj_tempo.unsqueeze(3), proj_instrument.unsqueeze(3), proj_note_name.unsqueeze(3), proj_octave.unsqueeze(3), proj_duration.unsqueeze(3)],-1)
-
+        x1,x2,x3,x4 = proj.shape
         print(proj.shape)
+        proj2 = proj[:,:,0,:].reshape(-1,x2,x3,1).squeeze(3)
+        print(proj2.shape)
         proj = proj[:,:,1:,:]
-        proj2 = proj[:,:,0].unsqueeze(2)
         print(proj.shape)
         x1,x2,x3,x4 = proj.shape
         proj = proj.reshape(-1,x2,x3,1)
