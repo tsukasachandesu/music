@@ -165,7 +165,7 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         print(proj1.shape)
         proj = torch.cat([proj2, proj1],-1)
         print(proj.shape)
-        print(type_mask(target.repeat((6,1))))
+        print(type_mask(target.repeat((6,1,1))))
         proj = calculate_loss(proj, k_tensor.reshape(-1,x2,1).squeeze(2), type_mask(target.repeat((6,1,1))))
         
         return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss
