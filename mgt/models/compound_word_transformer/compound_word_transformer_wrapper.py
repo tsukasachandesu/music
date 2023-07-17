@@ -253,7 +253,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         x = self.attn_layers1(x, mask = mask)
         x = x.reshape(-1,1,512)
         y = y + self.pos_emb2(y)
-        x = self.attn_layers2(x, context = y, mask.reshape(-1,1), context_mask = mask.reshape(-1,1).repeat((1,8))
+        x = self.attn_layers2(x, context = y, mask = mask.reshape(-1,1), context_mask = mask.reshape(-1,1).repeat((1,7)))
         x = x.reshape(x1,-1,512)
         
         proj_type = self.proj_type(x)
