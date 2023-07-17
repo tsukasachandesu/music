@@ -97,12 +97,12 @@ class CompoundWordDataManager(DataManager):
                         if i == [[1, 0, 0]]:
                             p.append([1,0,0,0,0,0,0,0])
                         else:
-                            n =[0,0,1,1,1,1,1,1]
+                            n =[0,0,0,0,0,0,0,0]
                             r = 2
                             for j in i:
                                 n[0] = j[0]
                                 n[1] = j[1]
-                                n[r] = j[2] + 2
+                                n[r] = j[2] + 1
                                 if r >= 7:
                                     break
                                 r = r + 1
@@ -133,9 +133,9 @@ class CompoundWordDataManager(DataManager):
                 q.append([2,0,0,0,0,0,0,0])
             else:
                 for j in range(6):
-                    if i[j+2] != 0 and i[j+2] != 1:
+                    if i[j+2] != 0 :
                         q.append([2,i[1],0,0,0,0,0,0])
-                        q.append([3,i[1],0,0,*inverse_dic[int(i[j+2]-2)],31])
+                        q.append([3,i[1],0,0,*inverse_dic[int(i[j+2]-1)],31])
 
         remi = self.compound_word_mapper.map_to_remi(q)
         return MidiToolkitWrapper(self.to_midi_mapper.to_midi(remi))
