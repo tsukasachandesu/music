@@ -133,7 +133,14 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         j_tensor = torch.where(mask_minus1, j_special_minus1,  (z // 64) % 9)
         k_tensor = torch.where(mask_minus1, k_special_minus1,  z % 64)
         
-
+        x1,x2,x3 = i_tensor.shape
+        
+        indices = torch.arange(x2).to(ii_tensor.device)
+        mask = indices // (64 * 9) == 1
+        i_tensor = i_tensor[:, mask, :]
+        print(i_tensor.shape)
+        
+        
         h, proj_type = self.net.forward_hidden(xi,**kwargs)
         proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration,t = self.net.forward_output(h, target)
         
