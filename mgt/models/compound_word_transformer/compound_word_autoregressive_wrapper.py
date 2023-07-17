@@ -122,8 +122,20 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         xi = x[:, :-1, :]
         target = x[:, 1:, :]
 
+
+        z = target[:, :, 1:7] - 1
+        i_special_minus1 = 12
+        j_special_minus1 = 9 
+        k_special_minus1 = 64 
+
+        mask_minus1 = y == -1
+        i_tensor = torch.where(mask_minus1, i_special_minus1, z // (64 * 9))
+        j_tensor = torch.where(mask_minus1, j_special_minus1,  (z // 64) % 9)
+        k_tensor = torch.where(mask_minus1, k_special_minus1,  z % 64)
+        
+
         h, proj_type = self.net.forward_hidden(xi,**kwargs)
-        proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration = self.net.forward_output(h, target)
+        proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration,t = self.net.forward_output(h, target)
         
         type_loss = calculate_loss(proj_type, target[..., 0], type_mask(target))
         barbeat_loss = calculate_loss(proj_barbeat, target[..., 1], type_mask(target))
@@ -132,8 +144,11 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         note_name_loss = calculate_loss(proj_note_name, target[..., 4], type_mask(target))
         octave_loss = calculate_loss(proj_octave, target[..., 5], type_mask(target))
         duration_loss = calculate_loss(proj_duration, target[..., 6], type_mask(target))
+
+        barbeat_loss1 = calculate_loss(t, i_tensor[..., 0], type_mask(target))
+        print(barbeat_loss1)
         
-        return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss
+        return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss, barbeat_loss1
    
    
 
