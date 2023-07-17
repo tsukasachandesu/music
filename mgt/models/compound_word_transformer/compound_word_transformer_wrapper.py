@@ -15,21 +15,12 @@ import math
 from einops import rearrange, reduce, repeat
 from torch.nn.functional import pad
 
-def sample_gumbel(shape, eps=1e-20):
-    U = torch.distributions.Uniform(0,1).sample(shape)
-    return -torch.log(-torch.log(U + eps) + eps)
+def gumbel_noise(t):
+    noise = torch.zeros_like(t).uniform_(0, 1)
+    return -log(-log(noise))
 
-def gumbel_softmax_sample(logits, tau, device, dim=1):
-    y = logits + sample_gumbel(logits.shape).to(device)
-    return F.softmax(y / tau, dim=dim)
-
-def gumbel_softmax(logits, tau, device):
-    gumbel_sample = gumbel_softmax_sample(logits, tau, device)
-    idx_next = gumbel_sample.max(-1, keepdim=True)[1]
-    onehot_idx_next = torch.nn.functional.one_hot(idx_next, num_classes=logits.shape[1]).squeeze()
-    y = (onehot_idx_next-gumbel_sample).detach() + gumbel_sample
-    idx_next_from_y = torch.argmax(y, dim=1).unsqueeze(-1)
-    return idx_next_from_y, y.unsqueeze(-1)
+def gumbel_sample(t, temperature = 1., dim = -1):
+    return ((t / max(temperature, 1e-10)) + gumbel_noise(t)).argmax(dim = dim)
 
 def softmax_with_temperature(logits, temperature):
     probs = np.exp(logits / temperature) / np.sum(np.exp(logits / temperature))
@@ -257,9 +248,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         proj_octave = self.proj_octave(y_)
         proj_duration = self.proj_duration(y_)
 
-        idx_next, onehot_next = gumbel_softmax(proj_barbeat, tau=1, device=proj_barbeat.device)
-        print(idx_next.shape)                         
-        print(onehot_next.shape)                                                      
+        sample = gumbel_sample(proj_barbeat, temperature = 1, dim = -1)
+        print(sample.shape)
+                           
         return proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration
 
 
