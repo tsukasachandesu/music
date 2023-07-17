@@ -142,7 +142,7 @@ class CompoundWordTransformerModel(object):
             max_seq_len=self.max_sequence_length,
             attn_layers=Decoder(
                 dim=self.dim,
-                depth=9,
+                depth=8,
                 heads=self.heads,
                 ff_glu = True,
                 ff_swish = True,
@@ -153,9 +153,10 @@ class CompoundWordTransformerModel(object):
                 attn_dropout=self.dropout,  # dropout post-attention
                 ff_dropout=self.dropout,  # feedforward dropout
                 ff_no_bias = True,
-                attn_one_kv_head = True
+                attn_one_kv_head = True,
+                shift_tokens = 1
             ),
-            attn_layers1=CrossAttender(
+            attn_layers2=CrossAttender(
                 dim=512,
                 depth=8,
                 heads=8,
