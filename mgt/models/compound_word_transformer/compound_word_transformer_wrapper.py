@@ -13,136 +13,6 @@ import math
 from einops import rearrange, reduce, repeat
 from torch.nn.functional import pad
 
-def _latent_shift(latents):
-    """latents shape change: b t m d -> (b t) m d."""
-    latents_leading, latents_last = latents[:, :-1,:], latents[:, -1:,:]
-    latents = torch.cat([torch.zeros_like(latents_last), latents_leading], dim=1)
-    return latents, latents_last
-
-def get_ar_mask(seq_len, batch,device,dtype=torch.float32):
-    valid_locs = torch.tril(torch.ones([seq_len, seq_len], device=device, dtype=dtype)).repeat(1,batch).reshape(-1,seq_len)
-    return valid_locs.bool()
-    
-def exists(val):
-    return val is not None
-
-
-class RMSNorm(nn.Module):
-    def __init__(self, dim):
-        super().__init__()
-        self.scale = dim ** 0.5
-        self.gamma = nn.Parameter(torch.ones(dim))
-
-    def forward(self, x):
-        normed = F.normalize(x, dim = -1)
-        return normed * self.scale * self.gamma
-
-class NewGELU(nn.Module):
-    """
-    Implementation of the GELU activation function currently in Google BERT repo (identical to OpenAI GPT).
-    Reference: Gaussian Error Linear Units (GELU) paper: https://arxiv.org/abs/1606.08415
-    """
-
-    def forward(self, x):
-        return 0.5 * x * (1.0 + torch.tanh(math.sqrt(2.0 / math.pi) * (x + 0.044715 * torch.pow(x, 3.0))))
-
-
-class CausalSelfAttention(nn.Module):
-    """
-    A vanilla multi-head masked self-attention layer with a projection at the end.
-    It is possible to use torch.nn.MultiheadAttention here but I am including an
-    explicit implementation here to show that there is nothing too scary here.
-    """
-
-    def __init__(self):
-        super().__init__()
-        self.n_embd = 512
-        self.n_heads = 512
-        self.query_projection = nn.Linear(512, 512)
-        self.key_projection = nn.Linear(512, 512)
-        self.value_projection = nn.Linear(512, 512)
-        self.out_projection = nn.Linear(512, 512)
-        self.dropout = nn.Dropout(0.1)
-        self.eps = 1e-6
-
-    def kernel_method(self, x):
-        return torch.sigmoid(x)
-
-    def causal_dot_product(self, q, k, v):
-        kv = torch.einsum("nhld,nhlm->nhldm", k, v)
-        kv = torch.cumsum(kv, dim=2)
-        qkv = torch.einsum("nhld,nhldm->nhlm", q, kv)
-        return qkv
-
-    def forward(self, x):
-        queries, values, keys = x, x, x
-        ## 1. Linear projection
-        B, L, _ = queries.shape
-        _, S, _ = keys.shape
-        queries = self.query_projection(queries).view(B, L, self.n_heads, -1)
-        keys = self.key_projection(keys).view(B, S, self.n_heads, -1)
-        values = self.value_projection(values).view(B, S, self.n_heads, -1)
-        queries = queries.transpose(1, 2)
-        keys = keys.transpose(1, 2)
-        values = values.transpose(1, 2)
-        # 2. Non-negative projection
-        queries = self.kernel_method(queries)
-        keys = self.kernel_method(keys)
-        ## 3. Causal Flow-Attention
-        # (1) Calculate incoming and outgoing flow
-        sink_incoming = 1.0 / (torch.einsum("nhld,nhld->nhl", queries + self.eps, keys.cumsum(dim=2) + self.eps))
-        source_outgoing = 1.0 / (torch.einsum("nhld,nhld->nhl", keys + self.eps, queries.cumsum(dim=2) + self.eps))
-        # approximate normal conservation col and row by multiplying corresponding element number
-        normal = (((torch.arange(queries.shape[2])).float() + 1.0)).to(queries.device)[None, None, :]
-        sink_incoming = sink_incoming * normal
-        source_outgoing = source_outgoing * normal
-        # (2) conservation refine for source and sink
-        conserved_sink = torch.einsum("nhld,nhld->nhl", queries + self.eps,
-                                      (keys * source_outgoing[:, :, :, None]).cumsum(dim=2) + self.eps) / normal
-        conserved_source = torch.einsum("nhld,nhld->nhl", keys + self.eps,
-                                        (queries * sink_incoming[:, :, :, None]).cumsum(
-                                            dim=2) + self.eps) / normal
-        conserved_source = torch.clamp(conserved_source, min=-1.0, max=1.0)  # for stability
-        # (3) Competition & Allocation
-        sink_allocation = torch.sigmoid(conserved_sink)
-        conserved_source = torch.exp(conserved_source)
-        source_competition = (conserved_source / conserved_source.cumsum(dim=-1)) * normal
-        # (4) Causal dot product
-        x = (self.causal_dot_product(queries * (sink_incoming[:, :, :, None] / normal[:, :, :, None]),
-                                     # for value normalization
-                                     keys,
-                                     values * source_competition[:, :, :, None])  # competition
-             * sink_allocation[:, :, :, None]).transpose(1, 2)  # allocation
-        ## (5) Final projection
-        x = x.reshape(B, L, -1)
-        x = self.out_projection(x)
-        x = self.dropout(x)
-        return x
-
-
-class Block(nn.Module):
-    """ an unassuming Transformer block """
-
-    def __init__(self):
-        super().__init__()
-        self.ln_1 = nn.LayerNorm(512)
-        self.attn = CausalSelfAttention()
-        self.ln_2 = nn.LayerNorm(512)
-        self.mlp = nn.ModuleDict(dict(
-            c_fc=nn.Linear(512, 4 * 512),
-            c_proj=nn.Linear(4 * 512, 512),
-            act=NewGELU(),
-            dropout=nn.Dropout(0.1),
-        ))
-        m = self.mlp
-        self.mlpf = lambda x: m.dropout(m.c_proj(m.act(m.c_fc(x))))  # MLP forward
-
-    def forward(self, x):
-        x = x + self.attn(self.ln_1(x))
-        x = x + self.mlpf(self.ln_2(x))
-        return x
-
-
 def softmax_with_temperature(logits, temperature):
     probs = np.exp(logits / temperature) / np.sum(np.exp(logits / temperature))
     return probs
@@ -187,10 +57,8 @@ class CompoundWordTransformerWrapper(nn.Module):
             *,
             num_tokens,
             max_seq_len,
-            attn_layers,
             attn_layers1,
             attn_layers2,
-            attn_layers3,
             emb_dim=None,
             emb_dropout=0.,
             use_pos_emb=True,
@@ -265,31 +133,16 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         self.compound_word_embedding_size = np.sum(emb_sizes)
                 
-        self.pos_emb = AbsolutePositionalEmbedding(512, max_seq_len*2) 
+        self.pos_emb1 = AbsolutePositionalEmbedding(512, max_seq_len) 
+        self.pos_emb2 = AbsolutePositionalEmbedding(512, 8)
         
         self.emb_dropout = nn.Dropout(emb_dropout)
         
         self.attn_layers1 = attn_layers1
         self.attn_layers2 = attn_layers2
-        
-        self.attn_layers3 = attn_layers1        
-        self.layers1 = Block()
-        self.layers2 = Block()
-        self.layers3 = Block() 
-        self.layers4 = Block()
-        self.layers5 = Block()
-        self.layers6 = Block()   
-        self.layers7 = Block()
-        self.layers8 = Block()
-        self.layers9 = Block()
-        self.layers10 = Block()
-        self.layers11 = Block()
-        self.layers12 = Block()        
-        
-        self.norm = RMSNorm(512)
+        self.attn_layers3 = attn_layers2 
         
         self.in_linear = nn.Linear(512*8, 512)
-        self.in_linear1 = nn.Linear(512*16, 512)
         
         self.init_()
 
@@ -371,14 +224,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             **kwargs
     ):
         
-        x1, x2, x3 = x.shape 
-        padding_size = 0
-        
-        if x2 % 16 != 0:
-          padding_size = 16 - (x2 % 16) 
-          padding = (0, 0, 0, padding_size)
-          x = pad(x, padding, "constant", 0)	
-            
+        x1, x2, x3 = x.shape
         mask = x[..., 0].bool()
 
         emb_type = self.word_emb_type(x[..., 0])
@@ -402,26 +248,6 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_duration1
                 
             ], dim = -1)
-        
-        x = self.in_linear(x) 
-        x1, x2, x3 = x.shape
-        x = x + self.pos_emb(x)
-        x = self.norm(x)
-        x = self.emb_dropout(x)
-        x = self.layers1(x)
-        x1, x2, x3 = x.shape
-        
-        latents = x.reshape(x1,x2//16,512*16)
-        latents = self.in_linear1(latents)
-        latents = latents + self.pos_emb(latents)
-        latents = self.layers2(latents)
-        latents, latents_last = _latent_shift(latents)
-        latents = latents.reshape(-1,1,512)
-        
-        x = x.reshape(-1,16,512)
-        x = self.attn_layers3(x, context = latents, mask = None, context_mask = None)
-        x = x.reshape(x1,-1,512)
-        x = self.layers3(x)
 
         y = torch.cat(
             [
@@ -434,27 +260,27 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_duration.reshape(-1,1,512),
                 emb_duration1.reshape(-1,1,512),
             ], dim = 1)
+        
+        x = self.in_linear(x)
+        
+        y = y + self.pos_emb2(y)
+        
+        x = self.attn_layers2(x.reshape(-1,1,512), context = y, mask = mask.reshape(-1,1) , context_mask = mask.reshape(-1,1).repeat((1, 8)))
+        
+        x = x.reshape(x1,-1,512)
+        x = x + self.pos_emb1(x)
+        x = self.emb_dropout(x)
+        
+        x = self.attn_layers1(x, mask = mask)
+        x = self.attn_layers3(y, context = x.reshape(-1,1,512), mask = mask.reshape(-1,1).repeat((1, 8)), context_mask = mask.reshape(-1,1))
 
-        x = self.attn_layers1(y, context = x.reshape(-1,1,512), mask = mask.reshape(-1,1).repeat((1, 8)), context_mask = mask.reshape(-1,1))
-        x = self.attn_layers2(x, mask = mask.reshape(-1,1).repeat((1, 8)))
-
-        if padding_size != 0:
-            proj_type = self.proj_type(x[:,0,:].reshape(x1,-1,512)[:,:-padding_size,:])
-            proj_barbeat = self.proj_barbeat(x[:,1,:].reshape(x1,-1,512)[:,:-padding_size,:])
-            proj_tempo = self.proj_tempo(x[:,2,:].reshape(x1,-1,512)[:,:-padding_size,:])
-            proj_instrument = self.proj_instrument(x[:,3,:].reshape(x1,-1,512)[:,:-padding_size,:])
-            proj_note_name = self.proj_note_name(x[:,4,:].reshape(x1,-1,512)[:,:-padding_size,:])
-            proj_octave = self.proj_octave(x[:,5,:].reshape(x1,-1,512)[:,:-padding_size,:])
-            proj_duration = self.proj_duration(x[:,6,:].reshape(x1,-1,512)[:,:-padding_size,:])
-            proj_duration1 = self.proj_duration1(x[:,7,:].reshape(x1,-1,512)[:,:-padding_size,:])
-        else:
-            proj_type = self.proj_type(x[:,0,:].reshape(x1,-1,512))
-            proj_barbeat = self.proj_barbeat(x[:,1,:].reshape(x1,-1,512))
-            proj_tempo = self.proj_tempo(x[:,2,:].reshape(x1,-1,512))
-            proj_instrument = self.proj_instrument(x[:,3,:].reshape(x1,-1,512))
-            proj_note_name = self.proj_note_name(x[:,4,:].reshape(x1,-1,512))
-            proj_octave = self.proj_octave(x[:,5,:].reshape(x1,-1,512))
-            proj_duration = self.proj_duration(x[:,6,:].reshape(x1,-1,512))
-            proj_duration1 = self.proj_duration1(x[:,7,:].reshape(x1,-1,512))
+        proj_type = self.proj_type(x[:,0,:].reshape(x1,-1,512))
+        proj_barbeat = self.proj_barbeat(x[:,1,:].reshape(x1,-1,512))
+        proj_tempo = self.proj_tempo(x[:,2,:].reshape(x1,-1,512))
+        proj_instrument = self.proj_instrument(x[:,3,:].reshape(x1,-1,512))
+        proj_note_name = self.proj_note_name(x[:,4,:].reshape(x1,-1,512))
+        proj_octave = self.proj_octave(x[:,5,:].reshape(x1,-1,512))
+        proj_duration = self.proj_duration(x[:,6,:].reshape(x1,-1,512))
+        proj_duration1 = self.proj_duration1(x[:,7,:].reshape(x1,-1,512))
         
         return proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, proj_duration1
