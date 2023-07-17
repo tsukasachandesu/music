@@ -129,7 +129,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.compound_word_embedding_size = np.sum(emb_sizes)
                 
         self.pos_emb1 = AbsolutePositionalEmbedding(512, max_seq_len) 
-        self.pos_emb2 = AbsolutePositionalEmbedding(512, 9)
+        self.pos_emb2 = AbsolutePositionalEmbedding(512, 8)
         
         self.emb_dropout = nn.Dropout(emb_dropout)
         
@@ -149,7 +149,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         nn.init.normal_(self.word_emb_barbeat5.weight(), std=0.02)
         nn.init.normal_(self.word_emb_barbeat6.weight(), std=0.02)
 
-    def forward_output_sampling(self, proj_type,proj_barbeat,proj_tempo,proj_instrument,proj_note_name,proj_octave,proj_duration,proj_duration1, selection_temperatures=None, selection_probability_tresholds=None):
+    def forward_output_sampling(self, proj_type,proj_barbeat,proj_tempo,proj_instrument,proj_note_name,proj_octave,proj_duration, selection_temperatures=None, selection_probability_tresholds=None):
         # sample type
         if selection_probability_tresholds is None:
             selection_probability_tresholds = {}
@@ -231,8 +231,7 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_instrument,
                 emb_note_name,
                 emb_octave,
-                emb_duration,
-                emb_duration1
+                emb_duration
                 
             ], dim = -1)
 
