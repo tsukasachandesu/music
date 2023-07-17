@@ -140,7 +140,7 @@ class CompoundWordTransformerModel(object):
             num_tokens=self.num_tokens,
             emb_sizes=self.emb_sizes,
             max_seq_len=self.max_sequence_length,
-            attn_layers1=Decoder(
+            attn_layers=Decoder(
                 dim=self.dim,
                 depth=9,
                 heads=self.heads,
@@ -155,10 +155,10 @@ class CompoundWordTransformerModel(object):
                 ff_no_bias = True,
                 attn_one_kv_head = True            
             ),
-            attn_layers2=CrossAttender(
+            attn_layers1=CrossAttender(
                 dim=512,
                 depth=1,
-                heads=10,
+                heads=8,
                 ff_glu = True,
                 ff_swish = True,
                 use_rmsnorm = True,            
