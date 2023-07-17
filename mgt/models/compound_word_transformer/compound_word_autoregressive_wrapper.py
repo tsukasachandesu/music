@@ -150,7 +150,10 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         
         proj = torch.cat([proj_barbeat.unsqueeze(3), proj_tempo.unsqueeze(3), proj_instrument.unsqueeze(3), proj_note_name.unsqueeze(3), proj_octave.unsqueeze(3), proj_duration.unsqueeze(3)],-1)
         print(proj.shape)
-        proj = proj.reshape(-1,x2,x3,1).reshape(x1*6,x2,64,-1)
+        proj = proj.reshape(-1,x2,x3,1)
+        print(proj.shape)
+        x1,x2,x3 = proj.shape
+        proj = proj.reshape(x1,x2,64,-1)
         print(proj.shape)
         proj1 = torch.sum(proj,-1)
         print(proj1.shape)
