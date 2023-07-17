@@ -152,7 +152,7 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         x1,x2,x3,x4 = proj.shape
         proj2 = proj[:,:,0,:].reshape(-1,x2,1,1).squeeze(3)
         proj = proj[:,:,1:,:]
-        proj = proj.reshape(-1,x2,x3,1)
+        proj = proj.reshape(-1,x2,x3-1,1)
         proj = proj.reshape(x1*6,x2,64,-1)
         proj = torch.sum(proj,-1)
         proj = torch.cat([proj2, proj],-1)
