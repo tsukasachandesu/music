@@ -142,7 +142,10 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         note_name_loss = calculate_loss(proj_note_name, target[..., 4], type_mask(target))
         octave_loss = calculate_loss(proj_octave, target[..., 5], type_mask(target))
         duration_loss = calculate_loss(proj_duration, target[..., 6], type_mask(target))
-
+        print(a1.shape)
+        print(i_tensor[..., 0].shape)
+        print(a2.shape)
+        print(k_tensor[..., 0].shape)
         a1 = calculate_loss(a1, i_tensor[..., 0], type_mask(target))
         a2 = calculate_loss(a3, k_tensor[..., 0], type_mask(target))
         a3 = calculate_loss(a2, j_tensor[..., 0], type_mask(target))
