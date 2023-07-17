@@ -128,7 +128,7 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         j_special_minus1 = 9 
         k_special_minus1 = 64 
 
-        mask_minus1 = y == -1
+        mask_minus1 = z == -1
         i_tensor = torch.where(mask_minus1, i_special_minus1, z // (64 * 9))
         j_tensor = torch.where(mask_minus1, j_special_minus1,  (z // 64) % 9)
         k_tensor = torch.where(mask_minus1, k_special_minus1,  z % 64)
