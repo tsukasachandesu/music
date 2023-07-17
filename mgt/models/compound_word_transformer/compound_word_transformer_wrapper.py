@@ -15,6 +15,8 @@ import math
 from einops import rearrange, reduce, repeat
 from torch.nn.functional import pad
 
+def log(t, eps = 1e-20):
+    return torch.log(t.clamp(min = eps))
 def gumbel_noise(t):
     noise = torch.zeros_like(t).uniform_(0, 1)
     return -log(-log(noise))
