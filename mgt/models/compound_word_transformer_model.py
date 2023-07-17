@@ -156,7 +156,7 @@ class CompoundWordTransformerModel(object):
                 attn_one_kv_head = True,
                 shift_tokens = 1
             ),
-            attn_layers2=CrossAttender(
+            attn_layers1=CrossAttender(
                 dim=512,
                 depth=8,
                 heads=8,
