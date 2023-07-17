@@ -19,12 +19,12 @@ defaults = {
     'num_tokens': [
         3,
         17,   # Bar / Beat
-        6914,  # Tempo
-        6914,  # Instrument
-        6914,   # Note name
-        6914,    # Octave
-        6914, 
-        6914,# Duration
+        6913,  # Tempo
+        6913,  # Instrument
+        6913,   # Note name
+        6913,    # Octave
+        6913, 
+        6913,# Duration
     ],
     'emb_sizes': [
         512,
