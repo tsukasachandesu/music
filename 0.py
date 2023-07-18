@@ -156,7 +156,7 @@ model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
 )).cuda()
 
 # setup deepspeed
-data_train = DataHelper.load('/content/drive/MyDrive/muse_dataset')
+data_train = DataHelper.load('/content/drive/MyDrive/0d')
 train_dataset = Dataset(data_train.data)
 
 cmd_args = add_argument()
