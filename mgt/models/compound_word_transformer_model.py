@@ -6,7 +6,6 @@ import numpy as np
 import torch
 from x_transformers import Decoder
 from x_transformers import Encoder
-.
 from x_transformers import CrossAttender
 
 from mgt.models import utils
@@ -157,7 +156,7 @@ class CompoundWordTransformerModel(object):
             ),
             attn_layers1=CrossAttender(
                 dim=512,
-                depth=12,
+                depth=8,
                 heads=8,
                 ff_glu = True,
                 ff_swish = True,
