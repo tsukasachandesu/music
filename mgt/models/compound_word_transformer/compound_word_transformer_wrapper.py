@@ -14,6 +14,7 @@ import torch.nn.functional as F
 import math
 from einops import rearrange, reduce, repeat
 from torch.nn.functional import pad
+
 def top_k(logits, thres = 0.9):
     k = math.ceil((1 - thres) * logits.shape[-1])
     val, ind = torch.topk(logits, k)
@@ -114,30 +115,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.proj_type = nn.Sequential(
             nn.Linear(dim, self.num_tokens[0])
         )
-
-        self.proj_barbeat1 = nn.Linear(self.num_tokens[1], 13)
-        self.proj_barbeat2 = nn.Linear(self.num_tokens[1], 10)        
-        self.proj_barbeat3 = nn.Linear(self.num_tokens[1], 65)
-        
-        self.proj_tempo1 = nn.Linear(self.num_tokens[1], 13)
-        self.proj_tempo2 = nn.Linear(self.num_tokens[1], 10)        
-        self.proj_tempo3 = nn.Linear(self.num_tokens[1], 65)
-
-        self.proj_instrument1 = nn.Linear(self.num_tokens[1], 13)
-        self.proj_instrument2 = nn.Linear(self.num_tokens[1], 10)        
-        self.proj_instrument3 = nn.Linear(self.num_tokens[1], 65)                
-
-        self.proj_note_name1 = nn.Linear(self.num_tokens[1], 13)
-        self.proj_note_name2 = nn.Linear(self.num_tokens[1], 10)        
-        self.proj_note_name3 = nn.Linear(self.num_tokens[1], 65)   
-        
-        self.proj_octave1 = nn.Linear(self.num_tokens[1], 13)
-        self.proj_octave2 = nn.Linear(self.num_tokens[1], 10)        
-        self.proj_octave3 = nn.Linear(self.num_tokens[1], 65)                
-
-        self.proj_duration1 = nn.Linear(self.num_tokens[1], 13)
-        self.proj_duration2 = nn.Linear(self.num_tokens[1], 10)        
-        self.proj_duration3 = nn.Linear(self.num_tokens[1], 65)  
         
         self.proj_barbeat = nn.Sequential(
             nn.Linear(dim, self.num_tokens[1])
@@ -174,6 +151,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         self.attn_layers1 = attn_layers
         self.attn_layers2 = attn_layers1
+        
         self.project_concat_type = nn.Linear(512*2, 512)
         
         self.in_linear = nn.Linear(512*7, 512)
@@ -278,28 +256,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         proj_note_name = self.proj_note_name(y_)
         proj_octave = self.proj_octave(y_)
         proj_duration = self.proj_duration(y_)
-                           
-        a1 = self.proj_barbeat1(proj_barbeat)
-        a2 = self.proj_barbeat2(proj_barbeat)
-        a3 = self.proj_barbeat3(proj_barbeat) 
-        b1 = self.proj_tempo1(proj_tempo)
-        b2 = self.proj_tempo2(proj_tempo)
-        b3 = self.proj_tempo3(proj_tempo) 
-        c1 = self.proj_instrument1(proj_instrument)
-        c2 = self.proj_instrument2(proj_instrument)
-        c3 = self.proj_instrument3(proj_instrument) 
-        d1 = self.proj_note_name1(proj_note_name)
-        d2 = self.proj_note_name2(proj_note_name)
-        d3 = self.proj_note_name3(proj_note_name) 
-        e1 = self.proj_octave1(proj_octave)
-        e2 = self.proj_octave2(proj_octave)
-        e3 = self.proj_octave3(proj_octave) 
-        f1 = self.proj_duration1(proj_duration)
-        f2 = self.proj_duration2(proj_duration)
-        f3 = self.proj_duration3(proj_duration) 
-                           
-        return proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration, a1,a2,a3,b1,b2,b3,c1,c2,c3,d1,d2,d3,e1,e2,e3,f1,f2,f3
-
+                                        
+        return proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration
 
     def forward_hidden(
             self,
@@ -345,6 +303,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         x = self.in_linear(x)
         x = x.reshape(x1,-1,512)
         x = x + self.pos_emb1(x)
+        x = self.emb_dropout(x)
         x = self.attn_layers1(x, mask = mask)
         x = x.reshape(-1,1,512)
         y = y + self.pos_emb2(y)
