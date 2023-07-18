@@ -5,8 +5,7 @@ import deepspeed
 import time
 import numpy as np
 import torch
-from x_transformers import Decoder, Encoder
-
+from x_transformers import Decoder, Encoder, CrossAttender
 from mgt.models import utils
 from mgt.models.compound_word_transformer.compound_word_autoregressive_wrapper import CompoundWordAutoregressiveWrapper
 from mgt.models.compound_word_transformer.compound_word_transformer_utils import COMPOUND_WORD_BAR, get_batch
@@ -93,13 +92,13 @@ yes1 = "a"
 
 defaults = {
     'num_tokens': [
-        17,   # Bar / Beat
-        6914,  # Tempo
-        6914,  # Instrument
-        6914,   # Note name
-        6914,    # Octave
-        6914,   # Duration
-        6914    # Velocity
+        18,   # Bar / Beat
+        6913,  # Tempo
+        6913,  # Instrument
+        6913,   # Note name
+        6913,    # Octave
+        6913,   # Duration
+        6913    # Velocity
     ],
     'emb_sizes': [
         512,   # Bar / Beat
@@ -124,28 +123,35 @@ model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
     max_seq_len=defaults['max_sequence_length'],
     attn_layers=Decoder(
         dim=512,
-        depth=12,
+        depth=24,
         heads=8,
         ff_glu = True,
         ff_swish = True,
         use_rmsnorm = True,
         alibi_pos_bias = True,
         alibi_num_heads = 4,   
-        attn_dropout=0.1,  
+        attn_dropout=0.1,
+        layer_dropout = 0.1,
         ff_dropout=0.1,
-        ff_no_bias = True
+        ff_no_bias = True,
+        attn_one_kv_head = True,
+        shift_tokens = 1
     ),
-    attn_layers2=Encoder(
-        dim=512,
-        depth=6,
-        heads=8,
-        ff_glu = True,
-        ff_swish = True,
-        use_rmsnorm = True,
-        dynamic_pos_bias = True,  
-        dynamic_pos_bias_log_distance = False,
-        attn_dropout=0.1,  
-        ff_dropout=0.1
+    attn_layers1=CrossAttender(
+                dim=512,
+                depth=8,
+                heads=8,
+                ff_glu = True,
+                ff_swish = True,
+                use_rmsnorm = True,            
+                layer_dropout = 0.1,
+                attn_dropout=0.1,  
+                ff_dropout=0.1,
+                ff_no_bias = True,
+                attn_one_kv_head = True,
+                dynamic_pos_bias = True,                # set this to True
+                dynamic_pos_bias_log_distance = False   # whether to use log distance, as in SwinV2
+
     )  
 )).cuda()
 
