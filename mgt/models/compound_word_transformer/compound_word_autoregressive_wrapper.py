@@ -124,21 +124,9 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
                 
         xi = x[:, :-1, :]
         target = x[:, 1:, :]
-
-        z = target[:, :, 1:7] - 1
-        i_special_minus1 = 12
-        j_special_minus1 = 9 
-        k_special_minus1 = 64 
-        r_special_minus1 = 108
-        
-        mask_minus1 = z == -1
-        i_tensor = torch.where(mask_minus1, i_special_minus1, z // (64 * 9))
-        j_tensor = torch.where(mask_minus1, j_special_minus1,  (z // 64) % 9)
-        k_tensor = torch.where(mask_minus1, k_special_minus1,  z % 64)
-        r_tensor = torch.where(mask_minus1, r_special_minus1,  z // 64)
         
         h, proj_type = self.net.forward_hidden(xi,**kwargs)
-        proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration,a1,a2,a3,b1,b2,b3,c1,c2,c3,d1,d2,d3,e1,e2,e3,f1,f2,f3 = self.net.forward_output(h, target)
+        proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration = self.net.forward_output(h, target)
         
         type_loss = calculate_loss(proj_type, target[..., 0], type_mask(target))
         barbeat_loss = calculate_loss(proj_barbeat, target[..., 1], type_mask(target))
@@ -148,28 +136,7 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         octave_loss = calculate_loss(proj_octave, target[..., 5], type_mask(target))
         duration_loss = calculate_loss(proj_duration, target[..., 6], type_mask(target))
         
-        proj = torch.cat([proj_barbeat.unsqueeze(3), proj_tempo.unsqueeze(3), proj_instrument.unsqueeze(3), proj_note_name.unsqueeze(3), proj_octave.unsqueeze(3), proj_duration.unsqueeze(3)],-1)
-        x1,x2,x3,x4 = proj.shape
-        proj2 = proj[:,:,0,:].reshape(-1,x2,1,1).squeeze(3)
-        proj = proj[:,:,1:,:]
-        proj3 = proj.reshape(-1,x2,x3-1,1)
-        
-        proj = proj3.reshape(x1*6,x2,64,-1)
-        proj = torch.sum(proj,-1)
-        proj = torch.cat([proj2, proj],-1)
-        proj4 = calculate_loss(proj, k_tensor.reshape(-1,x2,1).squeeze(2), type_mask(target.repeat((6,1,1))))
-
-        proj = proj3.reshape(x1*6,x2,-1,64*12)
-        proj = torch.sum(proj,-1)
-        proj = torch.cat([proj2, proj],-1)
-        proj5 = calculate_loss(proj, j_tensor.reshape(-1,x2,1).squeeze(2), type_mask(target.repeat((6,1,1))))
-
-        proj = proj3.reshape(x1*6,x2,-1,64*12).reshape(x1*6,x2,-1,12).permute(0, 1, 3, 2)
-        proj = torch.sum(proj,-1)
-        proj = torch.cat([proj2, proj],-1)
-        proj6 = calculate_loss(proj, i_tensor.reshape(-1,x2,1).squeeze(2), type_mask(target.repeat((6,1,1))))
-        
-        return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss,proj4,proj5,proj6,proj7
+        return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss
    
    
    
