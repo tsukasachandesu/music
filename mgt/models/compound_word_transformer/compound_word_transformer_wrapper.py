@@ -151,9 +151,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         self.attn_layers1 = attn_layers
         self.attn_layers2 = attn_layers1
-        
-        self.project_concat_type = nn.Linear(512*2, 512)
-        
+        self.attn_layers3 = attn_layers
+                
         self.in_linear = nn.Linear(512*7, 512)
         
         self.init_()
@@ -175,28 +174,18 @@ class CompoundWordTransformerWrapper(nn.Module):
         if selection_temperatures is None:
             selection_temperatures = {}
 
-        y_type_logit = y_type[0, :]
-        
-        cur_word_type = sampling(
-            y_type_logit,
-            probability_treshold=selection_probability_tresholds.get(0, None),
-            temperature=selection_temperatures.get(0, 1.0)
-        )
-
-        type_word_t = torch.from_numpy(np.array([cur_word_type])).long().to(get_device()).unsqueeze(0)
-
-        tf_skip_type = self.word_emb_type(type_word_t)
-
-        # concat
-        y_concat_type = torch.cat([h, tf_skip_type], dim=-1)
-        y_ = self.project_concat_type(y_concat_type)
-        
         proj_barbeat = self.proj_barbeat(y_)
         proj_tempo = self.proj_tempo(y_)
         proj_instrument = self.proj_instrument(y_)
         proj_note_name = self.proj_note_name(y_)
         proj_octave = self.proj_octave(y_)
         proj_duration = self.proj_duration(y_)
+
+        cur_word_type = sampling(
+            proj_type,
+            probability_treshold=selection_probability_tresholds.get(0, None),
+            temperature=selection_temperatures.get(0, 1.0)
+        )
 
         cur_word_barbeat = sampling(
             proj_barbeat,
@@ -241,23 +230,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         ])
         return next_arr
 
-
-    def forward_output(self,
-                       h,
-                       target
-                       ):
-        tf_skip_type = self.word_emb_type(target[..., 0])
-        y_concat_type = torch.cat([h, tf_skip_type], dim=-1)
-        y_ = self.project_concat_type(y_concat_type)
-
-        proj_barbeat = self.proj_barbeat(y_)
-        proj_tempo = self.proj_tempo(y_)
-        proj_instrument = self.proj_instrument(y_)
-        proj_note_name = self.proj_note_name(y_)
-        proj_octave = self.proj_octave(y_)
-        proj_duration = self.proj_duration(y_)
-                                        
-        return proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration
 
     def forward_hidden(
             self,
@@ -307,7 +279,15 @@ class CompoundWordTransformerWrapper(nn.Module):
         x = self.attn_layers1(x, mask = mask)
         x = x.reshape(-1,1,512)
         y = y + self.pos_emb2(y)
-        x = self.attn_layers2(x, context = y, mask = mask.reshape(-1,1), context_mask = mask.reshape(-1,1).repeat((1,7)))
-        x = x.reshape(x1,-1,512)
+        y = self.attn_layers2(y, context = x, mask =mask.reshape(-1,1).repeat((1,7)), context_mask = mask.reshape(-1,1))
+        y = self.attn_layers3(y, mask = mask.reshape(-1,1))
         
-        return x, self.proj_type(x)
+        proj_type = self.proj_type(y[:,0,:].reshape(x1,-1,512))
+        proj_barbeat = self.proj_barbeat(y[:,0,:].reshape(x1,-1,512))
+        proj_tempo = self.proj_tempo(y[:,0,:].reshape(x1,-1,512))
+        proj_instrument = self.proj_instrument(y[:,0,:].reshape(x1,-1,512))
+        proj_note_name = self.proj_note_name(y[:,0,:].reshape(x1,-1,512))
+        proj_octave = self.proj_octave(y[:,0,:].reshape(x1,-1,512))
+        proj_duration = self.proj_duration(y[:,0,:].reshape(x1,-1,512))
+                                        
+        return proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration
