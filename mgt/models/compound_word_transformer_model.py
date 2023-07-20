@@ -140,7 +140,7 @@ class CompoundWordTransformerModel(object):
             max_seq_len=self.max_sequence_length,
             attn_layers=Decoder(
                 dim=self.dim,
-                depth=12,
+                depth=24,
                 heads=self.heads,
                 ff_glu = True,
                 ff_swish = True,
@@ -150,11 +150,11 @@ class CompoundWordTransformerModel(object):
                 ff_dropout=self.dropout,  # feedforward dropout
                 ff_no_bias = True,
                 attn_one_kv_head = True,
-                attn_flash = True
+                shift_tokens = 1
             ),
             attn_layers1=CrossAttender(
                 dim=512,
-                depth=6,
+                depth=8,
                 heads=8,
                 ff_glu = True,
                 ff_swish = True,
@@ -164,20 +164,8 @@ class CompoundWordTransformerModel(object):
                 ff_dropout=self.dropout,
                 ff_no_bias = True,
                 attn_one_kv_head = True,
-            ),
-            attn_layers2=Encoder(
-                dim=512,
-                depth=6,
-                heads=8,
-                ff_glu = True,
-                ff_swish = True,
-                use_rmsnorm = True,            
-                layer_dropout = self.dropout,
-                attn_dropout=self.dropout,  
-                ff_dropout=self.dropout,
-                ff_no_bias = True,
-                attn_one_kv_head = True,
-                attn_flash = True
+                dynamic_pos_bias = True,                # set this to True
+                dynamic_pos_bias_log_distance = False   # whether to use log distance, as in SwinV2
             )
         )).to(get_device())
 
