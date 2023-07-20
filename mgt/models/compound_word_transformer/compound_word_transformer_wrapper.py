@@ -276,7 +276,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         x = self.attn_layers2(x, mask = mask)
         x = x.reshape(-1,1,512)
         y = self.attn_layers3(y, context = x, mask = mask.reshape(-1,1).repeat((1,7)), context_mask = mask.reshape(-1,1))
-        y = self.attn_layers4(y, mask = mask.reshape(-1,1).repeat((1,7)))
+        y = self.attn_layers4(y, mask = None)
         
         proj_type = self.proj_type(y[:,0,:].reshape(x1,-1,512))
         proj_barbeat = self.proj_barbeat(y[:,1,:].reshape(x1,-1,512))
