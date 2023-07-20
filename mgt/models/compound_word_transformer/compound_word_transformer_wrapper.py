@@ -279,11 +279,11 @@ class CompoundWordTransformerWrapper(nn.Module):
                        target
                        ):
         tf_skip_type = self.word_emb_type(target[..., 0])
-        tf_skip_type1 = self.word_emb_type(target[..., 1])
-        tf_skip_type2 = self.word_emb_type(target[..., 2])
-        tf_skip_type3 = self.word_emb_type(target[..., 3])
-        tf_skip_type4 = self.word_emb_type(target[..., 4])
-        tf_skip_type5 = self.word_emb_type(target[..., 5])
+        tf_skip_type1 = self.word_emb_type1(target[..., 1])
+        tf_skip_type2 = self.word_emb_type2(target[..., 2])
+        tf_skip_type3 = self.word_emb_type3(target[..., 3])
+        tf_skip_type4 = self.word_emb_type4(target[..., 4])
+        tf_skip_type5 = self.word_emb_type5(target[..., 5])
                   
         y_concat_type = torch.cat([h, tf_skip_type], dim=-1)
         y_ = self.project_concat_type(y_concat_type)
