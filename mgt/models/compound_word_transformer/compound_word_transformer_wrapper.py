@@ -181,6 +181,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             selection_temperatures = {}
 
         y_type_logit = y_type[0, :]
+        print(y_type_logit.shape)
         
         cur_word_type = sampling(
             y_type_logit,
@@ -195,6 +196,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         y_ = self.project_concat_type(y_concat_type)
 
         proj_barbeat = self.proj_barbeat(y_)
+        print(proj_barbeat.shape)
 
         cur_word_barbeat = sampling(
             proj_barbeat,
@@ -207,6 +209,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         y_ = self.project_concat_type1(y_)
 
         proj_tempo = self.proj_tempo(y_)
+        print(proj_tempo.shape)
 
         cur_word_tempo = sampling(
             proj_tempo,
@@ -219,7 +222,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         y_ = self.project_concat_type2(y_)
 
         proj_instrument = self.proj_instrument(y_)
-        
+        print(proj_instrument.shape)
+
         cur_word_instrument = sampling(
             proj_instrument,
             probability_treshold=selection_probability_tresholds.get(3, None),
@@ -231,6 +235,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         y_ = self.project_concat_type3(y_)
 
         proj_note_name = self.proj_note_name(y_)
+        print(proj_note_name.shape)
 
         cur_word_note_name = sampling(
             proj_note_name,
@@ -243,6 +248,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         y_ = self.project_concat_type4(y_)
         
         proj_octave = self.proj_octave(y_)
+        print(proj_octave.shape)
 
         cur_word_octave = sampling(
             proj_octave,
@@ -255,6 +261,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         y_ = self.project_concat_type5(y_)
 
         proj_duration = self.proj_duration(y_)
+        print(proj_duration.shape)
 
         cur_word_duration = sampling(
             proj_duration,
