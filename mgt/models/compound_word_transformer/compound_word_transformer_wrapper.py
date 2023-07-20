@@ -15,20 +15,35 @@ import math
 from einops import rearrange, reduce, repeat
 from torch.nn.functional import pad
 
+def top_p(logits, thres = 0.9):
+    sorted_logits, sorted_indices = torch.sort(logits, descending=True)
+    cum_probs = torch.cumsum(F.softmax(sorted_logits, dim=-1), dim=-1)
+
+    sorted_indices_to_remove = cum_probs > (1 - thres)
+    sorted_indices_to_remove[:, 1:] = sorted_indices_to_remove[:, :-1].clone()
+    sorted_indices_to_remove[:, 0] = 0
+
+    sorted_logits[sorted_indices_to_remove] = float('-inf')
+    return sorted_logits.scatter(1, sorted_indices, sorted_logits)
+
+# topk
+
 def top_k(logits, thres = 0.9):
-    k = math.ceil((1 - thres) * logits.shape[-1])
+    k = ceil((1 - thres) * logits.shape[-1])
     val, ind = torch.topk(logits, k)
     probs = torch.full_like(logits, float('-inf'))
     probs.scatter_(1, ind, val)
     return probs
-def log(t, eps = 1e-20):
-    return torch.log(t.clamp(min = eps))
-def gumbel_noise(t):
-    noise = torch.zeros_like(t).uniform_(0, 1)
-    return -log(-log(noise))
 
-def gumbel_sample(t, temperature = 1., dim = -1):
-    return ((t / max(temperature, 1e-10)) + gumbel_noise(t)).argmax(dim = dim)
+# top_a
+
+def top_a(logits, min_p_pow=2.0, min_p_ratio=0.02):
+    probs = F.softmax(logits, dim=-1)
+    limit = torch.pow(torch.max(probs), min_p_pow) * min_p_ratio
+    logits[probs < limit] = float('-inf')
+    logits[probs >= limit] = 1
+    return logits
+
 
 def softmax_with_temperature(logits, temperature):
     probs = np.exp(logits / temperature) / np.sum(np.exp(logits / temperature))
@@ -176,14 +191,11 @@ class CompoundWordTransformerWrapper(nn.Module):
             selection_temperatures = {}
 
         y_type_logit = y_type[0, :]
-        
-        cur_word_type = sampling(
-            y_type_logit,
-            probability_treshold=selection_probability_tresholds.get(0, None),
-            temperature=selection_temperatures.get(0, 1.0)
-        )
 
-        type_word_t = torch.from_numpy(np.array([cur_word_type])).long().to(get_device()).unsqueeze(0)
+        filtered_logits = top_k(y_type_logit, thres = 0.9)
+        probs = F.softmax(filtered_logits / 1, dim=-1)
+        type_word_t = torch.multinomial(probs, 1)
+        cur_word_type = type_word_t.cpu().detach().numpy()
 
         tf_skip_type = self.word_emb_type(type_word_t)
 
