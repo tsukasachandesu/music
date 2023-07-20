@@ -166,7 +166,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         nn.init.normal_(self.word_emb_barbeat5.weight(), std=0.02)
         nn.init.normal_(self.word_emb_barbeat6.weight(), std=0.02)
 
-    def forward_output_sampling(self, h, y_type,  selection_temperatures=None, selection_probability_tresholds=None):
+    def forward_output_sampling(self, x1,x2,x3,x4,x5,x6, x7, selection_temperatures=None, selection_probability_tresholds=None):
         # sample type
         if selection_probability_tresholds is None:
             selection_probability_tresholds = {}
@@ -174,46 +174,39 @@ class CompoundWordTransformerWrapper(nn.Module):
         if selection_temperatures is None:
             selection_temperatures = {}
 
-        proj_barbeat = self.proj_barbeat(y_)
-        proj_tempo = self.proj_tempo(y_)
-        proj_instrument = self.proj_instrument(y_)
-        proj_note_name = self.proj_note_name(y_)
-        proj_octave = self.proj_octave(y_)
-        proj_duration = self.proj_duration(y_)
-
         cur_word_type = sampling(
-            proj_type,
+            x1,
             probability_treshold=selection_probability_tresholds.get(0, None),
             temperature=selection_temperatures.get(0, 1.0)
         )
 
         cur_word_barbeat = sampling(
-            proj_barbeat,
+            x2,
             probability_treshold=selection_probability_tresholds.get(1, None),
             temperature=selection_temperatures.get(1, 1.0))
 
         cur_word_tempo = sampling(
-            proj_tempo,
+            x3,
             probability_treshold=selection_probability_tresholds.get(2, None),
             temperature=selection_temperatures.get(2, 1.0))
 
         cur_word_instrument = sampling(
-            proj_instrument,
+            x4,
             probability_treshold=selection_probability_tresholds.get(3, None),
             temperature=selection_temperatures.get(3, 1.0))
 
         cur_word_note_name = sampling(
-            proj_note_name,
+            x5,
             probability_treshold=selection_probability_tresholds.get(4, None),
             temperature=selection_temperatures.get(4, 1.0))
 
         cur_word_octave = sampling(
-            proj_octave,
+            x6,
             probability_treshold=selection_probability_tresholds.get(5, None),
             temperature=selection_temperatures.get(5, 1.0))
 
         cur_word_duration = sampling(
-            proj_duration,
+            x7,
             probability_treshold=selection_probability_tresholds.get(6, None),
             temperature=selection_temperatures.get(6, 1.0))
 
@@ -283,11 +276,11 @@ class CompoundWordTransformerWrapper(nn.Module):
         y = self.attn_layers3(y, mask = mask.reshape(-1,1))
         
         proj_type = self.proj_type(y[:,0,:].reshape(x1,-1,512))
-        proj_barbeat = self.proj_barbeat(y[:,0,:].reshape(x1,-1,512))
-        proj_tempo = self.proj_tempo(y[:,0,:].reshape(x1,-1,512))
-        proj_instrument = self.proj_instrument(y[:,0,:].reshape(x1,-1,512))
-        proj_note_name = self.proj_note_name(y[:,0,:].reshape(x1,-1,512))
-        proj_octave = self.proj_octave(y[:,0,:].reshape(x1,-1,512))
-        proj_duration = self.proj_duration(y[:,0,:].reshape(x1,-1,512))
+        proj_barbeat = self.proj_barbeat(y[:,1,:].reshape(x1,-1,512))
+        proj_tempo = self.proj_tempo(y[:,2,:].reshape(x1,-1,512))
+        proj_instrument = self.proj_instrument(y[:,3,:].reshape(x1,-1,512))
+        proj_note_name = self.proj_note_name(y[:,4,:].reshape(x1,-1,512))
+        proj_octave = self.proj_octave(y[:,5,:].reshape(x1,-1,512))
+        proj_duration = self.proj_duration(y[:,6,:].reshape(x1,-1,512))
                                         
         return proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration
