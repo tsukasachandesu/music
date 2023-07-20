@@ -191,16 +191,14 @@ class CompoundWordTransformerWrapper(nn.Module):
             selection_temperatures = {}
 
         y_type_logit = y_type[0, :]
-        print(y_type_logit)
         type_word_t = torch.multinomial(F.softmax(top_k(y_type_logit, thres = 0.9) / 1, dim=-1), 1)
-        print(type_word_t)
 
-        cur_word_type = type_word_t.detach().cpu().numpy()[[0]]
+        cur_word_type = type_word_t.detach().cpu().item()
 
         tf_skip_type = self.word_emb_type(type_word_t)
 
         # concat
-        
+
         y_concat_type = torch.cat([h, tf_skip_type], dim=-1)
         y_ = self.project_concat_type(y_concat_type)
         
@@ -210,26 +208,23 @@ class CompoundWordTransformerWrapper(nn.Module):
         proj_note_name = self.proj_note_name(y_)
         proj_octave = self.proj_octave(y_)
         proj_duration = self.proj_duration(y_)
-
-        print(proj_barbeat.shape)
-
         
-        type_word_t = torch.multinomial(F.softmax(top_k(proj_barbeat, thres = 0.9) / 1, dim=-1), 1)
+        type_word_t = torch.multinomial(F.softmax(top_k(proj_barbeat.squeeze(0), thres = 0.9) / 1, dim=-1), 1)
         cur_word_barbeat = type_word_t.cpu().detach().item()
 
-        type_word_t = torch.multinomial(F.softmax(top_k(proj_tempo, thres = 0.9) / 1, dim=-1), 1)
+        type_word_t = torch.multinomial(F.softmax(top_k(proj_tempo.squeeze(0), thres = 0.9) / 1, dim=-1), 1)
         cur_word_tempo = type_word_t.cpu().detach().item()
 
-        type_word_t = torch.multinomial(F.softmax(top_k(proj_instrument, thres = 0.9) / 1, dim=-1), 1)
+        type_word_t = torch.multinomial(F.softmax(top_k(proj_instrument.squeeze(0), thres = 0.9) / 1, dim=-1), 1)
         cur_word_instrument = type_word_t.cpu().detach().item()
 
-        type_word_t = torch.multinomial(F.softmax(top_k(proj_note_name, thres = 0.9) / 1, dim=-1), 1)
+        type_word_t = torch.multinomial(F.softmax(top_k(proj_note_name.squeeze(0), thres = 0.9) / 1, dim=-1), 1)
         cur_word_note_name = type_word_t.cpu().detach().item()
 
-        type_word_t = torch.multinomial(F.softmax(top_k(proj_octave, thres = 0.9) / 1, dim=-1), 1)
+        type_word_t = torch.multinomial(F.softmax(top_k(proj_octave.squeeze(0), thres = 0.9) / 1, dim=-1), 1)
         cur_word_octave = type_word_t.cpu().detach().item()
 
-        type_word_t = torch.multinomial(F.softmax(top_k(proj_duration, thres = 0.9) / 1, dim=-1), 1)
+        type_word_t = torch.multinomial(F.softmax(top_k(proj_duration.squeeze(0), thres = 0.9) / 1, dim=-1), 1)
         cur_word_duration = type_word_t.cpu().detach().item()
 
         # collect
