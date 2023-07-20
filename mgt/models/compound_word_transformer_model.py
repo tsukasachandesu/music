@@ -156,7 +156,22 @@ class CompoundWordTransformerModel(object):
             ),
             attn_layers1=CrossAttender(
                 dim=512,
-                depth=6,
+                depth=3,
+                heads=8,
+                ff_glu = True,
+                ff_swish = True,
+                use_rmsnorm = True,            
+                layer_dropout = self.dropout,
+                attn_dropout=self.dropout,  
+                ff_dropout=self.dropout,
+                ff_no_bias = True,
+                attn_one_kv_head = True,
+                dynamic_pos_bias = True,                # set this to True
+                dynamic_pos_bias_log_distance = False   # whether to use log distance, as in SwinV2
+            ),
+            attn_layers2=Encoder(
+                dim=512,
+                depth=3,
                 heads=8,
                 ff_glu = True,
                 ff_swish = True,
