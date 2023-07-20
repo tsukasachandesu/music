@@ -181,8 +181,8 @@ class CompoundWordTransformerModel(object):
                 ff_dropout=self.dropout,
                 ff_no_bias = True,
                 attn_one_kv_head = True,
-                dynamic_pos_bias = True,                # set this to True
-                dynamic_pos_bias_log_distance = False   # whether to use log distance, as in SwinV2
+                attn_flash = True
+
             )
         )).to(get_device())
 
