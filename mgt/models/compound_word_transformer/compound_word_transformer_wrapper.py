@@ -191,11 +191,30 @@ class CompoundWordTransformerWrapper(nn.Module):
             selection_temperatures = {}
 
         y_type_logit = y_type[0, :]
+        
+        cur_word_type = sampling(
+            y_type_logit,
+            probability_treshold=selection_probability_tresholds.get(0, None),
+            temperature=selection_temperatures.get(0, 1.0)
+        )
+
+        print(cur_word_type )
+        print(cur_word_type.dtype )
+
+        type_word_t = torch.from_numpy(np.array([cur_word_type])).long().to(get_device()).unsqueeze(0)
+        print(type_word_t.dtype )
+        print(type_word_t)
 
         filtered_logits = top_k(y_type_logit, thres = 0.9)
+        print(filtered_logits)
         probs = F.softmax(filtered_logits / 1, dim=-1)
         type_word_t = torch.multinomial(probs, 1)
+        print(type_word_t )
+        print(type_word_t.dtype )
+
         cur_word_type = type_word_t.cpu().detach().numpy()
+        print(cur_word_type.dtype )
+        print(cur_word_type )
 
         tf_skip_type = self.word_emb_type(type_word_t)
 
