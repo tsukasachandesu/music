@@ -212,7 +212,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         print(type_word_t )
         print(type_word_t.dtype )
 
-        cur_word_type = type_word_t.cpu().detach().numpy()
+        cur_word_type = type_word_t.cpu().detach().item())
         print(cur_word_type.dtype )
         print(cur_word_type )
 
