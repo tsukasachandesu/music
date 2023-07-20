@@ -135,7 +135,8 @@ model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
         ff_dropout=0.1,
         ff_no_bias = True,
         attn_one_kv_head = True,
-        shift_tokens = 1
+        shift_tokens = 1,
+        attn_flash = True
     ),
     attn_layers1=CrossAttender(
                 dim=512,
