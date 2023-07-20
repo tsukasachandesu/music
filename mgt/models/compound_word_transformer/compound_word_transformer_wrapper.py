@@ -191,21 +191,8 @@ class CompoundWordTransformerWrapper(nn.Module):
             selection_temperatures = {}
 
         y_type_logit = y_type[0, :]
-        
-        cur_word_type = sampling(
-            y_type_logit,
-            probability_treshold=selection_probability_tresholds.get(0, None),
-            temperature=selection_temperatures.get(0, 1.0)
-        )
 
-
-
-        type_word_t = torch.from_numpy(np.array([cur_word_type])).long().to(get_device()).unsqueeze(0)
-
-        filtered_logits = top_k(y_type_logit, thres = 0.9)
-        probs = F.softmax(filtered_logits / 1, dim=-1)
-        type_word_t = torch.multinomial(probs, 1)
-
+        type_word_t = torch.multinomial(F.softmax(top_k(y_type_logit, thres = 0.9) / 1, dim=-1), 1)
         cur_word_type = type_word_t.cpu().detach().item()
 
         tf_skip_type = self.word_emb_type(type_word_t)
@@ -221,36 +208,24 @@ class CompoundWordTransformerWrapper(nn.Module):
         proj_octave = self.proj_octave(y_)
         proj_duration = self.proj_duration(y_)
 
-        cur_word_barbeat = sampling(
-            proj_barbeat,
-            probability_treshold=selection_probability_tresholds.get(1, None),
-            temperature=selection_temperatures.get(1, 1.0))
+        
+        type_word_t = torch.multinomial(F.softmax(top_k(proj_barbeat, thres = 0.9) / 1, dim=-1), 1)
+        cur_word_barbeat = type_word_t.cpu().detach().item()
 
-        cur_word_tempo = sampling(
-            proj_tempo,
-            probability_treshold=selection_probability_tresholds.get(2, None),
-            temperature=selection_temperatures.get(2, 1.0))
+        type_word_t = torch.multinomial(F.softmax(top_k(proj_tempo, thres = 0.9) / 1, dim=-1), 1)
+        cur_word_tempo = type_word_t.cpu().detach().item()
 
-        cur_word_instrument = sampling(
-            proj_instrument,
-            probability_treshold=selection_probability_tresholds.get(3, None),
-            temperature=selection_temperatures.get(3, 1.0))
+        type_word_t = torch.multinomial(F.softmax(top_k(proj_instrument, thres = 0.9) / 1, dim=-1), 1)
+        cur_word_instrument = type_word_t.cpu().detach().item()
 
-        cur_word_note_name = sampling(
-            proj_note_name,
-            probability_treshold=selection_probability_tresholds.get(4, None),
-            temperature=selection_temperatures.get(4, 1.0))
+        type_word_t = torch.multinomial(F.softmax(top_k(proj_note_name, thres = 0.9) / 1, dim=-1), 1)
+        cur_word_note_name = type_word_t.cpu().detach().item()
 
-        cur_word_octave = sampling(
-            proj_octave,
-            probability_treshold=selection_probability_tresholds.get(5, None),
-            temperature=selection_temperatures.get(5, 1.0))
+        type_word_t = torch.multinomial(F.softmax(top_k(proj_octave, thres = 0.9) / 1, dim=-1), 1)
+        cur_word_octave = type_word_t.cpu().detach().item()
 
-        cur_word_duration = sampling(
-            proj_duration,
-            probability_treshold=selection_probability_tresholds.get(6, None),
-            temperature=selection_temperatures.get(6, 1.0))
-
+        type_word_t = torch.multinomial(F.softmax(top_k(proj_duration, thres = 0.9) / 1, dim=-1), 1)
+        cur_word_duration = type_word_t.cpu().detach().item()
 
         # collect
         next_arr = np.array([
