@@ -191,13 +191,16 @@ class CompoundWordTransformerWrapper(nn.Module):
             selection_temperatures = {}
 
         y_type_logit = y_type[0, :]
-
+        print(y_type_logit)
         type_word_t = torch.multinomial(F.softmax(top_k(y_type_logit, thres = 0.9) / 1, dim=-1), 1)
-        cur_word_type = type_word_t.cpu().detach().item()
+        print(type_word_t)
+
+        cur_word_type = type_word_t.detach().cpu().numpy()[[0]]
 
         tf_skip_type = self.word_emb_type(type_word_t)
 
         # concat
+        
         y_concat_type = torch.cat([h, tf_skip_type], dim=-1)
         y_ = self.project_concat_type(y_concat_type)
         
@@ -207,6 +210,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         proj_note_name = self.proj_note_name(y_)
         proj_octave = self.proj_octave(y_)
         proj_duration = self.proj_duration(y_)
+
+        print(proj_barbeat.shape)
 
         
         type_word_t = torch.multinomial(F.softmax(top_k(proj_barbeat, thres = 0.9) / 1, dim=-1), 1)
