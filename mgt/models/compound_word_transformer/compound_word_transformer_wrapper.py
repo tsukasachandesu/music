@@ -76,6 +76,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             max_seq_len,
             attn_layers,
             attn_layers1,
+            attn_layers2,
             emb_dim=None,
             emb_dropout=0.,
             use_pos_emb=True,
@@ -149,10 +150,11 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         self.emb_dropout = nn.Dropout(emb_dropout)
         
-        self.attn_layers1 = attn_layers
-        self.attn_layers2 = attn_layers1
-        self.attn_layers3 = attn_layers
-                
+        self.attn_layers1 = attn_layers1
+        self.attn_layers2 = attn_layers
+        self.attn_layers3 = attn_layers1
+        self.attn_layers4 = attn_layers2
+        
         self.in_linear = nn.Linear(512*7, 512)
         
         self.init_()
@@ -264,16 +266,17 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_octave.reshape(-1,1,512),
                 emb_duration.reshape(-1,1,512),
             ], dim = 1)
-
+        
         x = self.in_linear(x)
+        y = y + self.pos_emb2(y)
+        x = x.reshape(-1,1,512)
+        x = self.attn_layers1(x, context = y, mask = mask.reshape(-1,1), context_mask = mask.reshape(-1,1).repeat((1,7)))
         x = x.reshape(x1,-1,512)
         x = x + self.pos_emb1(x)
-        x = self.emb_dropout(x)
-        x = self.attn_layers1(x, mask = mask)
+        x = self.attn_layers2(x, mask = mask)
         x = x.reshape(-1,1,512)
-        y = y + self.pos_emb2(y)
-        y = self.attn_layers2(y, context = x, mask =mask.reshape(-1,1).repeat((1,7)), context_mask = mask.reshape(-1,1))
-        y = self.attn_layers3(y, mask = mask.reshape(-1,1))
+        y = self.attn_layers3(y, context = x, mask = mask.reshape(-1,1).repeat((1,7)), context_mask = mask.reshape(-1,1))
+        y = self.attn_layers4(y, mask = mask.reshape(-1,1).repeat((1,7)))
         
         proj_type = self.proj_type(y[:,0,:].reshape(x1,-1,512))
         proj_barbeat = self.proj_barbeat(y[:,1,:].reshape(x1,-1,512))
