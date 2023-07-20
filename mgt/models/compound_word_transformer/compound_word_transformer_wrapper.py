@@ -29,7 +29,7 @@ def top_p(logits, thres = 0.9):
 # topk
 
 def top_k(logits, thres = 0.9):
-    k = ceil((1 - thres) * logits.shape[-1])
+    k = math.ceil((1 - thres) * logits.shape[-1])
     val, ind = torch.topk(logits, k)
     probs = torch.full_like(logits, float('-inf'))
     probs.scatter_(1, ind, val)
