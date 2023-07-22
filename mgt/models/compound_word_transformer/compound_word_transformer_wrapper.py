@@ -367,7 +367,5 @@ class CompoundWordTransformerWrapper(nn.Module):
         x4,x5,x6 = x.shape
         x = x.reshape(x4,1,512*8)
         x = x.reshape(x1,-1,512*8)
-        print(x.shape)
-
 	    
         return x, self.proj_type(x)
