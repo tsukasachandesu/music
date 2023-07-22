@@ -198,12 +198,15 @@ class CompoundWordTransformerWrapper(nn.Module):
                 
         self.pos_emb1 = AbsolutePositionalEmbedding(512, max_seq_len) 
         self.pos_emb2 = AbsolutePositionalEmbedding(512, 7)
+        self.pos_emb3 = AbsolutePositionalEmbedding(512, 8)
+
         
         self.emb_dropout = nn.Dropout(emb_dropout)
         
         self.attn_layers1 = attn_layers
         self.attn_layers2 = attn_layers1
-        
+        self.attn_layers3 = attn_layers
+	    
         self.project_concat_type = nn.Linear(512*2, 512)
         
         self.in_linear = nn.Linear(512*7, 512)
@@ -326,7 +329,7 @@ class CompoundWordTransformerWrapper(nn.Module):
                 
             ], dim = -1)
 
-        y = torch.cat(
+        z = torch.cat(
             [
                 emb_type.reshape(-1,1,512),
                 emb_barbeat.reshape(-1,1,512),
@@ -337,9 +340,12 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_duration.reshape(-1,1,512),
             ], dim = 1)
 
+	    
+	    
+
         x = self.in_linear(x)
         x = x.reshape(-1,1,512)
-        y = y + self.pos_emb2(y)
+        y = y + self.pos_emb2(z)
         y = self.emb_dropout(y)
         x = self.emb_dropout(x)
 
@@ -348,5 +354,18 @@ class CompoundWordTransformerWrapper(nn.Module):
         x = x + self.pos_emb1(x) + self.emb(x[..., 0])
         x = self.emb_dropout(x)
         x = self.attn_layers1(x, mask = None)
+	    
+        y = torch.cat(
+            [
+                x.reshape(-1,1,512),
+                z
+            ], dim = 1)
+	    
+        y = y + self.pos_emb3(z)
+        y = self.emb_dropout(y)
+        x = self.attn_layers3(y, mask = None)
+        x4,x5,x6 = x.shape
+        x = x.reshape(x4,1,512*8)
+        x = x.reshape(x1,-1,512*8)
 	    
         return x, self.proj_type(x)
