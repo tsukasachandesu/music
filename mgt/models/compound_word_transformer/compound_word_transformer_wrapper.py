@@ -345,7 +345,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         x = self.in_linear(x)
         x = x.reshape(-1,1,512)
-        y = y + self.pos_emb2(z)
+        y = z + self.pos_emb2(z)
         y = self.emb_dropout(y)
         x = self.emb_dropout(x)
 
