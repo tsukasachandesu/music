@@ -15,6 +15,43 @@ import math
 from einops import rearrange, reduce, repeat
 from torch.nn.functional import pad
 
+class Fundamental_Music_Embedding(nn.Module):
+	def __init__(self, d_model, base, device='cuda:0'):
+		super().__init__()
+		self.d_model = d_model
+		self.device = device
+		self.base = base
+		
+		translation_bias = torch.rand((1, self.d_model))
+		translation_bias = nn.Parameter(translation_bias, requires_grad=True)
+		self.register_parameter("translation_bias", translation_bias)
+
+		i = torch.arange(d_model)
+		angle_rates = 1 / torch.pow(self.base, (2 * (i//2)) / d_model)
+		angle_rates = angle_rates[None, ... ].to(self.device)
+		angles = nn.Parameter(angle_rates, requires_grad=True)
+		self.register_parameter("angles", angles)
+
+	def __call__(self, inp):
+		inp = inp[..., None] #pos (batch, num_pitch, 1)
+		angle_rads = inp*self.angles #(batch, num_pitch)*(1,dim)
+
+		# apply sin to even indices in the array; 2i
+		angle_rads[:, :, 0::2] = torch.sin(angle_rads.clone()[:, : , 0::2])
+
+		# apply cos to odd indices in the array; 2i+1
+		angle_rads[:, :, 1::2] = torch.cos(angle_rads.clone()[:, :, 1::2])
+
+		pos_encoding = angle_rads.to(torch.float32)
+
+		if self.translation_bias.size()[-1]!= self.d_model:
+			translation_bias = self.translation_bias.repeat(1, 1,int(self.d_model/2))
+		else:
+			translation_bias = self.translation_bias
+		pos_encoding += translation_bias
+		
+		return pos_encoding
+
 def top_p(logits, thres = 0.9):
     sorted_logits, sorted_indices = torch.sort(logits, descending=True)
     cum_probs = torch.cumsum(F.softmax(sorted_logits, dim=-1), dim=-1)
@@ -170,6 +207,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.project_concat_type = nn.Linear(512*2, 512)
         
         self.in_linear = nn.Linear(512*7, 512)
+
+        self.emb = Fundamental_Music_Embedding(512, 10000)
         
         self.init_()
 
@@ -300,11 +339,12 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         x = self.in_linear(x)
         x = x.reshape(x1,-1,512)
-        x = x + self.pos_emb1(x)
+        x = x + self.pos_emb1(x) + self.emb(x[..., 0])
         x = self.emb_dropout(x)
         x = self.attn_layers1(x, mask = None)
         x = x.reshape(-1,1,512)
         y = y + self.pos_emb2(y)
+        y = self.emb_dropout(y)
         x = self.attn_layers2(x, context = y, mask = mask.reshape(-1,1), context_mask = mask.reshape(-1,1).repeat((1,7)))
         x = x.reshape(x1,-1,512)
         
