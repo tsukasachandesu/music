@@ -207,7 +207,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.attn_layers2 = attn_layers1
         self.attn_layers3 = attn_layers
 	    
-        self.project_concat_type = nn.Linear(512*16, 512*8)
+        self.project_concat_type = nn.Linear(512*9, 512*8)
         
         self.in_linear = nn.Linear(512*7, 512)
 
@@ -367,5 +367,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         x4,x5,x6 = x.shape
         x = x.reshape(x4,1,512*8)
         x = x.reshape(x1,-1,512*8)
+        print(x.shape)
+
 	    
         return x, self.proj_type(x)
