@@ -165,31 +165,31 @@ class CompoundWordTransformerWrapper(nn.Module):
         # individual output
         
         self.proj_type = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[0])
+            nn.Linear(dim*8, self.num_tokens[0])
         )
         
         self.proj_barbeat = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[1])
+            nn.Linear(dim*8, self.num_tokens[1])
         )
         
         self.proj_tempo = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[2])
+            nn.Linear(dim*8, self.num_tokens[2])
         )
         
         self.proj_instrument = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[3])
+            nn.Linear(dim*8, self.num_tokens[3])
         )
         
         self.proj_note_name = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[4])
+            nn.Linear(dim*8, self.num_tokens[4])
         )
         
         self.proj_octave = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[5])
+            nn.Linear(dim*8, self.num_tokens[5])
         )
         
         self.proj_duration = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[6])
+            nn.Linear(dim*8, self.num_tokens[6])
         )
 
         # in_features is equal to dimension plus dimensions of the type embedding
@@ -207,7 +207,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.attn_layers2 = attn_layers1
         self.attn_layers3 = attn_layers
 	    
-        self.project_concat_type = nn.Linear(512*2, 512)
+        self.project_concat_type = nn.Linear(512*16, 512*8)
         
         self.in_linear = nn.Linear(512*7, 512)
 
