@@ -361,7 +361,7 @@ class CompoundWordTransformerWrapper(nn.Module):
                 z
             ], dim = 1)
 	    
-        y = y + self.pos_emb3(z)
+        y = y + self.pos_emb3(y)
         y = self.emb_dropout(y)
         x = self.attn_layers3(y, mask = None)
         x4,x5,x6 = x.shape
