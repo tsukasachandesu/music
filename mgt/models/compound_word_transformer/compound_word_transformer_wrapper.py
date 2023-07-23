@@ -165,31 +165,31 @@ class CompoundWordTransformerWrapper(nn.Module):
         # individual output
         
         self.proj_type = nn.Sequential(
-            nn.Linear(dim*8, self.num_tokens[0])
+            nn.Linear(dim, self.num_tokens[0])
         )
         
         self.proj_barbeat = nn.Sequential(
-            nn.Linear(dim*8, self.num_tokens[1])
+            nn.Linear(dim, self.num_tokens[1])
         )
         
         self.proj_tempo = nn.Sequential(
-            nn.Linear(dim*8, self.num_tokens[2])
+            nn.Linear(dim, self.num_tokens[2])
         )
         
         self.proj_instrument = nn.Sequential(
-            nn.Linear(dim*8, self.num_tokens[3])
+            nn.Linear(dim, self.num_tokens[3])
         )
         
         self.proj_note_name = nn.Sequential(
-            nn.Linear(dim*8, self.num_tokens[4])
+            nn.Linear(dim, self.num_tokens[4])
         )
         
         self.proj_octave = nn.Sequential(
-            nn.Linear(dim*8, self.num_tokens[5])
+            nn.Linear(dim, self.num_tokens[5])
         )
         
         self.proj_duration = nn.Sequential(
-            nn.Linear(dim*8, self.num_tokens[6])
+            nn.Linear(dim, self.num_tokens[6])
         )
 
         # in_features is equal to dimension plus dimensions of the type embedding
@@ -198,16 +198,13 @@ class CompoundWordTransformerWrapper(nn.Module):
                 
         self.pos_emb1 = AbsolutePositionalEmbedding(512, max_seq_len) 
         self.pos_emb2 = AbsolutePositionalEmbedding(512, 7)
-        self.pos_emb3 = AbsolutePositionalEmbedding(512, 8)
-
         
         self.emb_dropout = nn.Dropout(emb_dropout)
         
-        self.attn_layers1 = attn_layers
-        self.attn_layers2 = attn_layers1
-        self.attn_layers3 = attn_layers
+        self.attn_layers1 = attn_layers1
+        self.attn_layers2 = attn_layers
 	    
-        self.project_concat_type = nn.Linear(512*9, 512*8)
+        self.project_concat_type = nn.Linear(512*2, 512)
         
         self.in_linear = nn.Linear(512*7, 512)
 
@@ -316,18 +313,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_note_name =self.word_emb_barbeat4(x[..., 4])
         emb_octave = self.word_emb_barbeat5(x[..., 5])
         emb_duration = self.word_emb_barbeat6(x[..., 6])
-        
-        x = torch.cat(
-            [
-                emb_type,
-                emb_barbeat,
-                emb_tempo,
-                emb_instrument,
-                emb_note_name,
-                emb_octave,
-                emb_duration
-                
-            ], dim = -1)
 
         z = torch.cat(
             [
@@ -340,32 +325,13 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_duration.reshape(-1,1,512),
             ], dim = 1)
 
+        z = z + self.pos_emb2(z)
+        z = self.emb_dropout(z)
+        z = self.attn_layers1(z, mask = None)
+        z = self.in_linear(z)
+        z = z.reshape(x1,-1,512)
+        z = z + self.pos_emb1(z) + self.emb(x[..., 0])
+        z = self.emb_dropout(z)
+        z = self.attn_layers2(z, mask = None)
 	    
-	    
-
-        x = self.in_linear(x)
-        x = x.reshape(-1,1,512)
-        y = z + self.pos_emb2(z)
-        y = self.emb_dropout(y)
-        x = self.emb_dropout(x)
-
-        x = self.attn_layers2(x, context = y, mask = mask.reshape(-1,1), context_mask = mask.reshape(-1,1).repeat((1,7)))
-        x = x.reshape(x1,-1,512)
-        x = x + self.pos_emb1(x) + self.emb(x[..., 0])
-        x = self.emb_dropout(x)
-        x = self.attn_layers1(x, mask = None)
-	    
-        y = torch.cat(
-            [
-                x.reshape(-1,1,512),
-                z
-            ], dim = 1)
-	    
-        y = y + self.pos_emb3(y)
-        y = self.emb_dropout(y)
-        x = self.attn_layers3(y, mask = None)
-        x4,x5,x6 = x.shape
-        x = x.reshape(x4,1,512*8)
-        x = x.reshape(x1,-1,512*8)
-	    
-        return x, self.proj_type(x)
+        return z, self.proj_type(z)
