@@ -205,10 +205,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.attn_layers2 = attn_layers
         self.attn_layers3 = attn_layers
 
-	    
         self.project_concat_type = nn.Linear(512*2, 512)
 
-        
         self.in_linear = nn.Linear(512*7, 512)
 
         self.emb = Fundamental_Music_Embedding(512, 10000)
@@ -235,36 +233,45 @@ class CompoundWordTransformerWrapper(nn.Module):
         y_type_logit = y_type[0, :]
         type_word_t = torch.multinomial(F.softmax(top_k(y_type_logit, thres = 0.9) / 1, dim=-1), 1)
         cur_word_type = type_word_t.detach().cpu().item()
-
         tf_skip_type = self.word_emb_type(type_word_t)
 
         # concat
 
         y_concat_type = torch.cat([h, tf_skip_type], dim=-1)
         y_ = self.project_concat_type(y_concat_type) 
-	    
-        proj_barbeat = self.proj_barbeat(y_)
-        proj_tempo = self.proj_tempo(y_)
-        proj_instrument = self.proj_instrument(y_)
-        proj_note_name = self.proj_note_name(y_)
-        proj_octave = self.proj_octave(y_)
-        proj_duration = self.proj_duration(y_)
 
+        y_ = self.attn_layers3(y_, mask = None)
+        proj_barbeat = self.proj_barbeat(y_[...,0,...])
         type_word_t = torch.multinomial(F.softmax(top_k(proj_barbeat.squeeze(0), thres = 0.9) / 1, dim=-1), 1)
         cur_word_barbeat = type_word_t.cpu().detach().item()
-        
+        y_ = torch.cat([h, type_word_t], dim=1)
+	    
+        y_ = self.attn_layers3(y_, mask = None)
+        proj_tempo = self.proj_tempo(y_[...,1,...])
         type_word_t = torch.multinomial(F.softmax(top_k(proj_tempo.squeeze(0), thres = 0.9) / 1, dim=-1), 1)
         cur_word_tempo = type_word_t.cpu().detach().item()
+        y_ = torch.cat([h, type_word_t], dim=1)
 
+        y_ = self.attn_layers3(y_, mask = None)
+        proj_instrument = self.proj_instrument(y_[...,2,...])
         type_word_t = torch.multinomial(F.softmax(top_k(proj_instrument.squeeze(0), thres = 0.9) / 1, dim=-1), 1)
         cur_word_instrument = type_word_t.cpu().detach().item()
+        y_ = torch.cat([h, type_word_t], dim=1)
 
+        y_ = self.attn_layers3(y_, mask = None)
+        proj_note_name = self.proj_note_name(y_[...,3,...])
         type_word_t = torch.multinomial(F.softmax(top_k(proj_note_name.squeeze(0), thres = 0.9) / 1, dim=-1), 1)
         cur_word_note_name = type_word_t.cpu().detach().item()
+        y_ = torch.cat([h, type_word_t], dim=1)
 
+        y_ = self.attn_layers3(y_, mask = None)
+        proj_octave = self.proj_octave(y_[...,4,...])
         type_word_t = torch.multinomial(F.softmax(top_k(proj_octave.squeeze(0), thres = 0.9) / 1, dim=-1), 1)
         cur_word_octave = type_word_t.cpu().detach().item()
+        y_ = torch.cat([h, type_word_t], dim=1)
 
+        y_ = self.attn_layers3(y_, mask = None)
+        proj_duration = self.proj_duration(y_[...,5,...])
         type_word_t = torch.multinomial(F.softmax(top_k(proj_duration.squeeze(0), thres = 0.9) / 1, dim=-1), 1)
         cur_word_duration = type_word_t.cpu().detach().item()
 
@@ -285,16 +292,37 @@ class CompoundWordTransformerWrapper(nn.Module):
                        h,
                        target
                        ):
-        tf_skip_type = self.word_emb_type(target[..., 0])
-        y_concat_type = torch.cat([h, tf_skip_type], dim=-1)
+        x1, x2, x3 = h.shape
+			       
+        emb_type = self.word_emb_type(target[..., 0])
+        emb_barbeat = self.word_emb_barbeat1(target[..., 1])
+        emb_tempo = self.word_emb_barbeat2(target[..., 2])
+        emb_instrument = self.word_emb_barbeat3(target[..., 3])
+        emb_note_name =self.word_emb_barbeat4(target[..., 4])
+        emb_octave = self.word_emb_barbeat5(target[..., 5])
+        emb_duration = self.word_emb_barbeat6(target[..., 6])
+			       
+        y_concat_type = torch.cat([h, emb_type], dim=-1)
         y_ = self.project_concat_type(y_concat_type)
 
-        proj_barbeat = self.proj_barbeat(y_)
-        proj_tempo = self.proj_tempo(y_)
-        proj_instrument = self.proj_instrument(y_)
-        proj_note_name = self.proj_note_name(y_)
-        proj_octave = self.proj_octave(y_)
-        proj_duration = self.proj_duration(y_)
+        z = torch.cat(
+            [
+                y_.reshape(-1,1,512),
+                emb_barbeat.reshape(-1,1,512),
+                emb_tempo.reshape(-1,1,512),
+                emb_instrument.reshape(-1,1,512),
+                emb_note_name.reshape(-1,1,512),
+                emb_octave.reshape(-1,1,512),
+            ], dim = 1)
+
+        z = self.attn_layers3(z, mask = None)
+
+        proj_barbeat = self.proj_barbeat(z[...,0,...].reshape(x1,-1,512))
+        proj_tempo = self.proj_tempo(z[...,1,...].reshape(x1,-1,512))
+        proj_instrument = self.proj_instrument(z[...,2,...].reshape(x1,-1,512))
+        proj_note_name = self.proj_note_name(z[...,3,...].reshape(x1,-1,512))
+        proj_octave = self.proj_octave(z[...,4,...].reshape(x1,-1,512))
+        proj_duration = self.proj_duration(z[...,5,...].reshape(x1,-1,512))
                                         
         return proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration
 
