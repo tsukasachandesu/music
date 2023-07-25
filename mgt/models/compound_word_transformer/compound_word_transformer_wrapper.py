@@ -324,6 +324,10 @@ class CompoundWordTransformerWrapper(nn.Module):
             ], dim = 1)
 
         z = self.attn_layers3(z, mask = None)
+			       
+        print(z[...,0,...].unsqueeze(0).shape)
+        print(x1)
+
 			              
         proj_barbeat = self.proj_barbeat(z[...,0,...].unsqueeze(0).reshape(x1,-1,512))
         proj_tempo = self.proj_tempo(z[...,1,...].unsqueeze(0).reshape(x1,-1,512))
