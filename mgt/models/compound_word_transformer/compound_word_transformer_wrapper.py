@@ -292,7 +292,6 @@ class CompoundWordTransformerWrapper(nn.Module):
                        h,
                        target
                        ):
-        x1, x2, x3 = h.shape
 			       
         emb_type = self.word_emb_type(target[..., 0])
         emb_barbeat = self.word_emb_barbeat1(target[..., 1])
@@ -301,7 +300,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_note_name =self.word_emb_barbeat4(target[..., 4])
         emb_octave = self.word_emb_barbeat5(target[..., 5])
         emb_duration = self.word_emb_barbeat6(target[..., 6])
-			       
+
+        x1, x2, x3 = emb_type.shape
+        
         y_concat_type = torch.cat([h, emb_type], dim=-1)
         y_ = self.project_concat_type(y_concat_type)
 
@@ -316,7 +317,11 @@ class CompoundWordTransformerWrapper(nn.Module):
             ], dim = 1)
 
         z = self.attn_layers3(z, mask = None)
+			       
+        print(z.shape)
+        print(z[...,0,...].shape)
 
+			       
         proj_barbeat = self.proj_barbeat(z[...,0,...].reshape(x1,-1,512))
         proj_tempo = self.proj_tempo(z[...,1,...].reshape(x1,-1,512))
         proj_instrument = self.proj_instrument(z[...,2,...].reshape(x1,-1,512))
