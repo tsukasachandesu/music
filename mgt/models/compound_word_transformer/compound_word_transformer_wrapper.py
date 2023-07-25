@@ -240,21 +240,17 @@ class CompoundWordTransformerWrapper(nn.Module):
         # concat
 
         y_concat_type = torch.cat([h, tf_skip_type], dim=-1)
-        y_ = self.project_concat_type(y_concat_type)
-        
+        y_ = self.project_concat_type(y_concat_type) 
+	    
         proj_barbeat = self.proj_barbeat(y_)
-        type_word_t = torch.multinomial(F.softmax(top_k(proj_barbeat.squeeze(0), thres = 0.9) / 1, dim=-1), 1)
-        cur_word_barbeat = type_word_t.cpu().detach().item()
-
-        tf_skip_type = self.word_emb_barbeat1(type_word_t)
-        y_concat_type = torch.cat([y_, tf_skip_type], dim=-1)
-        y_ = self.project_concat_type1(y_concat_type)
-   
         proj_tempo = self.proj_tempo(y_)
         proj_instrument = self.proj_instrument(y_)
         proj_note_name = self.proj_note_name(y_)
         proj_octave = self.proj_octave(y_)
         proj_duration = self.proj_duration(y_)
+
+        type_word_t = torch.multinomial(F.softmax(top_k(proj_barbeat.squeeze(0), thres = 0.9) / 1, dim=-1), 1)
+        cur_word_barbeat = type_word_t.cpu().detach().item()
         
         type_word_t = torch.multinomial(F.softmax(top_k(proj_tempo.squeeze(0), thres = 0.9) / 1, dim=-1), 1)
         cur_word_tempo = type_word_t.cpu().detach().item()
@@ -293,11 +289,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         y_ = self.project_concat_type(y_concat_type)
 
         proj_barbeat = self.proj_barbeat(y_)
-
-        tf_skip_type = self.word_emb_barbeat1(target[..., 1])
-        y_concat_type = torch.cat([y_, tf_skip_type], dim=-1)
-        y_ = self.project_concat_type1(y_concat_type)
-
         proj_tempo = self.proj_tempo(y_)
         proj_instrument = self.proj_instrument(y_)
         proj_note_name = self.proj_note_name(y_)
