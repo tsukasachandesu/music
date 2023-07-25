@@ -240,8 +240,15 @@ class CompoundWordTransformerWrapper(nn.Module):
         y_concat_type = torch.cat([h, tf_skip_type], dim=-1)
         y_ = self.project_concat_type(y_concat_type) 
 
+        print(y_.shape)
+
         y_ = self.attn_layers3(y_, mask = None)
+        print(y_.shape)
+
+	    
         proj_barbeat = self.proj_barbeat(y_[...,0,...])
+
+	    
         type_word_t = torch.multinomial(F.softmax(top_k(proj_barbeat.squeeze(0), thres = 0.9) / 1, dim=-1), 1)
         cur_word_barbeat = type_word_t.cpu().detach().item()
         y_ = torch.cat([h, type_word_t], dim=1)
@@ -317,17 +324,13 @@ class CompoundWordTransformerWrapper(nn.Module):
             ], dim = 1)
 
         z = self.attn_layers3(z, mask = None)
-			       
-        print(z.shape)
-        print(z[...,0,...].shape)
-
-			       
-        proj_barbeat = self.proj_barbeat(z[...,0,...].reshape(x1,-1,512))
-        proj_tempo = self.proj_tempo(z[...,1,...].reshape(x1,-1,512))
-        proj_instrument = self.proj_instrument(z[...,2,...].reshape(x1,-1,512))
-        proj_note_name = self.proj_note_name(z[...,3,...].reshape(x1,-1,512))
-        proj_octave = self.proj_octave(z[...,4,...].reshape(x1,-1,512))
-        proj_duration = self.proj_duration(z[...,5,...].reshape(x1,-1,512))
+			              
+        proj_barbeat = self.proj_barbeat(z[...,0,...].unsqueeze(0).reshape(x1,-1,512))
+        proj_tempo = self.proj_tempo(z[...,1,...].unsqueeze(0).reshape(x1,-1,512))
+        proj_instrument = self.proj_instrument(z[...,2,...].unsqueeze(0).reshape(x1,-1,512))
+        proj_note_name = self.proj_note_name(z[...,3,...].unsqueeze(0).reshape(x1,-1,512))
+        proj_octave = self.proj_octave(z[...,4,...].unsqueeze(0).reshape(x1,-1,512))
+        proj_duration = self.proj_duration(z[...,5,...].unsqueeze(0).reshape(x1,-1,512))
                                         
         return proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration
 
