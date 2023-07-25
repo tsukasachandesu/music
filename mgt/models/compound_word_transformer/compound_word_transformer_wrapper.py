@@ -234,18 +234,25 @@ class CompoundWordTransformerWrapper(nn.Module):
         type_word_t = torch.multinomial(F.softmax(top_k(y_type_logit, thres = 0.9) / 1, dim=-1), 1)
         cur_word_type = type_word_t.detach().cpu().item()
         tf_skip_type = self.word_emb_type(type_word_t)
+        print(tf_skip_type.shape)
+        print(h.shape)
 
+	    
         # concat
 
         y_concat_type = torch.cat([h, tf_skip_type], dim=-1)
         y_ = self.project_concat_type(y_concat_type) 
 
         y_ = self.attn_layers3(y_, mask = None)
+        print(y_.shape)
 
         proj_barbeat = self.proj_barbeat(y_[:,0,:].unsqueeze(0))
+        print(proj_barbeat.shape)
 
 	    
         type_word_t = torch.multinomial(F.softmax(top_k(proj_barbeat.squeeze(0), thres = 0.9) / 1, dim=-1), 1)
+        print(type_word_t.shape)
+
         cur_word_barbeat = type_word_t.cpu().detach().item()
         y_ = torch.cat([h, type_word_t], dim=1)
 	    
