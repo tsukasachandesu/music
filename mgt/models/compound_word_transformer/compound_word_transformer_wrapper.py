@@ -324,7 +324,10 @@ class CompoundWordTransformerWrapper(nn.Module):
             ], dim = 1)
 
         z = self.attn_layers3(z, mask = None)
-			       
+
+        print(z.shape)
+        print(z[...,0,...].shape)
+
         print(z[...,0,...].unsqueeze(0).shape)
         print(x1)
 
