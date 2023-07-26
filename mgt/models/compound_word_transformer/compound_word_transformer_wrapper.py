@@ -301,5 +301,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         z = z + self.pos_emb1(z) + self.emb(x[..., 0])
         z = self.emb_dropout(z)
         z = self.attn_layers2(z, mask = None)
+
+        t = gumbel_sample(top_k(self.proj_type(z), thres = 0.9) / 1, dim=-1)
+        print(t.shape)
 	    
         return self.proj_type(z), self.proj_barbeat(z), self.proj_tempo(z), self.proj_instrument(z), self.proj_note_name(z), self.proj_octave(z), self.proj_duration(z)
