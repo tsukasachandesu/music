@@ -230,27 +230,26 @@ class CompoundWordTransformerWrapper(nn.Module):
         nn.init.normal_(self.word_emb_barbeat6.weight(), std=0.02)
 
     def forward_output_sampling(self, proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration):
-        print(gumbel_sample(top_k(proj_type.squeeze(0), thres = 0.9) / 1, dim=-1).shape)
 
-        type_word_t = torch.multinomial(F.softmax(top_k(proj_type.squeeze(0), thres = 0.9) / 1, dim=-1), 1)
+        type_word_t = gumbel_sample(top_k(proj_type.squeeze(0), thres = 0.9) / 1, dim=-1)
         cur_word_type = type_word_t.detach().cpu().item()
 	    
-        type_word_t = torch.multinomial(F.softmax(top_k(proj_barbeat.squeeze(0), thres = 0.9) / 1, dim=-1), 1)
+        type_word_t = gumbel_sample(top_k(proj_barbeat.squeeze(0), thres = 0.9) / 1, dim=-1)
         cur_word_barbeat = type_word_t.cpu().detach().item()
 	    
-        type_word_t = torch.multinomial(F.softmax(top_k(proj_tempo.squeeze(0), thres = 0.9) / 1, dim=-1), 1)
+        type_word_t = gumbel_sample((top_k(proj_tempo.squeeze(0), thres = 0.9) / 1, dim=-1)
         cur_word_tempo = type_word_t.cpu().detach().item()
 
-        type_word_t = torch.multinomial(F.softmax(top_k(proj_instrument.squeeze(0), thres = 0.9) / 1, dim=-1), 1)
+        type_word_t = gumbel_sample(top_k(proj_instrument.squeeze(0), thres = 0.9) / 1, dim=-1)
         cur_word_instrument = type_word_t.cpu().detach().item()
 
-        type_word_t = torch.multinomial(F.softmax(top_k(proj_note_name.squeeze(0), thres = 0.9) / 1, dim=-1), 1)
+        type_word_t = gumbel_sample((top_k(proj_note_name.squeeze(0), thres = 0.9) / 1, dim=-1)
         cur_word_note_name = type_word_t.cpu().detach().item()
 
-        type_word_t = torch.multinomial(F.softmax(top_k(proj_octave.squeeze(0), thres = 0.9) / 1, dim=-1), 1)
+        type_word_t = gumbel_sample((top_k(proj_octave.squeeze(0), thres = 0.9) / 1, dim=-1)
         cur_word_octave = type_word_t.cpu().detach().item()
 
-        type_word_t = torch.multinomial(F.softmax(top_k(proj_duration.squeeze(0), thres = 0.9) / 1, dim=-1), 1)
+        type_word_t = gumbel_sample((top_k(proj_duration.squeeze(0), thres = 0.9) / 1, dim=-1)
         cur_word_duration = type_word_t.cpu().detach().item()
 
         # collect
