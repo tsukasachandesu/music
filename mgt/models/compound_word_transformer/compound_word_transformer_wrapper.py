@@ -217,13 +217,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.in_linear = nn.Linear(512*7, 512)
 
         self.emb = Fundamental_Music_Embedding(512, 10000)
-	    
-        self.project_concat_type = nn.Linear(dim * 2, dim)
-        self.project_concat_type1 = nn.Linear(dim * 2, dim)
-        self.project_concat_type2 = nn.Linear(dim * 2, dim)
-        self.project_concat_type3 = nn.Linear(dim * 2, dim)
-        self.project_concat_type4 = nn.Linear(dim * 2, dim)
-        self.project_concat_type5 = nn.Linear(dim * 2, dim)
         
         self.init_()
 
@@ -309,10 +302,4 @@ class CompoundWordTransformerWrapper(nn.Module):
         z = self.emb_dropout(z)
         z = self.attn_layers2(z, mask = None)
 
-        zz = self.proj_type(z)
-        z = self.project_concat_type(torch.cat([z, self.word_emb_type(gumbel_sample(zz, temperature = 1, dim = -1))], dim=-1))
-	    
-        zzz = self.proj_barbeat(z)
-        z = self.project_concat_type1(torch.cat([z, self.word_emb_barbeat1(gumbel_sample(zzz, temperature = 1, dim = -1))], dim=-1))
-
-        return zz, zzz, self.proj_tempo(z), self.proj_instrument(z), self.proj_note_name(z), self.proj_octave(z), self.proj_duration(z)
+        return self.proj_type(z), self.proj_type(z), self.proj_tempo(z), self.proj_instrument(z), self.proj_note_name(z), self.proj_octave(z), self.proj_duration(z)
