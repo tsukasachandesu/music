@@ -237,19 +237,19 @@ class CompoundWordTransformerWrapper(nn.Module):
         type_word_t = gumbel_sample(top_k(proj_barbeat.squeeze(0), thres = 0.9) / 1, dim=-1)
         cur_word_barbeat = type_word_t.cpu().detach().item()
 	    
-        type_word_t = gumbel_sample((top_k(proj_tempo.squeeze(0), thres = 0.9) / 1, dim=-1)
+        type_word_t = gumbel_sample(top_k(proj_tempo.squeeze(0), thres = 0.9) / 1, dim=-1)
         cur_word_tempo = type_word_t.cpu().detach().item()
 
         type_word_t = gumbel_sample(top_k(proj_instrument.squeeze(0), thres = 0.9) / 1, dim=-1)
         cur_word_instrument = type_word_t.cpu().detach().item()
 
-        type_word_t = gumbel_sample((top_k(proj_note_name.squeeze(0), thres = 0.9) / 1, dim=-1)
+        type_word_t = gumbel_sample(top_k(proj_note_name.squeeze(0), thres = 0.9) / 1, dim=-1)
         cur_word_note_name = type_word_t.cpu().detach().item()
 
-        type_word_t = gumbel_sample((top_k(proj_octave.squeeze(0), thres = 0.9) / 1, dim=-1)
+        type_word_t = gumbel_sample(top_k(proj_octave.squeeze(0), thres = 0.9) / 1, dim=-1)
         cur_word_octave = type_word_t.cpu().detach().item()
 
-        type_word_t = gumbel_sample((top_k(proj_duration.squeeze(0), thres = 0.9) / 1, dim=-1)
+        type_word_t = gumbel_sample(top_k(proj_duration.squeeze(0), thres = 0.9) / 1, dim=-1)
         cur_word_duration = type_word_t.cpu().detach().item()
 
         # collect
