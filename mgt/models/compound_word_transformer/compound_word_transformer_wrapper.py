@@ -313,6 +313,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         z = self.project_concat_type(torch.cat([z, self.word_emb_type(gumbel_sample(zz, temperature = 1, dim = -1))], dim=-1))
 	    
         zzz = self.proj_barbeat(z)
-        z = self.project_concat_type1(torch.cat([z, self.word_emb_type(gumbel_sample(zzz, temperature = 1, dim = -1))], dim=-1))
+        z = self.project_concat_type1(torch.cat([z, self.word_emb_barbeat1(gumbel_sample(zzz, temperature = 1, dim = -1))], dim=-1))
 
         return zz, zzz, self.proj_tempo(z), self.proj_instrument(z), self.proj_note_name(z), self.proj_octave(z), self.proj_duration(z)
