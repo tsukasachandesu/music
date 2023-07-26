@@ -15,6 +15,17 @@ import math
 from einops import rearrange, reduce, repeat
 from torch.nn.functional import pad
 
+def log(t, eps = 1e-20):
+    return torch.log(t.clamp(min = eps))
+
+def gumbel_noise(t):
+    noise = torch.zeros_like(t).uniform_(0, 1)
+    return -log(-log(noise))
+
+def gumbel_sample(t, temperature = 1., dim = -1):
+    return ((t / max(temperature, 1e-10)) + gumbel_noise(t)).argmax(dim = dim)
+
+
 class Fundamental_Music_Embedding(nn.Module):
 	def __init__(self, d_model, base, device='cuda:0'):
 		super().__init__()
@@ -219,6 +230,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         nn.init.normal_(self.word_emb_barbeat6.weight(), std=0.02)
 
     def forward_output_sampling(self, proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration):
+        print(gumbel_sample(top_k(proj_type.squeeze(0), thres = 0.9) / 1, dim=-1).shape)
 
         type_word_t = torch.multinomial(F.softmax(top_k(proj_type.squeeze(0), thres = 0.9) / 1, dim=-1), 1)
         cur_word_type = type_word_t.detach().cpu().item()
