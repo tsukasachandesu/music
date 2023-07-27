@@ -238,6 +238,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         cur_word_barbeat = type_word_t.cpu().detach().item()
 
         if cur_word_barbeat == 0:
+		0がでたら終わり。＜になっても終わり。
             
 	    
         type_word_t = gumbel_sample(top_k(proj_tempo.squeeze(0), thres = 0.9) / 1, dim=-1)
