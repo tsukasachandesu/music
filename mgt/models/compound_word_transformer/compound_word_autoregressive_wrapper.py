@@ -122,6 +122,12 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         target = x[:, 1:, :]
         
         proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration = self.net.forward_hidden(xi,**kwargs)
+
+        print(proj_type.shape)
+        print(proj_barbeat.shape)
+        print(target[..., 0].shape)
+        print(target[..., 1].shape)
+
         
         type_loss = calculate_loss(proj_type, target[..., 0], type_mask(target))
         barbeat_loss = calculate_loss(proj_barbeat, target[..., 1], type_mask(target))
