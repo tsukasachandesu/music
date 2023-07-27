@@ -233,68 +233,24 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         type_word_t = gumbel_sample(top_k(proj_type.squeeze(0), thres = 0.9) / 1, dim=-1)
         cur_word_type = type_word_t.detach().cpu().item()
+
+        type_word_t = gumbel_sample(top_k(proj_barbeat.squeeze(0), thres = 0.9) / 1, dim=-1)
+        cur_word_barbeat = type_word_t.cpu().detach().item()
 	    
-        if cur_word_type == 0:
-            type_word_t = torch.tensor(0).long().to(get_device())
-            cur_word_barbeat = type_word_t.cpu().detach().item()
-            cur_word_tempo = type_word_t.cpu().detach().item()
-            cur_word_instrument = type_word_t.cpu().detach().item()
-            cur_word_note_name = type_word_t.cpu().detach().item()
-            cur_word_octave = type_word_t.cpu().detach().item()
-            cur_word_duration = type_word_t.cpu().detach().item()
-        else:
-            type_word_t = gumbel_sample(top_k(proj_barbeat.squeeze(0), thres = 0.9) / 1, dim=-1)
-            cur_word_barbeat = type_word_t.cpu().detach().item()
+        type_word_t = gumbel_sample(top_k(proj_tempo.squeeze(0), thres = 0.9) / 1, dim=-1)
+        cur_word_tempo = type_word_t.cpu().detach().item()
 
-            if cur_word_barbeat == 0:
-              type_word_t = torch.tensor(0).long().to(get_device())
-              cur_word_tempo = type_word_t.cpu().detach().item()
-              cur_word_instrument = type_word_t.cpu().detach().item()
-              cur_word_note_name = type_word_t.cpu().detach().item()
-              cur_word_octave = type_word_t.cpu().detach().item()
-              cur_word_duration = type_word_t.cpu().detach().item()
-            
-            else:
-              type_word_t = gumbel_sample(top_k(proj_tempo.squeeze(0), thres = 0.9) / 1, dim=-1)
-              cur_word_tempo = type_word_t.cpu().detach().item()
+        type_word_t = gumbel_sample(top_k(proj_instrument.squeeze(0), thres = 0.9) / 1, dim=-1)
+        cur_word_instrument = type_word_t.cpu().detach().item()
 
-              if cur_word_tempo == 0:
-                type_word_t = torch.tensor(0).long().to(get_device())
-                cur_word_instrument = type_word_t.cpu().detach().item()
-                cur_word_note_name = type_word_t.cpu().detach().item()
-                cur_word_octave = type_word_t.cpu().detach().item()
-                cur_word_duration = type_word_t.cpu().detach().item()
+        type_word_t = gumbel_sample(top_k(proj_note_name.squeeze(0), thres = 0.9) / 1, dim=-1)
+        cur_word_note_name = type_word_t.cpu().detach().item()
 
-              else:
-                type_word_t = gumbel_sample(top_k(proj_instrument.squeeze(0), thres = 0.9) / 1, dim=-1)
-                cur_word_instrument = type_word_t.cpu().detach().item()
+        type_word_t = gumbel_sample(top_k(proj_octave.squeeze(0), thres = 0.9) / 1, dim=-1)
+        cur_word_octave = type_word_t.cpu().detach().item()
 
-                if cur_word_instrument == 0:
-                  type_word_t = torch.tensor(0).long().to(get_device())
-                  cur_word_note_name = type_word_t.cpu().detach().item()
-                  cur_word_octave = type_word_t.cpu().detach().item()
-                  cur_word_duration = type_word_t.cpu().detach().item()
-                
-                else:
-                  type_word_t = gumbel_sample(top_k(proj_note_name.squeeze(0), thres = 0.9) / 1, dim=-1)
-                  cur_word_note_name = type_word_t.cpu().detach().item()
-
-                  if cur_word_note_name == 0:
-                    type_word_t = torch.tensor(0).long().to(get_device())
-                    cur_word_octave = type_word_t.cpu().detach().item()
-                    cur_word_duration = type_word_t.cpu().detach().item()
-
-                  else:
-                    type_word_t = gumbel_sample(top_k(proj_octave.squeeze(0), thres = 0.9) / 1, dim=-1)
-                    cur_word_octave = type_word_t.cpu().detach().item()
-
-                    if cur_word_octave == 0:
-                      type_word_t = torch.tensor(0).long().to(get_device())
-                      cur_word_duration = type_word_t.cpu().detach().item()
-
-                    else:
-                      type_word_t = gumbel_sample(top_k(proj_duration.squeeze(0), thres = 0.9) / 1, dim=-1)
-                      cur_word_duration = type_word_t.cpu().detach().item()
+        type_word_t = gumbel_sample(top_k(proj_duration.squeeze(0), thres = 0.9) / 1, dim=-1)
+        cur_word_duration = type_word_t.cpu().detach().item()
 
         # collect
         next_arr = np.array([
