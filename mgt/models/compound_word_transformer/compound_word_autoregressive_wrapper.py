@@ -131,6 +131,8 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         note_name_loss = calculate_loss(proj_note_name, target[..., 4], type_mask(target))
         octave_loss = calculate_loss(proj_octave, target[..., 5], type_mask(target))
         duration_loss = calculate_loss(proj_duration, target[..., 6], type_mask(target))
+
+        torch.nn.functional.one_hot(target[..., 1], num_classes= 6913)+torch.nn.functional.one_hot(target[..., 1], num_classes= 6913)torch.nn.functional.one_hot(target[..., 1], num_classes= 6913)torch.nn.functional.one_hot(target[..., 1], num_classes= 6913)torch.nn.functional.one_hot(target[..., 1], num_classes= 6913)
         
         return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss
    
