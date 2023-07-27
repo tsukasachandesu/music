@@ -293,13 +293,9 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_duration.reshape(-1,1,512),
             ], dim = 1)
 
-        print(z.shape)
-
         z = z + self.pos_emb2(z)
         z = self.emb_dropout(z)
         z = self.attn_layers1(z, mask = None)
-
-        print(z.shape)
   
         z = z.reshape(x1,-1,512*7)
         z = self.in_linear(z) 
@@ -307,7 +303,4 @@ class CompoundWordTransformerWrapper(nn.Module):
         z = self.emb_dropout(z)
         z = self.attn_layers2(z, mask = None)
 
-        print(z.shape)
-
-
-        return self.proj_type(z), self.proj_type(z), self.proj_tempo(z), self.proj_instrument(z), self.proj_note_name(z), self.proj_octave(z), self.proj_duration(z)
+        return self.proj_type(z), self.proj_barbeat(z), self.proj_tempo(z), self.proj_instrument(z), self.proj_note_name(z), self.proj_octave(z), self.proj_duration(z)
