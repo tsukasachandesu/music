@@ -90,7 +90,6 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         self.ignore_index = ignore_index
         self.net = net
         self.max_seq_len = net.max_seq_len
-        self.soft = nn.Softmax()
 
     @torch.no_grad()
     def generate(self, prompt, output_length=100, selection_temperatures=None, selection_probability_tresholds=None):
@@ -131,8 +130,6 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         note_name_loss = calculate_loss(proj_note_name, target[..., 4], type_mask(target))
         octave_loss = calculate_loss(proj_octave, target[..., 5], type_mask(target))
         duration_loss = calculate_loss(proj_duration, target[..., 6], type_mask(target))
-
-        torch.nn.functional.one_hot(target[..., 1], num_classes= 6913)+torch.nn.functional.one_hot(target[..., 1], num_classes= 6913)torch.nn.functional.one_hot(target[..., 1], num_classes= 6913)torch.nn.functional.one_hot(target[..., 1], num_classes= 6913)torch.nn.functional.one_hot(target[..., 1], num_classes= 6913)
         
         return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss, octave_loss, duration_loss
    
