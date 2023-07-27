@@ -233,7 +233,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         type_word_t = gumbel_sample(top_k(proj_type.squeeze(0), thres = 0.9) / 1, dim=-1)
         cur_word_type = type_word_t.detach().cpu().item()
-
+	    
         type_word_t = gumbel_sample(top_k(proj_barbeat.squeeze(0), thres = 0.9) / 1, dim=-1)
         cur_word_barbeat = type_word_t.cpu().detach().item()
 	    
@@ -296,11 +296,10 @@ class CompoundWordTransformerWrapper(nn.Module):
         z = z + self.pos_emb2(z)
         z = self.emb_dropout(z)
         z = self.attn_layers1(z, mask = None)
-  
         z = z.reshape(x1,-1,512*7)
         z = self.in_linear(z) 
         z = z + self.pos_emb1(z) + self.emb(x[..., 0])
         z = self.emb_dropout(z)
         z = self.attn_layers2(z, mask = None)
 
-        return self.proj_type(z), self.proj_barbeat(z), self.proj_tempo(z), self.proj_instrument(z), self.proj_note_name(z), self.proj_octave(z), self.proj_duration(z)
+        return self.proj_type(z), self.proj_type(z), self.proj_tempo(z), self.proj_instrument(z), self.proj_note_name(z), self.proj_octave(z), self.proj_duration(z)
