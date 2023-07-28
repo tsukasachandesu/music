@@ -233,7 +233,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         type_word_t = gumbel_sample(top_k(proj_type.squeeze(0), thres = 0.9) / 1, dim=-1)
         cur_word_type = type_word_t.detach().cpu().item()
 	    
-        if cur_word_type == 0:
+        if cur_word_type == 0 or cur_word_type == 17:
             type_word_t = torch.tensor(0).long().to(get_device())
             cur_word_barbeat = type_word_t.cpu().detach().item()
             cur_word_tempo = type_word_t.cpu().detach().item()
