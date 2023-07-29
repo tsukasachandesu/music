@@ -256,7 +256,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             else:
               a = proj_tempo.squeeze(0)
               b = a[: , cur_word_barbeat:]
-              b = torch.where(b < 0, b * 1.1, b / 1.1)
+              b = torch.where(b < 0, b * 2, b / 2)
               b = torch.cat([a[: , :cur_word_barbeat], b], dim = 1)
 		    
               type_word_t = gumbel_sample(top_k(b, thres = 0.9) / 1, dim=-1)
@@ -273,7 +273,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
                 a = proj_instrument.squeeze(0)
                 b = a[: , cur_word_tempo:]
-                b = torch.where(b < 0, b * 1.1, b / 1.1)
+                b = torch.where(b < 0, b * 2, b / 2)
                 b = torch.cat([a[: , :cur_word_tempo], b], dim = 1)
   
                 type_word_t = gumbel_sample(top_k(b, thres = 0.9) / 1, dim=-1)
@@ -288,7 +288,7 @@ class CompoundWordTransformerWrapper(nn.Module):
                 else:
                   a = proj_note_name.squeeze(0)
                   b = a[: , cur_word_instrument:]
-                  b = torch.where(b < 0, b * 1.1, b / 1.1)
+                  b = torch.where(b < 0, b * 2, b / 2)
                   b = torch.cat([a[: , :cur_word_instrument], b], dim = 1)
   
                   type_word_t = gumbel_sample(top_k(b, thres = 0.9) / 1, dim=-1)
@@ -302,7 +302,7 @@ class CompoundWordTransformerWrapper(nn.Module):
                   else:
                     a = proj_octave.squeeze(0)
                     b = a[: , cur_word_note_name:]
-                    b = torch.where(b < 0, b * 1.1, b / 1.1)
+                    b = torch.where(b < 0, b * 2, b / 2)
                     b = torch.cat([a[: , :cur_word_note_name], b], dim = 1)
 			  
                     type_word_t = gumbel_sample(top_k(b, thres = 0.9) / 1, dim=-1)
@@ -315,7 +315,7 @@ class CompoundWordTransformerWrapper(nn.Module):
                     else:
                       a = proj_duration.squeeze(0)
                       b = a[: , cur_word_octave:]
-                      b = torch.where(b < 0, b * 1.1, b / 1.1)
+                      b = torch.where(b < 0, b * 2, b / 2)
                       b = torch.cat([a[: , :cur_word_octave], b], dim = 1)
 			    
                       type_word_t = gumbel_sample(top_k(b, thres = 0.9) / 1, dim=-1)
