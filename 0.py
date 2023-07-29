@@ -136,9 +136,9 @@ model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
         shift_tokens = 1,
         attn_flash = True
     ),
-    attn_layers1=CrossAttender(
+    attn_layers1=Encoder(
                 dim=512,
-                depth=8,
+                depth=2,
                 heads=8,
                 ff_glu = True,
                 ff_swish = True,
@@ -151,7 +151,21 @@ model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
                 dynamic_pos_bias = True,                # set this to True
                 dynamic_pos_bias_log_distance = False   # whether to use log distance, as in SwinV2
 
-    )  
+    ),
+    attn_layers=Decoder(
+        dim=512,
+        depth=4,
+        heads=8,
+        ff_glu = True,
+        ff_swish = True,
+        use_rmsnorm = True,
+        attn_dropout=0.1,
+        layer_dropout = 0.1,
+        ff_dropout=0.1,
+        ff_no_bias = True,
+        attn_one_kv_head = True,
+        attn_flash = True
+    ),
 )).cuda()
 
 # setup deepspeed
