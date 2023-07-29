@@ -276,7 +276,7 @@ class CompoundWordTransformerWrapper(nn.Module):
                 b = torch.where(b < 0, b * 1.1, b / 1.1)
                 b = torch.cat([a[: , :cur_word_tempo], b], dim = 1)
   
-                type_word_t = gumbel_sample(top_k(b.squeeze(0), thres = 0.9) / 1, dim=-1)
+                type_word_t = gumbel_sample(top_k(b, thres = 0.9) / 1, dim=-1)
                 cur_word_instrument = type_word_t.cpu().detach().item()
 
                 if cur_word_instrument == 0:
