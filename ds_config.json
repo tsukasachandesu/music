@@ -1,6 +1,6 @@
 {
-    "train_batch_size": 10,
-    "gradient_accumulation_steps": 5,
+    "train_batch_size":20,
+    "gradient_accumulation_steps": 4,
     "steps_per_print": 2000,
     "max_grad_norm": 0.5,
     "optimizer": {
@@ -15,7 +15,7 @@
       }
     },
     "fp16": {
-      "enabled": true,
+      "enabled": false,
       "loss_scale": 0,
       "loss_scale_window": 1000,
       "hysteresis": 2,
