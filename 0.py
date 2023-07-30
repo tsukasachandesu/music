@@ -48,7 +48,7 @@ class Dataset(Dataset):
         self.max_length = max_length
         
     def __len__(self):
-        return 512
+        return 1024
 
     def __getitem__(self, idx):
         song_index = random.randint(0, len(self.data) - 1)
@@ -68,7 +68,7 @@ def add_argument():
                         help='use CPU in case there\'s no GPU support')
     parser.add_argument('--use_ema', default=False, action='store_true',
                         help='whether use exponential moving average')
-    parser.add_argument('-b', '--batch_size', default=5, type=int,
+    parser.add_argument('-b', '--batch_size', default=15, type=int,
                         help='mini-batch size (default: 32)')
     parser.add_argument('-e', '--epochs', default=1, type=int,
                         help='number of total epochs (default: 30)')
@@ -112,9 +112,9 @@ defaults = {
     'max_sequence_length': 1024,
     'learning_rate': 1e-4,
     'dropout': 0.1,
-    'dim': 512,
+    'dim': 756,
     'depth': 24,
-    'heads': 12
+    'heads': 8
 }
 
 model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
@@ -122,8 +122,8 @@ model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
     emb_sizes=defaults['emb_sizes'],
     max_seq_len=defaults['max_sequence_length'],
     attn_layers=Decoder(
-        dim=512,
-        depth=16,
+        dim=1024,
+        depth=32,
         heads=8,
         ff_glu = True,
         ff_swish = True,
@@ -140,8 +140,8 @@ model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
 
     ),
     attn_layers1=Encoder(
-                dim=512,
-                depth=4,
+                dim=1024,
+                depth=6,
                 heads=8,
                 ff_glu = True,
                 ff_swish = True,
@@ -155,8 +155,8 @@ model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
                 rotary_pos_emb = True
     ),
     attn_layers2=Decoder(
-        dim=512,
-        depth=4,
+        dim=1024,
+        depth=6,
         heads=8,
         ff_glu = True,
         ff_swish = True,
@@ -201,4 +201,3 @@ sample = model.generate(output_length=1024, prompt=prompt)
 datamanager = CompoundWordDataManager()
 midi = datamanager.to_midi(sample)
 midi.save("1.midi")
-
