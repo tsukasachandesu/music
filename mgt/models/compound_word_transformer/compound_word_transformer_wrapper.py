@@ -159,7 +159,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         self.emb_sizes = emb_sizes
         self.dim = attn_layers.dim
-        emb_dim = default(emb_dim, dim)
+        emb_dim = default(emb_dim, self.dim)
 
         self.num_tokens = num_tokens
         self.max_seq_len = max_seq_len
