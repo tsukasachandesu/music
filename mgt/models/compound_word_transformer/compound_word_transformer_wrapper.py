@@ -53,7 +53,7 @@ class Fundamental_Music_Embedding(nn.Module):
 		# apply cos to odd indices in the array; 2i+1
 		angle_rads[:, :, 1::2] = torch.cos(angle_rads.clone()[:, :, 1::2])
 
-		pos_encoding = angle_rads.to(torch.float32)
+		pos_encoding = angle_rads.to(torch.float16)
 
 		if self.translation_bias.size()[-1]!= self.d_model:
 			translation_bias = self.translation_bias.repeat(1, 1,int(self.d_model/2))
@@ -164,13 +164,13 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.num_tokens = num_tokens
         self.max_seq_len = max_seq_len
 
-        self.word_emb_type = CompoundTransformerEmbeddings(self.num_tokens[0], self.emb_sizes[0])
-        self.word_emb_barbeat1 = CompoundTransformerEmbeddings(self.num_tokens[1], self.emb_sizes[2])
-        self.word_emb_barbeat2 = CompoundTransformerEmbeddings(self.num_tokens[2], self.emb_sizes[2])
-        self.word_emb_barbeat3 = CompoundTransformerEmbeddings(self.num_tokens[2], self.emb_sizes[2])
-        self.word_emb_barbeat4 = CompoundTransformerEmbeddings(self.num_tokens[2], self.emb_sizes[2])
-        self.word_emb_barbeat5 = CompoundTransformerEmbeddings(self.num_tokens[2], self.emb_sizes[2])
-        self.word_emb_barbeat6 = CompoundTransformerEmbeddings(self.num_tokens[2], self.emb_sizes[2])
+        self.word_emb_type = CompoundTransformerEmbeddings(self.num_tokens[0], self.dim)
+        self.word_emb_barbeat1 = CompoundTransformerEmbeddings(self.num_tokens[1], self.dim)
+        self.word_emb_barbeat2 = CompoundTransformerEmbeddings(self.num_tokens[2], self.dim)
+        self.word_emb_barbeat3 = CompoundTransformerEmbeddings(self.num_tokens[2], self.dim)
+        self.word_emb_barbeat4 = CompoundTransformerEmbeddings(self.num_tokens[2], self.dim)
+        self.word_emb_barbeat5 = CompoundTransformerEmbeddings(self.num_tokens[2], self.dim)
+        self.word_emb_barbeat6 = CompoundTransformerEmbeddings(self.num_tokens[2], self.dim)
         
         # individual output
         
@@ -369,7 +369,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         z = z.reshape(x1,-1,self.dim*7)
         z = self.in_linear(z) 
-        z = z + self.pos_emb1(z)  + self.emb(x[..., 0]).to(torch.float16) 
+        z = z + self.pos_emb1(z)  + self.emb(x[..., 0])
         z = self.emb_dropout(z)
         z = self.attn_layers2(z)
 
@@ -386,6 +386,5 @@ class CompoundWordTransformerWrapper(nn.Module):
 	    
         z + self.pos_emb3(z)
         z = self.attn_layers3(z)
-
 
         return self.proj_type(z[:,1,:].reshape(x1,-1,self.dim)), self.proj_barbeat(z[:,2,:].reshape(x1,-1,self.dim)), self.proj_tempo(z[:,3,:].reshape(x1,-1,self.dim)), self.proj_instrument(z[:,4,:].reshape(x1,-1,self.dim)), self.proj_note_name(z[:,5,:].reshape(x1,-1,self.dim)), self.proj_octave(z[:,6,:].reshape(x1,-1,self.dim)), self.proj_duration(z[:,7,:].reshape(x1,-1,self.dim))
