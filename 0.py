@@ -48,7 +48,7 @@ class Dataset(Dataset):
         self.max_length = max_length
         
     def __len__(self):
-        return 1024
+        return 3000
 
     def __getitem__(self, idx):
         song_index = random.randint(0, len(self.data) - 1)
@@ -68,7 +68,7 @@ def add_argument():
                         help='use CPU in case there\'s no GPU support')
     parser.add_argument('--use_ema', default=False, action='store_true',
                         help='whether use exponential moving average')
-    parser.add_argument('-b', '--batch_size', default=15, type=int,
+    parser.add_argument('-b', '--batch_size', default=20, type=int,
                         help='mini-batch size (default: 32)')
     parser.add_argument('-e', '--epochs', default=1, type=int,
                         help='number of total epochs (default: 30)')
@@ -79,13 +79,13 @@ def add_argument():
     args=parser.parse_args()
     return args
 
-# constants
+# constant
 
 EPOCHS = 1
-GRADIENT_ACCUMULATE_EVERY = 5
+GRADIENT_ACCUMULATE_EVERY = 4
 GENERATE_EVERY = 1800
 GENERATE_LENGTH = 1024
-yes = None
+yes = "a"
 yes1 = "a"
 
 # instantiate GPT-like decoder model
@@ -122,9 +122,9 @@ model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
     emb_sizes=defaults['emb_sizes'],
     max_seq_len=defaults['max_sequence_length'],
     attn_layers=Decoder(
-        dim=756,
+        dim=512,
         depth=36,
-        heads=12,
+        heads=8,
         ff_glu = True,
         ff_swish = True,
         use_rmsnorm = True,
@@ -134,15 +134,14 @@ model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
         ff_no_bias = True,
         attn_one_kv_head = True,
         shift_tokens = 1,
-        attn_flash = True,
         rotary_pos_emb = True,
         pre_norm = True,
 
     ),
     attn_layers1=Encoder(
-                dim=756,
+                dim=512,
                 depth=1,
-                heads=12,
+                heads=8,
                 ff_glu = True,
                 ff_swish = True,
                 use_rmsnorm = True,            
@@ -151,19 +150,18 @@ model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
                 ff_dropout=0.1,
                 ff_no_bias = True,
                 attn_one_kv_head = True,
-                attn_flash = True,
                 rotary_pos_emb = True
     )
 )).cuda()
 
 # setup deepspeed
-data_train = DataHelper.load('/content/drive/MyDrive/0d')
+data_train = DataHelper.load('/content/drive/MyDrive/01d')
 train_dataset = Dataset(data_train.data)
 
 cmd_args = add_argument()
 model_engine, optimizer, trainloader, _ = deepspeed.initialize(args=cmd_args, model=model, model_parameters=model.parameters(), training_data=train_dataset)
 if yes:
-    _, client_sd = model_engine.load_checkpoint("/")
+    _, client_sd = model_engine.load_checkpoint("/content/drive/MyDrive/")
 
 for _ in range(EPOCHS):
     for i, data in enumerate(trainloader):
@@ -178,11 +176,11 @@ for _ in range(EPOCHS):
 
 model.eval()    
 if yes1:
-    model_engine.save_checkpoint("/")
+    model_engine.save_checkpoint("/content/drive/MyDrive/")
 
 
 prompt = [COMPOUND_WORD_BAR] 
-sample = model.generate(output_length=1024, prompt=prompt)
+sample = model.generate(output_length=256, prompt=prompt)
 datamanager = CompoundWordDataManager()
 midi = datamanager.to_midi(sample)
 midi.save("1.midi")
