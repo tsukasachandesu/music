@@ -230,96 +230,43 @@ class CompoundWordTransformerWrapper(nn.Module):
         nn.init.normal_(self.word_emb_barbeat6.weight(), std=0.02)
 
     def forward_output_sampling(self, proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration):
-        type_word_t = gumbel_sample(top_k(proj_type.squeeze(0), thres = 0.9) / 1, dim=-1)
-        cur_word_type = type_word_t.detach().cpu().item()
-	    
-        if cur_word_type == 0 or cur_word_type == 17:
-            type_word_t = torch.tensor(0).long().to(get_device())
-            cur_word_barbeat = type_word_t.cpu().detach().item()
-            cur_word_tempo = type_word_t.cpu().detach().item()
-            cur_word_instrument = type_word_t.cpu().detach().item()
-            cur_word_note_name = type_word_t.cpu().detach().item()
-            cur_word_octave = type_word_t.cpu().detach().item()
-            cur_word_duration = type_word_t.cpu().detach().item()
-        else:
-            type_word_t = gumbel_sample(top_k(proj_barbeat.squeeze(0), thres = 0.9) / 1, dim=-1)
-            cur_word_barbeat = type_word_t.cpu().detach().item()
+ 
+        selection_temperatures= {}
+        selection_probability_tresholds= {}
+        cur_word_type = sampling(
+            proj_type,
+            probability_treshold=selection_probability_tresholds.get(0, None),
+            temperature=selection_temperatures.get(0, 1.0)
+        )
+        cur_word_barbeat = sampling(
+            proj_barbeat,
+            probability_treshold=selection_probability_tresholds.get(1, None),
+            temperature=selection_temperatures.get(1, 1.0))
 
-            if cur_word_barbeat == 0:
-              type_word_t = torch.tensor(0).long().to(get_device())
-              cur_word_tempo = type_word_t.cpu().detach().item()
-              cur_word_instrument = type_word_t.cpu().detach().item()
-              cur_word_note_name = type_word_t.cpu().detach().item()
-              cur_word_octave = type_word_t.cpu().detach().item()
-              cur_word_duration = type_word_t.cpu().detach().item()
+        cur_word_tempo = sampling(
+            proj_tempo,
+            probability_treshold=selection_probability_tresholds.get(2, None),
+            temperature=selection_temperatures.get(2, 1.0))
 
-            else:
-              a = proj_tempo.squeeze(0)
-              b = a[: , cur_word_barbeat:]
-              b = torch.where(b < 0, b * 2, b / 2)
-              b = torch.cat([a[: , :cur_word_barbeat], b], dim = 1)
-		    
-              type_word_t = gumbel_sample(top_k(b, thres = 0.9) / 1, dim=-1)
-              cur_word_tempo = type_word_t.cpu().detach().item()
+        cur_word_instrument = sampling(
+            proj_instrument,
+            probability_treshold=selection_probability_tresholds.get(3, None),
+            temperature=selection_temperatures.get(3, 1.0))
 
-              if cur_word_tempo == 0:
-                type_word_t = torch.tensor(0).long().to(get_device())
-                cur_word_instrument = type_word_t.cpu().detach().item()
-                cur_word_note_name = type_word_t.cpu().detach().item()
-                cur_word_octave = type_word_t.cpu().detach().item()
-                cur_word_duration = type_word_t.cpu().detach().item()
+        cur_word_note_name = sampling(
+            proj_note_name,
+            probability_treshold=selection_probability_tresholds.get(4, None),
+            temperature=selection_temperatures.get(4, 1.0))
 
-              else:
+        cur_word_octave = sampling(
+            proj_octave,
+            probability_treshold=selection_probability_tresholds.get(5, None),
+            temperature=selection_temperatures.get(5, 1.0))
 
-                a = proj_instrument.squeeze(0)
-                b = a[: , cur_word_tempo:]
-                b = torch.where(b < 0, b * 2, b / 2)
-                b = torch.cat([a[: , :cur_word_tempo], b], dim = 1)
-  
-                type_word_t = gumbel_sample(top_k(b, thres = 0.9) / 1, dim=-1)
-                cur_word_instrument = type_word_t.cpu().detach().item()
-
-                if cur_word_instrument == 0:
-                  type_word_t = torch.tensor(0).long().to(get_device())
-                  cur_word_note_name = type_word_t.cpu().detach().item()
-                  cur_word_octave = type_word_t.cpu().detach().item()
-                  cur_word_duration = type_word_t.cpu().detach().item()
-
-                else:
-                  a = proj_note_name.squeeze(0)
-                  b = a[: , cur_word_instrument:]
-                  b = torch.where(b < 0, b * 2, b / 2)
-                  b = torch.cat([a[: , :cur_word_instrument], b], dim = 1)
-  
-                  type_word_t = gumbel_sample(top_k(b, thres = 0.9) / 1, dim=-1)
-                  cur_word_note_name = type_word_t.cpu().detach().item()
-
-                  if cur_word_note_name == 0:
-                    type_word_t = torch.tensor(0).long().to(get_device())
-                    cur_word_octave = type_word_t.cpu().detach().item()
-                    cur_word_duration = type_word_t.cpu().detach().item()
-
-                  else:
-                    a = proj_octave.squeeze(0)
-                    b = a[: , cur_word_note_name:]
-                    b = torch.where(b < 0, b * 2, b / 2)
-                    b = torch.cat([a[: , :cur_word_note_name], b], dim = 1)
-			  
-                    type_word_t = gumbel_sample(top_k(b, thres = 0.9) / 1, dim=-1)
-                    cur_word_octave = type_word_t.cpu().detach().item()
-
-                    if cur_word_octave == 0:
-                      type_word_t = torch.tensor(0).long().to(get_device())
-                      cur_word_duration = type_word_t.cpu().detach().item()
-
-                    else:
-                      a = proj_duration.squeeze(0)
-                      b = a[: , cur_word_octave:]
-                      b = torch.where(b < 0, b * 2, b / 2)
-                      b = torch.cat([a[: , :cur_word_octave], b], dim = 1)
-			    
-                      type_word_t = gumbel_sample(top_k(b, thres = 0.9) / 1, dim=-1)
-                      cur_word_duration = type_word_t.cpu().detach().item()
+        cur_word_duration = sampling(
+            proj_duration,
+            probability_treshold=selection_probability_tresholds.get(6, None),
+            temperature=selection_temperatures.get(6, 1.0))
 
         # collect
         next_arr = np.array([
