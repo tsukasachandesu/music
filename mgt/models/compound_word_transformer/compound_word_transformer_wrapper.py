@@ -158,7 +158,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             ]
 
         self.emb_sizes = emb_sizes
-        dim = attn_layers.dim
+        self.dim = attn_layers.dim
         emb_dim = default(emb_dim, dim)
 
         self.num_tokens = num_tokens
@@ -175,48 +175,48 @@ class CompoundWordTransformerWrapper(nn.Module):
         # individual output
         
         self.proj_type = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[0])
+            nn.Linear(self.dim, self.num_tokens[0])
         )
         
         self.proj_barbeat = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[1])
+            nn.Linear(self.dim, self.num_tokens[1])
         )
         
         self.proj_tempo = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[2])
+            nn.Linear(self.dim, self.num_tokens[2])
         )
         
         self.proj_instrument = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[3])
+            nn.Linear(self.dim, self.num_tokens[3])
         )
         
         self.proj_note_name = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[4])
+            nn.Linear(self.dim, self.num_tokens[4])
         )
         
         self.proj_octave = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[5])
+            nn.Linear(self.dim, self.num_tokens[5])
         )
         
         self.proj_duration = nn.Sequential(
-            nn.Linear(dim, self.num_tokens[6])
+            nn.Linear(self.dim, self.num_tokens[6])
         )
 
         # in_features is equal to dimension plus dimensions of the type embedding
 
         self.compound_word_embedding_size = np.sum(emb_sizes)
                 
-        self.pos_emb1 = AbsolutePositionalEmbedding(dim, max_seq_len) 
-        self.pos_emb2 = AbsolutePositionalEmbedding(dim, 7)
+        self.pos_emb1 = AbsolutePositionalEmbedding(self.dim, max_seq_len) 
+        self.pos_emb2 = AbsolutePositionalEmbedding(self.dim, 7)
         
         self.emb_dropout = nn.Dropout(emb_dropout)
         
         self.attn_layers1 = attn_layers1
         self.attn_layers2 = attn_layers
         self.attn_layers3 = attn_layers2
-        self.in_linear = nn.Linear(dim*7, dim)
+        self.in_linear = nn.Linear(self.dim*7, self.dim)
 
-        self.emb = Fundamental_Music_Embedding(dim, 10000)
+        self.emb = Fundamental_Music_Embedding(self.dim, 10000)
         
         self.init_()
 
@@ -353,13 +353,13 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         z = torch.cat(
             [
-                emb_type.reshape(-1,1,dim),
-                emb_barbeat.reshape(-1,1,dim),
-                emb_tempo.reshape(-1,1,dim),
-                emb_instrument.reshape(-1,1,dim),
-                emb_note_name.reshape(-1,1,dim),
-                emb_octave.reshape(-1,1,dim),
-                emb_duration.reshape(-1,1,dim),
+                emb_type.reshape(-1,1,self.dim),
+                emb_barbeat.reshape(-1,1,self.dim),
+                emb_tempo.reshape(-1,1,self.dim),
+                emb_instrument.reshape(-1,1,self.dim),
+                emb_note_name.reshape(-1,1,self.dim),
+                emb_octave.reshape(-1,1,self.dim),
+                emb_duration.reshape(-1,1,self.dim),
             ], dim = 1)
 
         z = z + self.pos_emb2(z)
@@ -373,17 +373,17 @@ class CompoundWordTransformerWrapper(nn.Module):
         z = self.attn_layers2(z)
 
         z = torch.cat(
-            [   z.reshape(-1,1,dim),
-                emb_type.reshape(-1,1,dim),
-                emb_barbeat.reshape(-1,1,dim),
-                emb_tempo.reshape(-1,1,dim),
-                emb_instrument.reshape(-1,1,dim),
-                emb_note_name.reshape(-1,1,dim),
-                emb_octave.reshape(-1,1,dim),
-                emb_duration.reshape(-1,1,dim),
+            [   z.reshape(-1,1,self.dim),
+                emb_type.reshape(-1,1,self.dim),
+                emb_barbeat.reshape(-1,1,self.dim),
+                emb_tempo.reshape(-1,1,self.dim),
+                emb_instrument.reshape(-1,1,self.dim),
+                emb_note_name.reshape(-1,1,self.dim),
+                emb_octave.reshape(-1,1,self.dim),
+                emb_duration.reshape(-1,1,self.dim),
             ], dim = 1)
 
         z = self.attn_layers3(z)
 
 
-        return self.proj_type(z[:,1,:].reshape(x1,-1,dim)), self.proj_barbeat(z[:,2,:].reshape(x1,-1,dim)), self.proj_tempo(z[:,3,:].reshape(x1,-1,dim)), self.proj_instrument(z[:,4,:].reshape(x1,-1,dim)), self.proj_note_name(z[:,5,:].reshape(x1,-1,dim)), self.proj_octave(z[:,6,:].reshape(x1,-1,dim)), self.proj_duration(z[:,7,:].reshape(x1,-1,dim))
+        return self.proj_type(z[:,1,:].reshape(x1,-1,self.dim)), self.proj_barbeat(z[:,2,:].reshape(x1,-1,self.dim)), self.proj_tempo(z[:,3,:].reshape(x1,-1,self.dim)), self.proj_instrument(z[:,4,:].reshape(x1,-1,self.dim)), self.proj_note_name(z[:,5,:].reshape(x1,-1,self.dim)), self.proj_octave(z[:,6,:].reshape(x1,-1,self.dim)), self.proj_duration(z[:,7,:].reshape(x1,-1,self.dim))
