@@ -384,7 +384,7 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_duration.reshape(-1,1,self.dim),
             ], dim = 1)
 	    
-        z + self.pos_emb3(z)
+        z = z + self.pos_emb3(z)
         z = self.attn_layers3(z)
 
         return self.proj_type(z[:,1,:].reshape(x1,-1,self.dim)), self.proj_barbeat(z[:,2,:].reshape(x1,-1,self.dim)), self.proj_tempo(z[:,3,:].reshape(x1,-1,self.dim)), self.proj_instrument(z[:,4,:].reshape(x1,-1,self.dim)), self.proj_note_name(z[:,5,:].reshape(x1,-1,self.dim)), self.proj_octave(z[:,6,:].reshape(x1,-1,self.dim)), self.proj_duration(z[:,7,:].reshape(x1,-1,self.dim))
