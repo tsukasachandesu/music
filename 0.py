@@ -123,7 +123,7 @@ model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
     max_seq_len=defaults['max_sequence_length'],
     attn_layers=Decoder(
         dim=512,
-        depth=1,
+        depth=16,
         heads=8,
         ff_glu = True,
         ff_swish = True,
@@ -134,11 +134,12 @@ model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
         ff_no_bias = True,
         attn_one_kv_head = True,
         shift_tokens = 1,
-        attn_flash = True
+        attn_flash = True,
+        rotary_pos_emb = True
     ),
     attn_layers1=Encoder(
                 dim=512,
-                depth=1,
+                depth=4,
                 heads=8,
                 ff_glu = True,
                 ff_swish = True,
@@ -148,11 +149,12 @@ model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
                 ff_dropout=0.1,
                 ff_no_bias = True,
                 attn_one_kv_head = True,
-                attn_flash = True
+                attn_flash = True,
+                rotary_pos_emb = True
     ),
     attn_layers2=Decoder(
         dim=512,
-        depth=1,
+        depth=4,
         heads=8,
         ff_glu = True,
         ff_swish = True,
@@ -162,7 +164,8 @@ model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
         ff_dropout=0.1,
         ff_no_bias = True,
         attn_one_kv_head = True,
-        attn_flash = True
+        attn_flash = True,
+        rotary_pos_emb = True
     ),
 )).cuda()
 
@@ -196,6 +199,4 @@ sample = model.generate(output_length=1024, prompt=prompt)
 datamanager = CompoundWordDataManager()
 midi = datamanager.to_midi(sample)
 midi.save("1.midi")
-
-
 
