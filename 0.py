@@ -122,9 +122,9 @@ model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
     emb_sizes=defaults['emb_sizes'],
     max_seq_len=defaults['max_sequence_length'],
     attn_layers=Decoder(
-        dim=1280,
+        dim=756,
         depth=36,
-        heads=20,
+        heads=12,
         ff_glu = True,
         ff_swish = True,
         use_rmsnorm = True,
@@ -140,9 +140,9 @@ model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
 
     ),
     attn_layers1=Encoder(
-                dim=1280,
-                depth=4,
-                heads=20,
+                dim=756,
+                depth=1,
+                heads=12,
                 ff_glu = True,
                 ff_swish = True,
                 use_rmsnorm = True,            
