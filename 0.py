@@ -152,7 +152,7 @@ model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
                 dynamic_pos_bias_log_distance = False   # whether to use log distance, as in SwinV2
 
     ),
-    attn_layers=Decoder(
+    attn_layers2=Decoder(
         dim=512,
         depth=4,
         heads=8,
