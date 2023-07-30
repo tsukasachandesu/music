@@ -365,15 +365,12 @@ class CompoundWordTransformerWrapper(nn.Module):
         z = z + self.pos_emb2(z)
         z = self.emb_dropout(z)
         z = self.attn_layers1(z)
-        print(z.dtype)
 
         z = z.reshape(x1,-1,512*7)
         z = self.in_linear(z) 
         z = z + self.pos_emb1(z)  + self.emb(x[..., 0]).to(torch.float16) 
-        print(z.dtype)
         z = self.emb_dropout(z)
         z = self.attn_layers2(z)
-        print(z.dtype)
 
         z = torch.cat(
             [   z.reshape(-1,1,512),
@@ -385,10 +382,8 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_octave.reshape(-1,1,512),
                 emb_duration.reshape(-1,1,512),
             ], dim = 1)
-        print(z.dtype)
 
         z = self.attn_layers3(z)
 
-        print(z.dtype)
 
         return self.proj_type(z[:,1,:].reshape(x1,-1,512)), self.proj_barbeat(z[:,2,:].reshape(x1,-1,512)), self.proj_tempo(z[:,3,:].reshape(x1,-1,512)), self.proj_instrument(z[:,4,:].reshape(x1,-1,512)), self.proj_note_name(z[:,5,:].reshape(x1,-1,512)), self.proj_octave(z[:,6,:].reshape(x1,-1,512)), self.proj_duration(z[:,7,:].reshape(x1,-1,512))
