@@ -206,17 +206,17 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         self.compound_word_embedding_size = np.sum(emb_sizes)
                 
-        self.pos_emb1 = AbsolutePositionalEmbedding(512, max_seq_len) 
-        self.pos_emb2 = AbsolutePositionalEmbedding(512, 7)
+        self.pos_emb1 = AbsolutePositionalEmbedding(dim, max_seq_len) 
+        self.pos_emb2 = AbsolutePositionalEmbedding(dim, 7)
         
         self.emb_dropout = nn.Dropout(emb_dropout)
         
         self.attn_layers1 = attn_layers1
         self.attn_layers2 = attn_layers
         self.attn_layers3 = attn_layers2
-        self.in_linear = nn.Linear(512*7, 512)
+        self.in_linear = nn.Linear(dim*7, dim)
 
-        self.emb = Fundamental_Music_Embedding(512, 10000)
+        self.emb = Fundamental_Music_Embedding(dim, 10000)
         
         self.init_()
 
@@ -353,37 +353,37 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         z = torch.cat(
             [
-                emb_type.reshape(-1,1,512),
-                emb_barbeat.reshape(-1,1,512),
-                emb_tempo.reshape(-1,1,512),
-                emb_instrument.reshape(-1,1,512),
-                emb_note_name.reshape(-1,1,512),
-                emb_octave.reshape(-1,1,512),
-                emb_duration.reshape(-1,1,512),
+                emb_type.reshape(-1,1,dim),
+                emb_barbeat.reshape(-1,1,dim),
+                emb_tempo.reshape(-1,1,dim),
+                emb_instrument.reshape(-1,1,dim),
+                emb_note_name.reshape(-1,1,dim),
+                emb_octave.reshape(-1,1,dim),
+                emb_duration.reshape(-1,1,dim),
             ], dim = 1)
 
         z = z + self.pos_emb2(z)
         z = self.emb_dropout(z)
         z = self.attn_layers1(z)
 
-        z = z.reshape(x1,-1,512*7)
+        z = z.reshape(x1,-1,dim*7)
         z = self.in_linear(z) 
         z = z + self.pos_emb1(z)  + self.emb(x[..., 0]).to(torch.float16) 
         z = self.emb_dropout(z)
         z = self.attn_layers2(z)
 
         z = torch.cat(
-            [   z.reshape(-1,1,512),
-                emb_type.reshape(-1,1,512),
-                emb_barbeat.reshape(-1,1,512),
-                emb_tempo.reshape(-1,1,512),
-                emb_instrument.reshape(-1,1,512),
-                emb_note_name.reshape(-1,1,512),
-                emb_octave.reshape(-1,1,512),
-                emb_duration.reshape(-1,1,512),
+            [   z.reshape(-1,1,dim),
+                emb_type.reshape(-1,1,dim),
+                emb_barbeat.reshape(-1,1,dim),
+                emb_tempo.reshape(-1,1,dim),
+                emb_instrument.reshape(-1,1,dim),
+                emb_note_name.reshape(-1,1,dim),
+                emb_octave.reshape(-1,1,dim),
+                emb_duration.reshape(-1,1,dim),
             ], dim = 1)
 
         z = self.attn_layers3(z)
 
 
-        return self.proj_type(z[:,1,:].reshape(x1,-1,512)), self.proj_barbeat(z[:,2,:].reshape(x1,-1,512)), self.proj_tempo(z[:,3,:].reshape(x1,-1,512)), self.proj_instrument(z[:,4,:].reshape(x1,-1,512)), self.proj_note_name(z[:,5,:].reshape(x1,-1,512)), self.proj_octave(z[:,6,:].reshape(x1,-1,512)), self.proj_duration(z[:,7,:].reshape(x1,-1,512))
+        return self.proj_type(z[:,1,:].reshape(x1,-1,dim)), self.proj_barbeat(z[:,2,:].reshape(x1,-1,dim)), self.proj_tempo(z[:,3,:].reshape(x1,-1,dim)), self.proj_instrument(z[:,4,:].reshape(x1,-1,dim)), self.proj_note_name(z[:,5,:].reshape(x1,-1,dim)), self.proj_octave(z[:,6,:].reshape(x1,-1,dim)), self.proj_duration(z[:,7,:].reshape(x1,-1,dim))
