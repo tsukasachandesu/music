@@ -208,7 +208,8 @@ class CompoundWordTransformerWrapper(nn.Module):
                 
         self.pos_emb1 = AbsolutePositionalEmbedding(self.dim, max_seq_len) 
         self.pos_emb2 = AbsolutePositionalEmbedding(self.dim, 7)
-        
+        self.pos_emb3 = AbsolutePositionalEmbedding(self.dim, 8)
+
         self.emb_dropout = nn.Dropout(emb_dropout)
         
         self.attn_layers1 = attn_layers1
@@ -382,7 +383,8 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_octave.reshape(-1,1,self.dim),
                 emb_duration.reshape(-1,1,self.dim),
             ], dim = 1)
-
+	    
+        z + self.pos_emb3(z)
         z = self.attn_layers3(z)
 
 
