@@ -123,7 +123,7 @@ model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
     max_seq_len=defaults['max_sequence_length'],
     attn_layers=Decoder(
         dim=512,
-        depth=24,
+        depth=1,
         heads=8,
         ff_glu = True,
         ff_swish = True,
@@ -138,7 +138,7 @@ model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
     ),
     attn_layers1=Encoder(
                 dim=512,
-                depth=2,
+                depth=1,
                 heads=8,
                 ff_glu = True,
                 ff_swish = True,
@@ -148,13 +148,11 @@ model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
                 ff_dropout=0.1,
                 ff_no_bias = True,
                 attn_one_kv_head = True,
-                dynamic_pos_bias = True,                # set this to True
-                dynamic_pos_bias_log_distance = False   # whether to use log distance, as in SwinV2
-
+                attn_flash = True
     ),
     attn_layers2=Decoder(
         dim=512,
-        depth=4,
+        depth=1,
         heads=8,
         ff_glu = True,
         ff_swish = True,
