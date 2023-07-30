@@ -363,7 +363,9 @@ class CompoundWordTransformerWrapper(nn.Module):
             ], dim = 1)
 
         z = z + self.pos_emb2(z)
+        print(z.dtype)
         z = self.emb_dropout(z)
+        print(z.dtype)
         z = self.attn_layers1(z, mask = None)
         z = z.reshape(x1,-1,512*7)
         z = self.in_linear(z) 
