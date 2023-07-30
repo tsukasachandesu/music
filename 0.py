@@ -135,7 +135,9 @@ model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
         attn_one_kv_head = True,
         shift_tokens = 1,
         attn_flash = True,
-        rotary_pos_emb = True
+        rotary_pos_emb = True,
+        pre_norm = True,
+
     ),
     attn_layers1=Encoder(
                 dim=512,
