@@ -137,7 +137,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             *,
             num_tokens,
             max_seq_len,
-            attn_layers, attn_layers1,attn_layers2,
+            attn_layers, attn_layers1
             emb_dim=None,
             emb_dropout=0.,
             use_pos_emb=True,
@@ -208,13 +208,12 @@ class CompoundWordTransformerWrapper(nn.Module):
                 
         self.pos_emb1 = AbsolutePositionalEmbedding(self.dim, max_seq_len) 
         self.pos_emb2 = AbsolutePositionalEmbedding(self.dim, 7)
-        self.pos_emb3 = AbsolutePositionalEmbedding(self.dim, 8)
 
         self.emb_dropout = nn.Dropout(emb_dropout)
         
         self.attn_layers1 = attn_layers1
         self.attn_layers2 = attn_layers
-        self.attn_layers3 = attn_layers2
+	    
         self.in_linear = nn.Linear(self.dim*7, self.dim)
 
         self.emb = Fundamental_Music_Embedding(self.dim, 10000)
@@ -383,8 +382,5 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_octave.reshape(-1,1,self.dim),
                 emb_duration.reshape(-1,1,self.dim),
             ], dim = 1)
-	    
-        z = z + self.pos_emb3(z)
-        z = self.attn_layers3(z)
 
-        return self.proj_type(z[:,1,:].reshape(x1,-1,self.dim)), self.proj_barbeat(z[:,2,:].reshape(x1,-1,self.dim)), self.proj_tempo(z[:,3,:].reshape(x1,-1,self.dim)), self.proj_instrument(z[:,4,:].reshape(x1,-1,self.dim)), self.proj_note_name(z[:,5,:].reshape(x1,-1,self.dim)), self.proj_octave(z[:,6,:].reshape(x1,-1,self.dim)), self.proj_duration(z[:,7,:].reshape(x1,-1,self.dim))
+        return self.proj_type(z), self.proj_barbeat(z), self.proj_tempo(z), self.proj_instrument(z), self.proj_note_name(z), self.proj_octave(z), self.proj_duration(z)
