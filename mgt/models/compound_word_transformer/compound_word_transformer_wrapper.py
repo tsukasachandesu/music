@@ -53,7 +53,7 @@ class Fundamental_Music_Embedding(nn.Module):
 		# apply cos to odd indices in the array; 2i+1
 		angle_rads[:, :, 1::2] = torch.cos(angle_rads.clone()[:, :, 1::2])
 
-		pos_encoding = angle_rads.to(torch.float32)
+		pos_encoding = angle_rads.to(torch.float16)
 
 		if self.translation_bias.size()[-1]!= self.d_model:
 			translation_bias = self.translation_bias.repeat(1, 1,int(self.d_model/2))
