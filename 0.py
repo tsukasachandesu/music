@@ -132,40 +132,9 @@ model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
         layer_dropout = 0.1,
         ff_dropout=0.1,
         ff_no_bias = True,
-        attn_one_kv_head = True,
-        shift_tokens = 1,
         rotary_pos_emb = True,
-        pre_norm = True,
-
-    ),
-    attn_layers1=Encoder(
-                dim=512,
-                depth=1,
-                heads=8,
-                ff_glu = True,
-                ff_swish = True,
-                use_rmsnorm = True,            
-                layer_dropout = 0.1,
-                attn_dropout=0.1,  
-                ff_dropout=0.1,
-                ff_no_bias = True,
-                attn_one_kv_head = True,
-                rotary_pos_emb = True
-    ),
-    attn_layers2=Encoder(
-                dim=512,
-                depth=6,
-                heads=8,
-                ff_glu = True,
-                ff_swish = True,
-                use_rmsnorm = True,            
-                layer_dropout = 0.1,
-                attn_dropout=0.1,  
-                ff_dropout=0.1,
-                ff_no_bias = True,
-                attn_one_kv_head = True,
-                rotary_pos_emb = True
-    )   
+        pre_norm = True
+    )
 )).cuda()
 
 # setup deepspeed
