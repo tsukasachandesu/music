@@ -311,16 +311,7 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_duration.reshape(-1,1,self.dim),
             ], dim = 1)
 
-        y = torch.cat(
-            [
-                emb_type.reshape(-1,1,512),
-                emb_barbeat.reshape(-1,1,512),
-                emb_tempo.reshape(-1,1,512),
-                emb_instrument.reshape(-1,1,512),
-                emb_note_name.reshape(-1,1,512),
-                emb_octave.reshape(-1,1,512),
-                emb_duration.reshape(-1,1,512),
-            ], dim = 1)
+        y = z
 
         z = z + self.pos_emb2(z)
         z = self.emb_dropout(z)
@@ -330,7 +321,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         z = self.in_linear(z) 
         z = z + self.pos_emb1(z)  + self.emb(x[..., 0])
         z = self.emb_dropout(z)
-        z = self.attn_layers2(z, mask = mast)
+        z = self.attn_layers2(z, mask = mask)
 	    
         z = torch.cat(
             [
