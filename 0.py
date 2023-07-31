@@ -123,7 +123,7 @@ model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
     max_seq_len=defaults['max_sequence_length'],
     attn_layers=Decoder(
         dim=512,
-        depth=32,
+        depth=48,
         heads=8,
         ff_glu = True,
         ff_swish = True,
@@ -133,7 +133,10 @@ model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
         ff_dropout=0.1,
         ff_no_bias = True,
         rotary_pos_emb = True,
-        pre_norm = True
+        pre_norm = True,
+        attn_flash = True,
+        attn_one_kv_head = True,
+        shift_tokens = 1
     )
 )).cuda()
 
