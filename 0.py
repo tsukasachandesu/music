@@ -112,7 +112,7 @@ defaults = {
     'max_sequence_length': 1024,
     'learning_rate': 1e-4,
     'dropout': 0.1,
-    'dim': 756,
+    'dim': 512,
     'depth': 24,
     'heads': 8
 }
@@ -123,7 +123,7 @@ model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
     max_seq_len=defaults['max_sequence_length'],
     attn_layers=Decoder(
         dim=512,
-        depth=36,
+        depth=32,
         heads=8,
         ff_glu = True,
         ff_swish = True,
@@ -151,7 +151,21 @@ model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
                 ff_no_bias = True,
                 attn_one_kv_head = True,
                 rotary_pos_emb = True
-    )
+    ),
+    attn_layers2=Encoder(
+                dim=512,
+                depth=6,
+                heads=8,
+                ff_glu = True,
+                ff_swish = True,
+                use_rmsnorm = True,            
+                layer_dropout = 0.1,
+                attn_dropout=0.1,  
+                ff_dropout=0.1,
+                ff_no_bias = True,
+                attn_one_kv_head = True,
+                rotary_pos_emb = True
+    )   
 )).cuda()
 
 # setup deepspeed
