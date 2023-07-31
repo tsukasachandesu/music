@@ -53,7 +53,7 @@ class Fundamental_Music_Embedding(nn.Module):
 		# apply cos to odd indices in the array; 2i+1
 		angle_rads[:, :, 1::2] = torch.cos(angle_rads.clone()[:, :, 1::2])
 
-		pos_encoding = angle_rads.to(torch.float16)
+		pos_encoding = angle_rads.to(torch.float32)
 
 		if self.translation_bias.size()[-1]!= self.d_model:
 			translation_bias = self.translation_bias.repeat(1, 1,int(self.d_model/2))
@@ -137,7 +137,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             *,
             num_tokens,
             max_seq_len,
-            attn_layers, attn_layers1,
+            attn_layers, attn_layers1, attn_layers2,
             emb_dim=None,
             emb_dropout=0.,
             use_pos_emb=True,
@@ -208,12 +208,14 @@ class CompoundWordTransformerWrapper(nn.Module):
                 
         self.pos_emb1 = AbsolutePositionalEmbedding(self.dim, max_seq_len) 
         self.pos_emb2 = AbsolutePositionalEmbedding(self.dim, 7)
+        self.pos_emb3 = AbsolutePositionalEmbedding(self.dim, 8)
 
         self.emb_dropout = nn.Dropout(emb_dropout)
         
         self.attn_layers1 = attn_layers1
         self.attn_layers2 = attn_layers
-	    
+        self.attn_layers3 = attn_layers2
+
         self.in_linear = nn.Linear(self.dim*7, self.dim)
 
         self.emb = Fundamental_Music_Embedding(self.dim, 10000)
@@ -309,14 +311,43 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_duration.reshape(-1,1,self.dim),
             ], dim = 1)
 
+        y = torch.cat(
+            [
+                emb_type.reshape(-1,1,512),
+                emb_barbeat.reshape(-1,1,512),
+                emb_tempo.reshape(-1,1,512),
+                emb_instrument.reshape(-1,1,512),
+                emb_note_name.reshape(-1,1,512),
+                emb_octave.reshape(-1,1,512),
+                emb_duration.reshape(-1,1,512),
+            ], dim = 1)
+
         z = z + self.pos_emb2(z)
         z = self.emb_dropout(z)
-        z = self.attn_layers1(z)
+        z = self.attn_layers1(z, mask = mask.reshape(-1,1).repeat((1,7)))
 
         z = z.reshape(x1,-1,self.dim*7)
         z = self.in_linear(z) 
         z = z + self.pos_emb1(z)  + self.emb(x[..., 0])
         z = self.emb_dropout(z)
-        z = self.attn_layers2(z)
-
-        return self.proj_type(z), self.proj_barbeat(z), self.proj_tempo(z), self.proj_instrument(z), self.proj_note_name(z), self.proj_octave(z), self.proj_duration(z)
+        z = self.attn_layers2(z, mask = mast)
+	    
+        z = torch.cat(
+            [
+                z.reshape(-1,1,512),
+                y
+            ], dim = 1)
+	    
+        z = z + self.pos_emb3(z)
+        z = self.emb_dropout(z)
+        z = self.attn_layers3(z, mask = mask.reshape(-1,1).repeat((1,8)))
+	    
+        proj_type = self.proj_type(z[:,1,:].reshape(x1,-1,512))
+        proj_barbeat = self.proj_barbeat(z[:,2,:].reshape(x1,-1,512))
+        proj_tempo = self.proj_tempo(z[:,3,:].reshape(x1,-1,512))
+        proj_instrument = self.proj_instrument(z[:,4,:].reshape(x1,-1,512))
+        proj_note_name = self.proj_note_name(z[:,5,:].reshape(x1,-1,512))
+        proj_octave = self.proj_octave(z[:,6,:].reshape(x1,-1,512))
+        proj_duration = self.proj_duration(z[:,7,:].reshape(x1,-1,512))
+	    
+        return proj_type, proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration
