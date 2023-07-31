@@ -85,7 +85,7 @@ EPOCHS = 1
 GRADIENT_ACCUMULATE_EVERY = 4
 GENERATE_EVERY = 1800
 GENERATE_LENGTH = 1024
-yes = "a"
+yes = None
 yes1 = "a"
 
 # instantiate GPT-like decoder model
