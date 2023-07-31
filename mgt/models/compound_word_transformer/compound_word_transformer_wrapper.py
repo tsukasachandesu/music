@@ -213,6 +213,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.attn_layers2 = attn_layers
 
         self.in_linear = nn.Linear(self.dim*7, self.dim)
+        self.in_linear1 = nn.Linear(self.dim*16, self.dim)
 
         self.emb = Fundamental_Music_Embedding(self.dim, 10000)
 
@@ -324,8 +325,17 @@ class CompoundWordTransformerWrapper(nn.Module):
             mask=None,
             **kwargs
     ):
+
+	    
         
         x1, x2, x3 = x.shape
+
+        padding_size = 0
+        if x2 % 16 != 0:
+          padding_size = 16 - (x2 % 16) 
+          padding = (0, 0, 0, padding_size)
+          x = pad(x, padding, "constant", 0)	
+	    
         mask = x[..., 0].bool()
 
         emb_type = self.word_emb_type(x[..., 0])
@@ -347,9 +357,17 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_duration.reshape(-1,1,self.dim),
             ], dim = 1)
 
-        z = z.reshape(x1,-1,self.dim*7)
+        z = z.reshape(x1,-1,self.dim*7)       
         z = self.in_linear(z) 
-        z = z + self.pos_emb1(z)  + self.emb(x[..., 0])
+
+        z = z.unfold(1,16,1)
+        z = z.reshape(x1,x2,1,512*7*16)
+        z = torch.permute(z, (0,1,3,2))  
+        z = z.reshape(x1,x2,1,512*16)
+        z = z.squeeze(2)
+        z = self.in_linear1(z) 
+
+        z = z + self.pos_emb1(z)  
         z = self.emb_dropout(z)
         z = self.attn_layers2(z)
 	    
