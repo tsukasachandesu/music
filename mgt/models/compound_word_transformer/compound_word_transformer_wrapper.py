@@ -359,7 +359,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         z = self.in_linear(z) 
 
         z = z.unfold(1,16,1)
-        z = z.reshape(x1,x2,1,512*7*16)
+        z = z.reshape(x1,x2,1,512*16)
         z = torch.permute(z, (0,1,3,2))  
         z = z.reshape(x1,x2,1,512*16)
         z = z.squeeze(2)
