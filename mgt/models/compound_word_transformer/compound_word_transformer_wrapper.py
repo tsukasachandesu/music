@@ -325,15 +325,8 @@ class CompoundWordTransformerWrapper(nn.Module):
             mask=None,
             **kwargs
     ):
-
-	    
-        
         x1, x2, x3 = x.shape
 
-
-        padding = (0, 0, 0, 15)
-        x = pad(x, padding, "constant", 0)	
-	    
         mask = x[..., 0].bool()
 
         emb_type = self.word_emb_type(x[..., 0])
@@ -357,13 +350,6 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         z = z.reshape(x1,-1,self.dim*7)       
         z = self.in_linear(z) 
-
-        z = z.unfold(1,16,1)
-        z = z.reshape(x1,x2,1,512*16)
-        z = torch.permute(z, (0,1,3,2))  
-        z = z.reshape(x1,x2,1,512*16)
-        z = z.squeeze(2)
-        z = self.in_linear1(z) 
 
         z = z + self.pos_emb1(z)  
         z = self.emb_dropout(z)
