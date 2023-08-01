@@ -15,6 +15,15 @@ import math
 from einops import rearrange, reduce, repeat
 from torch.nn.functional import pad
 
+class RMSNorm(nn.Module):
+    def __init__(self, dim):
+        super().__init__()
+        self.scale = dim ** 0.5
+        self.g = nn.Parameter(torch.ones(dim))
+
+    def forward(self, x):
+        return F.normalize(x, dim = -1) * self.scale * self.g
+
 def log(t, eps = 1e-20):
     return torch.log(t.clamp(min = eps))
 
@@ -137,7 +146,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             *,
             num_tokens,
             max_seq_len,
-            attn_layers, attn_layers1, 
+            attn_layers,
             emb_dim=None,
             emb_dropout=0.,
             use_pos_emb=True,
@@ -206,24 +215,18 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         self.compound_word_embedding_size = np.sum(emb_sizes)
                 
-        self.pos_emb1 = AbsolutePositionalEmbedding(self.dim, max_seq_len) 
+        self.pos_emb1 = AbsolutePositionalEmbedding(self.dim, max_seq_len)
+
+
 
         self.emb_dropout = nn.Dropout(emb_dropout)
         
         self.attn_layers2 = attn_layers
-        self.attn_layers3 = attn_layers1
 
         self.in_linear = nn.Linear(self.dim*7, self.dim)
-
-        self.project_concat_type1 = nn.Linear(self.dim, self.dim)
-        self.project_concat_type2 = nn.Linear(self.dim, self.dim)
-        self.project_concat_type3 = nn.Linear(self.dim, self.dim)
-        self.project_concat_type4 = nn.Linear(self.dim, self.dim)
-        self.project_concat_type5 = nn.Linear(self.dim, self.dim)
-        self.project_concat_type6 = nn.Linear(self.dim, self.dim)
-    
-
+	    
         self.project_concat_type = nn.Linear(self.dim + self.emb_sizes[0], self.dim)
+        self.norm = RMSNorm(self.dim)
         
         self.init_()
 
@@ -314,23 +317,13 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         y_concat_type = torch.cat([h, tf_skip_type], dim=-1)
         y_ = self.project_concat_type(y_concat_type)
-        x1, x2, x3 = y_.shape
-        z = torch.cat(
-            [
-                self.project_concat_type1(y_).reshape(-1,1,self.dim),
-                self.project_concat_type2(y_).reshape(-1,1,self.dim),
-                self.project_concat_type3(y_).reshape(-1,1,self.dim),
-                self.project_concat_type4(y_).reshape(-1,1,self.dim),
-                self.project_concat_type5(y_).reshape(-1,1,self.dim),
-                self.project_concat_type6(y_).reshape(-1,1,self.dim),
-            ], dim = 1)   
 			       
-        proj_barbeat = self.proj_barbeat(z[:,0,:].reshape(x1,-1,self.dim))
-        proj_tempo = self.proj_tempo(z[:,1,:].reshape(x1,-1,self.dim))
-        proj_instrument = self.proj_instrument(z[:,2,:].reshape(x1,-1,self.dim))
-        proj_note_name = self.proj_note_name(z[:,3,:].reshape(x1,-1,self.dim))
-        proj_octave = self.proj_octave(z[:,4,:].reshape(x1,-1,self.dim))
-        proj_duration = self.proj_duration(z[:,5,:].reshape(x1,-1,self.dim))
+        proj_barbeat = self.proj_barbeat(y_)
+        proj_tempo = self.proj_tempo(y_)
+        proj_instrument = self.proj_instrument(y_)
+        proj_note_name = self.proj_note_name(y_)
+        proj_octave = self.proj_octave(y_)
+        proj_duration = self.proj_duration(y_)
 
         return proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration
 
@@ -369,6 +362,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         z = z + self.pos_emb1(z)  
         z = self.emb_dropout(z)
-        z = self.attn_layers2(z)
+        z = self.attn_layers2(z, mask = mask)
+        z = self.norm(z)
 	    
         return z, self.proj_type(z)
