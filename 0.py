@@ -48,7 +48,7 @@ class Dataset(Dataset):
         self.max_length = max_length
         
     def __len__(self):
-        return 3000
+        return 2000
 
     def __getitem__(self, idx):
         song_index = random.randint(0, len(self.data) - 1)
@@ -85,7 +85,7 @@ EPOCHS = 1
 GRADIENT_ACCUMULATE_EVERY = 4
 GENERATE_EVERY = 1800
 GENERATE_LENGTH = 1024
-yes = None
+yes = "a"
 yes1 = "a"
 
 # instantiate GPT-like decoder model
@@ -135,7 +135,6 @@ model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
         rotary_pos_emb = True,
         pre_norm = True,
         attn_one_kv_head = True,
-        shift_tokens = 1
     )
 )).cuda()
 
