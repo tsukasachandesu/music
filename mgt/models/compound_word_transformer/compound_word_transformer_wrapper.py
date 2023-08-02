@@ -225,7 +225,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         self.in_linear = nn.Linear(self.dim*7, self.dim)
 	    
-        self.project_concat_type = nn.Linear(self.dim + self.emb_sizes[0], self.dim)
+        self.project_concat_type = nn.Linear(self.dim *2, self.dim)
         self.norm = RMSNorm(self.dim)
         
         self.init_()
