@@ -378,6 +378,5 @@ class CompoundWordTransformerWrapper(nn.Module):
 	    
         z = self.attn_layers3(z, mask = mask.reshape(-1,1).repeat((1,8)))
         z = z.reshape(x1,-1,self.dim*8)       
-        z = self.norm(z)
 	    
         return z, self.proj_type(z)
