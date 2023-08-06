@@ -216,7 +216,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.compound_word_embedding_size = np.sum(emb_sizes)
                 
         self.pos_emb1 = AbsolutePositionalEmbedding(self.dim, max_seq_len)
-        self.pos_emb2 = Fundamental_Music_Embedding(512,10000)
 	    
         self.emb_dropout = nn.Dropout(emb_dropout)
         
@@ -362,7 +361,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 	    
         z = self.in_linear(z) 
 
-        z = z + self.pos_emb1(z)  + self.pos_emb2(z)  
+        z = z + self.pos_emb1(z)  
         z = self.emb_dropout(z)
         z = self.attn_layers2(z, mask = mask)
         z = self.norm(z)
