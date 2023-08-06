@@ -73,11 +73,11 @@ class CompoundWordTransformerModel(object):
     def train(self,
               x_train,
               epochs,
-              batch_size=4,
+              batch_size=6,
               stop_loss=None,
               batches_per_epoch=100,
               report_per_x_batches=20,
-              gradient_accumulation_steps=1):
+              gradient_accumulation_steps=2):
         self.model.train()
         start_time = time.time()
         for epoch in range(epochs):
@@ -150,9 +150,20 @@ class CompoundWordTransformerModel(object):
                 ff_dropout=self.dropout,  # feedforward dropout
                 ff_no_bias = True,
                 attn_one_kv_head = True,
-                rotary_pos_emb = True,
-                pre_norm = True,
-            
+                rotary_pos_emb = True
+            ),
+            attn_layers1=Encoder(
+                dim=self.dim,
+                depth=1,
+                heads=self.heads,
+                ff_glu = True,
+                ff_swish = True,
+                use_rmsnorm = True,
+                layer_dropout = self.dropout,
+                attn_dropout=self.dropout, 
+                ff_dropout=self.dropout,  
+                ff_no_bias = True,
+                rotary_pos_emb = True,            
             )
         )).to(get_device())
 
