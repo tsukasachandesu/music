@@ -96,7 +96,7 @@ class CompoundWordTransformerModel(object):
                     torch_batch = torch.tensor(np.array(batch)).long().to(utils.get_device())
 
                     losses = self.model.train_step(torch_batch)
-                    loss = sum(losses) 
+                    loss = sum(losses)/len(losses) 
                     loss.backward()
 
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), 0.5)
