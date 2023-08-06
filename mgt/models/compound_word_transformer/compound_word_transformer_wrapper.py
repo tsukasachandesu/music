@@ -146,7 +146,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             *,
             num_tokens,
             max_seq_len,
-            attn_layers, attn_layers1,
+            attn_layers, 
             emb_dim=None,
             emb_dropout=0.,
             use_pos_emb=True,
@@ -220,10 +220,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.emb_dropout = nn.Dropout(emb_dropout)
         
         self.attn_layers2 = attn_layers
-        self.attn_layers3 = attn_layers1
 
         self.in_linear = nn.Linear(self.dim*7, self.dim)
-        self.in_linear1 = nn.Linear(self.dim*8, self.dim)
 
         self.project_concat_type = nn.Linear(self.dim*2, self.dim)
         self.norm = RMSNorm(self.dim)
@@ -363,20 +361,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         z = self.emb_dropout(z)
         z = self.attn_layers2(z, mask = mask)
 
-        z = torch.cat(
-            [
-                z.reshape(-1,1,self.dim),
-                emb_type.reshape(-1,1,self.dim),
-                emb_barbeat.reshape(-1,1,self.dim),
-                emb_tempo.reshape(-1,1,self.dim),
-                emb_instrument.reshape(-1,1,self.dim),
-                emb_note_name.reshape(-1,1,self.dim),
-                emb_octave.reshape(-1,1,self.dim),
-                emb_duration.reshape(-1,1,self.dim),
-            ], dim = 1)
-	    
-        z = self.attn_layers3(z, mask = mask.reshape(-1,1).repeat((1,8)))
-        z = z.reshape(x1,-1,self.dim*8)       
-        z = self.in_linear1(z) 
+        z = self.norm(z)
    
         return z, self.proj_type(z)
