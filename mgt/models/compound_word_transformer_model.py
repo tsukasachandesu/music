@@ -154,19 +154,6 @@ class CompoundWordTransformerModel(object):
             ),
             attn_layers1=Encoder(
                 dim=self.dim,
-                depth=1,
-                heads=self.heads,
-                ff_glu = True,
-                ff_swish = True,
-                use_rmsnorm = True,
-                layer_dropout = self.dropout,
-                attn_dropout=self.dropout, 
-                ff_dropout=self.dropout,  
-                ff_no_bias = True,
-                rotary_pos_emb = True,            
-            ),
-            attn_layers2=Decoder(
-                dim=self.dim,
                 depth=6,
                 heads=self.heads,
                 ff_glu = True,
@@ -177,8 +164,8 @@ class CompoundWordTransformerModel(object):
                 ff_dropout=self.dropout,  # feedforward dropout
                 ff_no_bias = True,
                 attn_one_kv_head = True,
-                rotary_pos_emb = True
-            )   
+                rotary_pos_emb = True        
+            )
         )).to(get_device())
 
         return model
