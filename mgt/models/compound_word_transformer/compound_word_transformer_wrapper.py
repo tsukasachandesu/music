@@ -62,7 +62,7 @@ class Fundamental_Music_Embedding(nn.Module):
 		# apply cos to odd indices in the array; 2i+1
 		angle_rads[:, :, 1::2] = torch.cos(angle_rads.clone()[:, :, 1::2])
 
-		pos_encoding = angle_rads.to(torch.float16)
+		pos_encoding = angle_rads.to(torch.float32)
 
 		if self.translation_bias.size()[-1]!= self.d_model:
 			translation_bias = self.translation_bias.repeat(1, 1,int(self.d_model/2))
@@ -216,9 +216,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.compound_word_embedding_size = np.sum(emb_sizes)
                 
         self.pos_emb1 = AbsolutePositionalEmbedding(self.dim, max_seq_len)
-
-
-
+        self.pos_emb2 = Fundamental_Music_Embedding(512,10000)
+	    
         self.emb_dropout = nn.Dropout(emb_dropout)
         
         self.attn_layers2 = attn_layers
@@ -360,7 +359,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         z = z.reshape(x1,-1,self.dim*7)       
         z = self.in_linear(z) 
 
-        z = z + self.pos_emb1(z)  
+        z = z + self.pos_emb1(z)  + self.pos_emb2(z)  
         z = self.emb_dropout(z)
         z = self.attn_layers2(z, mask = mask)
         z = self.norm(z)
