@@ -154,7 +154,7 @@ class CompoundWordTransformerModel(object):
             ),
             attn_layers1=Encoder(
                 dim=self.dim,
-                depth=6,
+                depth=4,
                 heads=self.heads,
                 ff_glu = True,
                 ff_swish = True,
