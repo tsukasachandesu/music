@@ -98,10 +98,13 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         print('------ initiate ------')
         final_res = prompt.copy()
         last_token = final_res[-self.max_seq_len:]
+        input = torch.tensor(np.array([last_token])).long().to(get_device())
+
         final_res = final_res[:,0,:]
+        last_token = final_res[-self.max_seq_len:]
         input_ = torch.tensor(np.array([last_token])).long().to(get_device())
-        input_1 = input_
-        h, y_type = self.net.forward_hidden(input_, gen = input_1)
+        
+        h, y_type = self.net.forward_hidden(input_, gen = input)
         
         print('------ generate ------')
         for _ in range(output_length):
@@ -115,7 +118,7 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
             # forward
             last_token = final_res[-self.max_seq_len:]
             input_ = torch.tensor(np.array([last_token])).long().to(get_device())
-            h, y_type = self.net.forward_hidden(input_, gen = input_1)
+            h, y_type = self.net.forward_hidden(input_, gen = input)
 
         return final_res
 
