@@ -385,10 +385,11 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         zz = zz.reshape(x4,-1,self.dim*7)       
         zz = self.in_linear(zz) 
-        zz = z + self.pos_emb1(zz)  
+        zz = zz + self.pos_emb1(zz)  
         zz = self.emb_dropout(zz)
         zz = self.attn_layers3(zz, mask = mask1)
-
+        zz = self.norm(zz)
+	    
         z = torch.cat(
             [
                 emb_type.reshape(-1,1,self.dim),
