@@ -349,17 +349,36 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         if gen == None:
           emb_barbeat1 = emb_barbeat
-
           num_elements_to_replace = int(emb_barbeat1.numel() * 0.10)
           indices_to_replace = torch.multinomial(torch.ones(emb_barbeat1.numel(), device=emb_barbeat1.device), num_elements_to_replace, replacement=False).to(torch.long)
           emb_barbeat1.put_(indices_to_replace, torch.randint(0, 6912, (num_elements_to_replace,),device=emb_barbeat1.device,dtype=torch.float32))
 
-          emb_type1 = emb_type
           emb_tempo1 = emb_tempo
+          num_elements_to_replace = int(emb_tempo1.numel() * 0.10)
+          indices_to_replace = torch.multinomial(torch.ones(emb_tempo1.numel(), device=emb_tempo1.device), num_elements_to_replace, replacement=False).to(torch.long)
+          emb_tempo1.put_(indices_to_replace, torch.randint(0, 6912, (num_elements_to_replace,),device=emb_tempo1.device,dtype=torch.float32))
+
           emb_instrument1 = emb_instrument
+          num_elements_to_replace = int(emb_instrument1.numel() * 0.10)
+          indices_to_replace = torch.multinomial(torch.ones(emb_instrument1.numel(), device=emb_instrument1.device), num_elements_to_replace, replacement=False).to(torch.long)
+          emb_instrument1.put_(indices_to_replace, torch.randint(0, 6912, (num_elements_to_replace,),device=emb_instrument1.device,dtype=torch.float32))
+
           emb_note_name1 = emb_note_name
+          num_elements_to_replace = int(emb_note_name1.numel() * 0.10)
+          indices_to_replace = torch.multinomial(torch.ones(emb_note_name1.numel(), device=emb_note_name1.device), num_elements_to_replace, replacement=False).to(torch.long)
+          emb_note_name1.put_(indices_to_replace, torch.randint(0, 6912, (num_elements_to_replace,),device=emb_note_name1.device,dtype=torch.float32))
+
           emb_octave1 = emb_octave
+          num_elements_to_replace = int(emb_octave1.numel() * 0.10)
+          indices_to_replace = torch.multinomial(torch.ones(emb_octave1.numel(), device=emb_octave1.device), num_elements_to_replace, replacement=False).to(torch.long)
+          emb_octave1.put_(indices_to_replace, torch.randint(0, 6912, (num_elements_to_replace,),device=emb_octave1.device,dtype=torch.float32))
+
           emb_duration1 = emb_duration
+          num_elements_to_replace = int(emb_duration1.numel() * 0.10)
+          indices_to_replace = torch.multinomial(torch.ones(emb_duration1.numel(), device=emb_duration1.device), num_elements_to_replace, replacement=False).to(torch.long)
+          emb_duration1.put_(indices_to_replace, torch.randint(0, 6912, (num_elements_to_replace,),device=emb_duration1.device,dtype=torch.float32)
+		
+          emb_type1 = emb_type
 
         else:
           x4, x5, x6 = gen.shape
@@ -372,7 +391,6 @@ class CompoundWordTransformerWrapper(nn.Module):
           emb_note_name1 =self.word_emb_barbeat4(gen[..., 4])
           emb_octave1 = self.word_emb_barbeat5(gen[..., 5])
           emb_duration1 = self.word_emb_barbeat6(gen[..., 6])
-
 
         zz = torch.cat(
             [
@@ -407,11 +425,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         z = self.in_linear(z) 
         z = z + self.pos_emb1(z)  
         z = self.emb_dropout(z)
-        print(z.shape)
-        print(zz.shape)
-        print(mask.shape)
 
-        z = self.attn_layers2(z, context = zz)
+
+        z = self.attn_layers2(z, context = zz, context_mask = mask1)
         z = self.norm(z)
    
         return z, self.proj_type(z)
