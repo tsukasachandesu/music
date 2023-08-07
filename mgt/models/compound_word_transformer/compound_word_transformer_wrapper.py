@@ -360,7 +360,6 @@ class CompoundWordTransformerWrapper(nn.Module):
           emb_note_name1 = emb_note_name
           emb_octave1 = emb_octave
           emb_duration1 = emb_duration
-        print(x.shape)
 
         else:
           x4, x5, x6 = gen.shape
@@ -376,6 +375,7 @@ class CompoundWordTransformerWrapper(nn.Module):
           emb_duration1 = self.word_emb_barbeat6(gen[..., 6])
         print(mask.shape)
         print(mask1.shape)
+        print(x.shape)
 
         zz = torch.cat(
             [
@@ -392,7 +392,10 @@ class CompoundWordTransformerWrapper(nn.Module):
         zz = self.in_linear(zz) 
         zz = zz + self.pos_emb1(zz)  
         zz = self.emb_dropout(zz)
+        print("a")
         zz = self.attn_layers3(zz, mask = mask1)
+        print("b")
+
         zz = self.norm(zz)
 	    
         z = torch.cat(
