@@ -146,7 +146,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             *,
             num_tokens,
             max_seq_len,
-            attn_layers,attn_layers1 
+            attn_layers,attn_layers1, 
             emb_dim=None,
             emb_dropout=0.,
             use_pos_emb=True,
@@ -347,30 +347,30 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_octave = self.word_emb_barbeat5(x[..., 5])
         emb_duration = self.word_emb_barbeat6(x[..., 6])
 
-	if gen == None:
-            emb_barbeat1 = emb_barbeat
-            num_elements_to_replace = int(emb_barbeat1.numel() * 0.10)
-            indices_to_replace = torch.multinomial(torch.ones(emb_barbeat1.numel()), num_elements_to_replace, replacement=False)
-            emb_barbeat1.put_(indices_to_replace, torch.randint(0, 6912, (num_elements_to_replace,)))
-		
-            emb_type1 = emb_type
-            emb_tempo1 = emb_tempo
-            emb_instrument1 = emb_instrument
-            emb_note_name1 = emb_note_name
-            emb_octave1 = emb_octave
-            emb_duration1 = emb_duration
+        if gen == None:
+          emb_barbeat1 = emb_barbeat
+          num_elements_to_replace = int(emb_barbeat1.numel() * 0.10)
+          indices_to_replace = torch.multinomial(torch.ones(emb_barbeat1.numel()), num_elements_to_replace, replacement=False)
+          emb_barbeat1.put_(indices_to_replace, torch.randint(0, 6912, (num_elements_to_replace,)))
 
-	else:
-            x4, x5, x6 = gen.shape
-            mask1 = gen[..., 0].bool()
+          emb_type1 = emb_type
+          emb_tempo1 = emb_tempo
+          emb_instrument1 = emb_instrument
+          emb_note_name1 = emb_note_name
+          emb_octave1 = emb_octave
+          emb_duration1 = emb_duration
+          
+        else:
+          x4, x5, x6 = gen.shape
+          mask1 = gen[..., 0].bool()
 		
-            emb_type1 = self.word_emb_type(gen[..., 0])
-            emb_barbeat1 = self.word_emb_barbeat1(gen[..., 1])
-            emb_tempo1 = self.word_emb_barbeat2(gen[..., 2])
-            emb_instrument1 = self.word_emb_barbeat3(gen[..., 3])
-            emb_note_name1 =self.word_emb_barbeat4(gen[..., 4])
-            emb_octave1 = self.word_emb_barbeat5(gen[..., 5])
-            emb_duration1 = self.word_emb_barbeat6(gen[..., 6])
+          emb_type1 = self.word_emb_type(gen[..., 0])
+          emb_barbeat1 = self.word_emb_barbeat1(gen[..., 1])
+          emb_tempo1 = self.word_emb_barbeat2(gen[..., 2])
+          emb_instrument1 = self.word_emb_barbeat3(gen[..., 3])
+          emb_note_name1 =self.word_emb_barbeat4(gen[..., 4])
+          emb_octave1 = self.word_emb_barbeat5(gen[..., 5])
+          emb_duration1 = self.word_emb_barbeat6(gen[..., 6])
 
         zz = torch.cat(
             [
