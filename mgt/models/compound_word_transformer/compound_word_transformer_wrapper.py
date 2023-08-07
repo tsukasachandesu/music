@@ -334,9 +334,11 @@ class CompoundWordTransformerWrapper(nn.Module):
             **kwargs
     ):
         x1, x2, x3 = x.shape
+        x4, x5, x6 = x.shape
 
         mask = x[..., 0].bool()
-
+        mask1 = mask
+	    
         emb_type = self.word_emb_type(x[..., 0])
         emb_barbeat = self.word_emb_barbeat1(x[..., 1])
         emb_tempo = self.word_emb_barbeat2(x[..., 2])
@@ -351,14 +353,17 @@ class CompoundWordTransformerWrapper(nn.Module):
             indices_to_replace = torch.multinomial(torch.ones(emb_barbeat1.numel()), num_elements_to_replace, replacement=False)
             emb_barbeat1.put_(indices_to_replace, torch.randint(0, 6912, (num_elements_to_replace,)))
 		
-            emb_type1 = self.word_emb_type(x[..., 0])
-            emb_tempo1 = self.word_emb_barbeat2(x[..., 2])
-            emb_instrument1 = self.word_emb_barbeat3(x[..., 3])
-            emb_note_name1 =self.word_emb_barbeat4(x[..., 4])
-            emb_octave1 = self.word_emb_barbeat5(x[..., 5])
-            emb_duration1 = self.word_emb_barbeat6(x[..., 6])
-	    
+            emb_type1 = emb_type
+            emb_tempo1 = emb_tempo
+            emb_instrument1 = emb_instrument
+            emb_note_name1 = emb_note_name
+            emb_octave1 = emb_octave
+            emb_duration1 = emb_duration
+
 	else:
+            x4, x5, x6 = gen.shape
+            mask1 = gen[..., 0].bool()
+		
             emb_type1 = self.word_emb_type(gen[..., 0])
             emb_barbeat1 = self.word_emb_barbeat1(gen[..., 1])
             emb_tempo1 = self.word_emb_barbeat2(gen[..., 2])
@@ -378,11 +383,11 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_duration1.reshape(-1,1,self.dim),
             ], dim = 1) 
 
-        zz = zz.reshape(x1,-1,self.dim*7)       
+        zz = zz.reshape(x4,-1,self.dim*7)       
         zz = self.in_linear(zz) 
         zz = z + self.pos_emb1(zz)  
         zz = self.emb_dropout(zz)
-        zz = self.attn_layers3(zz, mask = mask)
+        zz = self.attn_layers3(zz, mask = mask1)
 
         z = torch.cat(
             [
@@ -400,7 +405,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         z = z + self.pos_emb1(z)  
         z = self.emb_dropout(z)
         z = self.attn_layers2(z, context = zz, mask = mask)
-
         z = self.norm(z)
    
         return z, self.proj_type(z)
