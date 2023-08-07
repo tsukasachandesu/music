@@ -101,7 +101,7 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
     
         input = torch.tensor(np.array([last_token])).long().to(get_device())
 
-        final_res = final_res[0]
+        final_res = [final_res[0]]
         last_token = final_res[-self.max_seq_len:]
         input_ = torch.tensor(np.array([last_token])).long().to(get_device())
         
