@@ -411,7 +411,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         print(zz.shape)
         print(mask.shape)
 
-        z = self.attn_layers2(z, context = zz, mask = mask)
+        z = self.attn_layers2(z, context = zz)
         z = self.norm(z)
    
         return z, self.proj_type(z)
