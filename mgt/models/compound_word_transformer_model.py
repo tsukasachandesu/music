@@ -150,7 +150,8 @@ class CompoundWordTransformerModel(object):
                 ff_dropout=self.dropout,  # feedforward dropout
                 ff_no_bias = True,
                 attn_one_kv_head = True,
-                rotary_pos_emb = True
+                rotary_pos_emb = True,
+                cross_attend = True
             ),
             attn_layers1=Encoder(
                 dim=self.dim,
