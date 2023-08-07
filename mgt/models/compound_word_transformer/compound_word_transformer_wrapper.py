@@ -329,7 +329,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
     def forward_hidden(
             self,
-            x,
+            x, gen = None,
             mask=None,
             **kwargs
     ):
@@ -345,20 +345,37 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_octave = self.word_emb_barbeat5(x[..., 5])
         emb_duration = self.word_emb_barbeat6(x[..., 6])
 
-        emb_barbeat1 = emb_barbeat
-        num_elements_to_replace = int(emb_barbeat1.numel() * 0.10)
-        indices_to_replace = torch.multinomial(torch.ones(emb_barbeat1.numel()), num_elements_to_replace, replacement=False)
-        emb_barbeat1.put_(indices_to_replace, torch.randint(0, 6912, (num_elements_to_replace,)))
+	if gen == None:
+            emb_barbeat1 = emb_barbeat
+            num_elements_to_replace = int(emb_barbeat1.numel() * 0.10)
+            indices_to_replace = torch.multinomial(torch.ones(emb_barbeat1.numel()), num_elements_to_replace, replacement=False)
+            emb_barbeat1.put_(indices_to_replace, torch.randint(0, 6912, (num_elements_to_replace,)))
+		
+            emb_type1 = self.word_emb_type(x[..., 0])
+            emb_tempo1 = self.word_emb_barbeat2(x[..., 2])
+            emb_instrument1 = self.word_emb_barbeat3(x[..., 3])
+            emb_note_name1 =self.word_emb_barbeat4(x[..., 4])
+            emb_octave1 = self.word_emb_barbeat5(x[..., 5])
+            emb_duration1 = self.word_emb_barbeat6(x[..., 6])
+	    
+	else:
+            emb_type1 = self.word_emb_type(gen[..., 0])
+            emb_barbeat1 = self.word_emb_barbeat1(gen[..., 1])
+            emb_tempo1 = self.word_emb_barbeat2(gen[..., 2])
+            emb_instrument1 = self.word_emb_barbeat3(gen[..., 3])
+            emb_note_name1 =self.word_emb_barbeat4(gen[..., 4])
+            emb_octave1 = self.word_emb_barbeat5(gen[..., 5])
+            emb_duration1 = self.word_emb_barbeat6(gen[..., 6])
 
         zz = torch.cat(
             [
-                emb_type.reshape(-1,1,self.dim),
+                emb_type1.reshape(-1,1,self.dim),
                 emb_barbeat1.reshape(-1,1,self.dim),
-                emb_tempo.reshape(-1,1,self.dim),
-                emb_instrument.reshape(-1,1,self.dim),
-                emb_note_name.reshape(-1,1,self.dim),
-                emb_octave.reshape(-1,1,self.dim),
-                emb_duration.reshape(-1,1,self.dim),
+                emb_tempo1.reshape(-1,1,self.dim),
+                emb_instrument1.reshape(-1,1,self.dim),
+                emb_note_name1.reshape(-1,1,self.dim),
+                emb_octave1.reshape(-1,1,self.dim),
+                emb_duration1.reshape(-1,1,self.dim),
             ], dim = 1) 
 
         zz = zz.reshape(x1,-1,self.dim*7)       
