@@ -352,8 +352,16 @@ class CompoundWordTransformerWrapper(nn.Module):
 
           num_elements_to_replace = int(emb_barbeat1.numel() * 0.10)
           indices_to_replace = torch.multinomial(torch.ones(emb_barbeat1.numel(), device=emb_barbeat1.device), num_elements_to_replace, replacement=False)
-
-          emb_barbeat1.put_(indices_to_replace, torch.randint(0, 6912, (num_elements_to_replace,),device=emb_barbeat1.device,dtype=torch.long))
+          print(emb_barbeat1.dtype)
+          print(emb_barbeat1.device)
+          print(indices_to_replace.dtype)
+          print(indices_to_replace.device)
+          print(indices_to_replace.dtype)
+          print(indices_to_replace.device)
+          a = torch.randint(0, 6912, (num_elements_to_replace,),device=emb_barbeat1.device,dtype=torch.long)
+          print(a.dtype)
+          print(a.device)
+          emb_barbeat1.put_(indices_to_replace, a)
 
           emb_type1 = emb_type
           emb_tempo1 = emb_tempo
