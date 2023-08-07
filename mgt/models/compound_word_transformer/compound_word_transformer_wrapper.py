@@ -344,6 +344,12 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_octave = self.word_emb_barbeat5(x[..., 5])
         emb_duration = self.word_emb_barbeat6(x[..., 6])
 
+        emb_barbeat1 = emb_barbeat
+        num_elements_to_replace = int(emb_barbeat1.numel() * 0.10)
+        indices_to_replace = torch.multinomial(torch.ones(emb_barbeat1.numel()), num_elements_to_replace, replacement=False)
+        emb_barbeat1.put_(indices_to_replace, torch.randint(0, 6912, (num_elements_to_replace,)))
+
+
         z = torch.cat(
             [
                 emb_type.reshape(-1,1,self.dim),
