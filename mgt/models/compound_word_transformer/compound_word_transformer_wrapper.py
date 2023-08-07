@@ -351,7 +351,7 @@ class CompoundWordTransformerWrapper(nn.Module):
           emb_barbeat1 = emb_barbeat
 
           num_elements_to_replace = int(emb_barbeat1.numel() * 0.10)
-          indices_to_replace = torch.multinomial(torch.ones(emb_barbeat1.numel(), device=emb_barbeat1.shape), num_elements_to_replace, replacement=False)
+          indices_to_replace = torch.multinomial(torch.ones(emb_barbeat1.numel(), device=emb_barbeat1.device), num_elements_to_replace, replacement=False)
 
           print(indices_to_replace.shape)
           print(indices_to_replace.device)	
