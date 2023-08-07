@@ -349,14 +349,9 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         if gen == None:
           emb_barbeat1 = emb_barbeat
-          print(emb_barbeat1.shape)
-          print(emb_barbeat1.device)
 
-          print(emb_barbeat.shape)
-          print(emb_barbeat.device)
-		
           num_elements_to_replace = int(emb_barbeat1.numel() * 0.10)
-          indices_to_replace = torch.multinomial(torch.ones(emb_barbeat1.numel()), num_elements_to_replace, replacement=False)
+          indices_to_replace = torch.multinomial(torch.ones(emb_barbeat1.numel(), device=emb_barbeat1.shape), num_elements_to_replace, replacement=False)
 
           print(indices_to_replace.shape)
           print(indices_to_replace.device)	
