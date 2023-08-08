@@ -167,7 +167,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             nn.Linear(self.dim, self.dim*4),
             nn.GELU(),
             nn.Linear(self.dim*4, self.num_tokens[1])
-        ))
+        )
         
         self.proj_note_name = nn.Sequential(
             nn.Linear(self.dim, self.dim*4),
@@ -176,7 +176,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         )
         
         self.proj_octave = nn.Sequential(
-              nn.Linear(self.dim, self.dim*4),
+            nn.Linear(self.dim, self.dim*4),
             nn.GELU(),
             nn.Linear(self.dim*4, self.num_tokens[1])
         )
@@ -332,7 +332,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         z = z.reshape(x1,-1,self.dim*7)       
         z = self.in_linear(z) 
-        z = z + self.pos_emb1(z)  
+        z = z + self.pos_emb1(z) + emb_type.reshape(-1,1,self.dim) 
         z = self.emb_dropout(z)
         z = self.attn_layers2(z, mask = mask)
    
