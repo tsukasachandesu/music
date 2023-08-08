@@ -34,44 +34,6 @@ def gumbel_noise(t):
 def gumbel_sample(t, temperature = 1., dim = -1):
     return ((t / max(temperature, 1e-10)) + gumbel_noise(t)).argmax(dim = dim)
 
-
-class Fundamental_Music_Embedding(nn.Module):
-	def __init__(self, d_model, base, device='cuda:0'):
-		super().__init__()
-		self.d_model = d_model
-		self.device = device
-		self.base = base
-		
-		translation_bias = torch.rand((1, self.d_model))
-		translation_bias = nn.Parameter(translation_bias, requires_grad=True)
-		self.register_parameter("translation_bias", translation_bias)
-
-		i = torch.arange(d_model)
-		angle_rates = 1 / torch.pow(self.base, (2 * (i//2)) / d_model)
-		angle_rates = angle_rates[None, ... ].to(self.device)
-		angles = nn.Parameter(angle_rates, requires_grad=True)
-		self.register_parameter("angles", angles)
-
-	def __call__(self, inp):
-		inp = inp[..., None] #pos (batch, num_pitch, 1)
-		angle_rads = inp*self.angles #(batch, num_pitch)*(1,dim)
-
-		# apply sin to even indices in the array; 2i
-		angle_rads[:, :, 0::2] = torch.sin(angle_rads.clone()[:, : , 0::2])
-
-		# apply cos to odd indices in the array; 2i+1
-		angle_rads[:, :, 1::2] = torch.cos(angle_rads.clone()[:, :, 1::2])
-
-		pos_encoding = angle_rads.to(torch.float32)
-
-		if self.translation_bias.size()[-1]!= self.d_model:
-			translation_bias = self.translation_bias.repeat(1, 1,int(self.d_model/2))
-		else:
-			translation_bias = self.translation_bias
-		pos_encoding += translation_bias
-		
-		return pos_encoding
-
 def top_p(logits, thres = 0.9):
     sorted_logits, sorted_indices = torch.sort(logits, descending=True)
     cum_probs = torch.cumsum(F.softmax(sorted_logits, dim=-1), dim=-1)
@@ -184,31 +146,45 @@ class CompoundWordTransformerWrapper(nn.Module):
         # individual output
         
         self.proj_type = nn.Sequential(
-            nn.Linear(self.dim, self.num_tokens[0])
+            nn.Linear(self.dim, self.dim*4),
+            nn.GELU(),
+            nn.Linear(self.dim*4, self.num_tokens[0])
         )
         
         self.proj_barbeat = nn.Sequential(
-            nn.Linear(self.dim, self.num_tokens[1])
+            nn.Linear(self.dim, self.dim*4),
+            nn.GELU(),
+            nn.Linear(self.dim*4, self.num_tokens[1])
         )
         
         self.proj_tempo = nn.Sequential(
-            nn.Linear(self.dim, self.num_tokens[2])
+            nn.Linear(self.dim, self.dim*4),
+            nn.GELU(),
+            nn.Linear(self.dim*4, self.num_tokens[1])
         )
         
         self.proj_instrument = nn.Sequential(
-            nn.Linear(self.dim, self.num_tokens[3])
-        )
+            nn.Linear(self.dim, self.dim*4),
+            nn.GELU(),
+            nn.Linear(self.dim*4, self.num_tokens[1])
+        ))
         
         self.proj_note_name = nn.Sequential(
-            nn.Linear(self.dim, self.num_tokens[4])
+            nn.Linear(self.dim, self.dim*4),
+            nn.GELU(),
+            nn.Linear(self.dim*4, self.num_tokens[1])
         )
         
         self.proj_octave = nn.Sequential(
-            nn.Linear(self.dim, self.num_tokens[5])
+              nn.Linear(self.dim, self.dim*4),
+            nn.GELU(),
+            nn.Linear(self.dim*4, self.num_tokens[1])
         )
         
         self.proj_duration = nn.Sequential(
-            nn.Linear(self.dim, self.num_tokens[6])
+            nn.Linear(self.dim, self.dim*4),
+            nn.GELU(),
+            nn.Linear(self.dim*4, self.num_tokens[1])
         )
 
         # in_features is equal to dimension plus dimensions of the type embedding
@@ -224,7 +200,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.in_linear = nn.Linear(self.dim*7, self.dim)
 
         self.project_concat_type = nn.Linear(self.dim*2, self.dim)
-        self.norm = RMSNorm(self.dim)
         
         self.init_()
 
@@ -338,11 +313,11 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         emb_type = self.word_emb_type(x[..., 0])
         emb_barbeat = self.word_emb_barbeat1(x[..., 1])
-        emb_tempo = self.word_emb_barbeat2(x[..., 2])
-        emb_instrument = self.word_emb_barbeat3(x[..., 3])
-        emb_note_name =self.word_emb_barbeat4(x[..., 4])
-        emb_octave = self.word_emb_barbeat5(x[..., 5])
-        emb_duration = self.word_emb_barbeat6(x[..., 6])
+        emb_tempo = self.word_emb_barbeat1(x[..., 2])
+        emb_instrument = self.word_emb_barbeat1(x[..., 3])
+        emb_note_name =self.word_emb_barbeat1(x[..., 4])
+        emb_octave = self.word_emb_barbeat1(x[..., 5])
+        emb_duration = self.word_emb_barbeat1(x[..., 6])
 
         z = torch.cat(
             [
@@ -360,7 +335,5 @@ class CompoundWordTransformerWrapper(nn.Module):
         z = z + self.pos_emb1(z)  
         z = self.emb_dropout(z)
         z = self.attn_layers2(z, mask = mask)
-
-        z = self.norm(z)
    
         return z, self.proj_type(z)
