@@ -330,10 +330,17 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_duration.reshape(-1,1,self.dim),
             ], dim = 1)
 
+	    
+        rand = torch.randn(z.shape, device = z.device)
+        rand[:, 0] = -torch.finfo(rand.dtype).max 
+        num_mask = min(int(x2 * 0.1), x2 - 1)
+        indices = rand.topk(num_mask, dim = -1).indices
+        mask1 = ~torch.zeros_like(z).scatter(1, indices, 1.).bool()
+
         z = z.reshape(x1,-1,self.dim*7)       
         z = self.in_linear(z) 
         z = z + self.pos_emb1(z) + emb_type 
         z = self.emb_dropout(z)
-        z = self.attn_layers2(z, mask = mask)
+        z = self.attn_layers2(z, mask = mask,self_attn_context_mask = mask1)
    
         return z, self.proj_type(z)
