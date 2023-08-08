@@ -309,6 +309,14 @@ class CompoundWordTransformerWrapper(nn.Module):
     ):
         x1, x2, x3 = x.shape
 
+        mask1 = None
+        if m == 0:  
+          rand = torch.randn(x[..., 0].shape, device = x[..., 0].device)
+          rand[:, 0] = -torch.finfo(rand.dtype).max 
+          num_mask = min(int(x[..., 0].shape[1] * 0.15), x[..., 0].shape[1] - 1)
+          indices = rand.topk(num_mask, dim = -1).indices
+          mask1 = ~torch.zeros_like(x[..., 0]).scatter(1, indices, 1.).bool()
+	    
         mask = x[..., 0].bool()
 
         emb_type = self.word_emb_type(x[..., 0])
@@ -336,17 +344,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         z = z + self.pos_emb1(z) + emb_type 
         z = self.emb_dropout(z)
         
-        mask1 = None
-        if m == 0:  
-          rand = torch.randn(z.shape, device = z.device)
-          rand[:, 0] = -torch.finfo(rand.dtype).max 
-          print(rand.shape)
-
-          num_mask = min(int(z.shape[1] * 0.15), z.shape[1] - 1)
-          indices = rand.topk(num_mask, dim = -1).indices
-          print(indices.shape)
-          mask1 = ~torch.zeros_like(z).scatter(1, indices, 1.).bool()
-	    
         z = self.attn_layers2(z, mask = mask, self_attn_context_mask = mask1)
    
         return z, self.proj_type(z)
