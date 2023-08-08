@@ -37,9 +37,9 @@ defaults = {
     'max_sequence_length': 1024,
     'learning_rate': 1e-4,
     'dropout': 0.1,
-    'dim': 768,
-    'depth': 32,
-    'heads': 12
+    'dim': 512,
+    'depth': 16,
+    'heads': 8
 }
 
 
@@ -73,11 +73,11 @@ class CompoundWordTransformerModel(object):
     def train(self,
               x_train,
               epochs,
-              batch_size=2,
+              batch_size=4,
               stop_loss=None,
               batches_per_epoch=100,
               report_per_x_batches=20,
-              gradient_accumulation_steps=1):
+              gradient_accumulation_steps=2):
         self.model.train()
         start_time = time.time()
         for epoch in range(epochs):
@@ -140,7 +140,7 @@ class CompoundWordTransformerModel(object):
             max_seq_len=self.max_sequence_length,
             attn_layers=Decoder(
                 dim=self.dim,
-                depth=12,
+                depth=16,
                 heads=self.heads,
                 ff_glu = True,
                 ff_swish = True,
@@ -155,7 +155,7 @@ class CompoundWordTransformerModel(object):
             ),
             attn_layers1=Encoder(
                 dim=self.dim,
-                depth=6,
+                depth=8,
                 heads=self.heads,
                 ff_glu = True,
                 ff_swish = True,
