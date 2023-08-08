@@ -349,32 +349,32 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         if gen == None:
           emb_barbeat1 = emb_barbeat
-          num_elements_to_replace = int(emb_barbeat1.numel() * 0.05)
+          num_elements_to_replace = int(emb_barbeat1.numel() * 0.03)
           indices_to_replace = torch.multinomial(torch.ones(emb_barbeat1.numel(), device=emb_barbeat1.device), num_elements_to_replace, replacement=False).to(torch.long)
           emb_barbeat1.put_(indices_to_replace, torch.randint(0, 6912, (num_elements_to_replace,),device=emb_barbeat1.device,dtype=torch.float32))
 
           emb_tempo1 = emb_tempo
-          num_elements_to_replace = int(emb_tempo1.numel() * 0.05)
+          num_elements_to_replace = int(emb_tempo1.numel() * 0.01)
           indices_to_replace = torch.multinomial(torch.ones(emb_tempo1.numel(), device=emb_tempo1.device), num_elements_to_replace, replacement=False).to(torch.long)
           emb_tempo1.put_(indices_to_replace, torch.randint(0, 6912, (num_elements_to_replace,),device=emb_tempo1.device,dtype=torch.float32))
 
           emb_instrument1 = emb_instrument
-          num_elements_to_replace = int(emb_instrument1.numel() * 0.05)
+          num_elements_to_replace = int(emb_instrument1.numel() * 0.01)
           indices_to_replace = torch.multinomial(torch.ones(emb_instrument1.numel(), device=emb_instrument1.device), num_elements_to_replace, replacement=False).to(torch.long)
           emb_instrument1.put_(indices_to_replace, torch.randint(0, 6912, (num_elements_to_replace,),device=emb_instrument1.device,dtype=torch.float32))
 
           emb_note_name1 = emb_note_name
-          num_elements_to_replace = int(emb_note_name1.numel() * 0.05)
+          num_elements_to_replace = int(emb_note_name1.numel() * 0.01)
           indices_to_replace = torch.multinomial(torch.ones(emb_note_name1.numel(), device=emb_note_name1.device), num_elements_to_replace, replacement=False).to(torch.long)
           emb_note_name1.put_(indices_to_replace, torch.randint(0, 6912, (num_elements_to_replace,),device=emb_note_name1.device,dtype=torch.float32))
 
           emb_octave1 = emb_octave
-          num_elements_to_replace = int(emb_octave1.numel() * 0.05)
+          num_elements_to_replace = int(emb_octave1.numel() * 0.01)
           indices_to_replace = torch.multinomial(torch.ones(emb_octave1.numel(), device=emb_octave1.device), num_elements_to_replace, replacement=False).to(torch.long)
           emb_octave1.put_(indices_to_replace, torch.randint(0, 6912, (num_elements_to_replace,),device=emb_octave1.device,dtype=torch.float32))
 
           emb_duration1 = emb_duration
-          num_elements_to_replace = int(emb_duration1.numel() * 0.05)
+          num_elements_to_replace = int(emb_duration1.numel() * 0.01)
           indices_to_replace = torch.multinomial(torch.ones(emb_duration1.numel(), device=emb_duration1.device), num_elements_to_replace, replacement=False).to(torch.long)
           emb_duration1.put_(indices_to_replace, torch.randint(0, 6912, (num_elements_to_replace,),device=emb_duration1.device,dtype=torch.float32))
 		
