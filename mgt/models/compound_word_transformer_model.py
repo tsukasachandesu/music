@@ -73,11 +73,11 @@ class CompoundWordTransformerModel(object):
     def train(self,
               x_train,
               epochs,
-              batch_size=4,
+              batch_size=3,
               stop_loss=None,
               batches_per_epoch=100,
               report_per_x_batches=20,
-              gradient_accumulation_steps=2):
+              gradient_accumulation_steps=1):
         self.model.train()
         start_time = time.time()
         for epoch in range(epochs):
