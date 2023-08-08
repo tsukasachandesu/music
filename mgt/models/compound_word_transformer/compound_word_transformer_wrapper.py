@@ -336,8 +336,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         print(rand.shape)  
         rand[:, 0] = -torch.finfo(rand.dtype).max 
         num_mask = min(int(x2 * 0.15), x2 - 1)
-        print(num_mask.shape)
-
         indices = rand.topk(num_mask, dim = -1).indices
         print(indices.shape)
         mask1 = ~torch.zeros_like(z).scatter(1, indices, 1.).bool()
