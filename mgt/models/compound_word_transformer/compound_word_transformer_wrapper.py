@@ -303,7 +303,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
     def forward_hidden(
             self,
-            x,m = 0
+            x,m = 0,
             mask=None,
             **kwargs
     ):
@@ -335,16 +335,19 @@ class CompoundWordTransformerWrapper(nn.Module):
         z = self.in_linear(z) 
         z = z + self.pos_emb1(z) + emb_type 
         z = self.emb_dropout(z)
-
+        
         mask1 = None
-	    
-        if m = 0:  
-	    rand = torch.randn(z.shape, device = z.device)
-		rand[:, 0] = -torch.finfo(rand.dtype).max 
-		num_mask = min(int(x2 * 0.15), x2 - 1)
-		indices = rand.topk(num_mask, dim = -1).indices
-		mask1 = ~torch.zeros_like(z).scatter(1, indices, 1.).bool()
+        if m == 0:  
+          rand = torch.randn(z.shape, device = z.device)
+          rand[:, 0] = -torch.finfo(rand.dtype).max 
+          print(rand.shape)
+
+          num_mask = min(int(z.shape[1] * 0.15), z.shape[1] - 1)
+          indices = rand.topk(num_mask, dim = -1).indices
+          print(indices.shape)
+          mask1 = ~torch.zeros_like(z).scatter(1, indices, 1.).bool()
 	    
         z = self.attn_layers2(z, mask = mask, self_attn_context_mask = mask1)
    
         return z, self.proj_type(z)
+
