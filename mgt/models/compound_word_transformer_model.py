@@ -152,7 +152,7 @@ class CompoundWordTransformerModel(object):
                 attn_one_kv_head = True,
                 rotary_pos_emb = True
             ),
-            attn_layers=Encoder(
+            attn_layers1=Encoder(
                 dim=self.dim,
                 depth=1,
                 heads=self.heads,
