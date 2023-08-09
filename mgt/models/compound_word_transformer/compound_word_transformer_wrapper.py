@@ -108,7 +108,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             *,
             num_tokens,
             max_seq_len,
-            attn_layers, 
+            attn_layers, attn_layers1,
             emb_dim=None,
             emb_dropout=0.,
             use_pos_emb=True,
@@ -192,10 +192,12 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.compound_word_embedding_size = np.sum(emb_sizes)
                 
         self.pos_emb1 = AbsolutePositionalEmbedding(self.dim, max_seq_len)
-	    
+        self.pos_emb2 = AbsolutePositionalEmbedding(self.dim, 7)
+
         self.emb_dropout = nn.Dropout(emb_dropout)
         
         self.attn_layers2 = attn_layers
+        self.attn_layers3 = attn_layers1
 
         self.in_linear = nn.Linear(self.dim*7, self.dim)
 
@@ -337,14 +339,30 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_octave.reshape(-1,1,self.dim),
                 emb_duration.reshape(-1,1,self.dim),
             ], dim = 1)
-
-
+	    
+        z = z + self.pos_emb2(z)
+        z = self.emb_dropout(z)
+        z = self.attn_layers3(z, mask = mask.repeat((1,7)))
+	    
         z = z.reshape(x1,-1,self.dim*7)       
         z = self.in_linear(z) 
+	    
         z = z + self.pos_emb1(z) + emb_type 
         z = self.emb_dropout(z)
         
         z = self.attn_layers2(z, mask = mask, self_attn_context_mask = mask1)
-   
+	    
+        z = torch.cat(
+            [
+                z.reshape(-1,1,self.dim),
+                emb_type.reshape(-1,1,self.dim),
+                emb_barbeat.reshape(-1,1,self.dim),
+                emb_tempo.reshape(-1,1,self.dim),
+                emb_instrument.reshape(-1,1,self.dim),
+                emb_note_name.reshape(-1,1,self.dim),
+                emb_octave.reshape(-1,1,self.dim),
+                emb_duration.reshape(-1,1,self.dim),
+            ], dim = 1)
+	    
         return z, self.proj_type(z)
 
