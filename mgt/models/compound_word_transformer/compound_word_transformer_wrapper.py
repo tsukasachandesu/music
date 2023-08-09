@@ -352,17 +352,5 @@ class CompoundWordTransformerWrapper(nn.Module):
         
         z = self.attn_layers2(z, mask = mask, self_attn_context_mask = mask1)
 	    
-        z = torch.cat(
-            [
-                z.reshape(-1,1,self.dim),
-                emb_type.reshape(-1,1,self.dim),
-                emb_barbeat.reshape(-1,1,self.dim),
-                emb_tempo.reshape(-1,1,self.dim),
-                emb_instrument.reshape(-1,1,self.dim),
-                emb_note_name.reshape(-1,1,self.dim),
-                emb_octave.reshape(-1,1,self.dim),
-                emb_duration.reshape(-1,1,self.dim),
-            ], dim = 1)
-	    
         return z, self.proj_type(z)
 
