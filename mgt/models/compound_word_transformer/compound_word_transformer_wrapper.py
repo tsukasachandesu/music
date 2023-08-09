@@ -292,17 +292,6 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         y_concat_type = torch.cat([h, tf_skip_type], dim=-1)
         y_ = self.project_concat_type(y_concat_type)
-
-        z = torch.cat(
-            [
-                emb_type.reshape(-1,1,self.dim),
-                emb_barbeat.reshape(-1,1,self.dim),
-                emb_tempo.reshape(-1,1,self.dim),
-                emb_instrument.reshape(-1,1,self.dim),
-                emb_note_name.reshape(-1,1,self.dim),
-                emb_octave.reshape(-1,1,self.dim),
-                emb_duration.reshape(-1,1,self.dim),
-            ], dim = 1)
 			       
         proj_barbeat = self.proj_barbeat(y_)
         proj_tempo = self.proj_tempo(y_)
