@@ -272,11 +272,6 @@ class CompoundWordTransformerWrapper(nn.Module):
             probability_treshold=selection_probability_tresholds.get(6, None),
             temperature=selection_temperatures.get(6, 1.0))
 
-        logits = top_p(proj_duration, thres = 0.9)
-        print(logits.shape)
-        sample = gumbel_sample(logits, temperature = 0.9, dim = -1)
-        print(sample)
-
 	    # collect
         next_arr = np.array([
             cur_word_type,
