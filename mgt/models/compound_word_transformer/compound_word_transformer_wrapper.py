@@ -272,10 +272,10 @@ class CompoundWordTransformerWrapper(nn.Module):
             probability_treshold=selection_probability_tresholds.get(6, None),
             temperature=selection_temperatures.get(6, 1.0))
 
-	    
-        sample = gumbel_sample(top_k(proj_duration), temperature = 0.9, dim = -1)
+        sample = gumbel_sample(proj_duration, temperature = 0.9, dim = -1)
         print(sample)
-        # collect
+
+	    # collect
         next_arr = np.array([
             cur_word_type,
             cur_word_barbeat,
