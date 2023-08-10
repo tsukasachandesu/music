@@ -31,7 +31,7 @@ def gumbel_noise(t):
     noise = torch.zeros_like(t).uniform_(0, 1)
     return -log(-log(noise))
 
-def gumbel_sample(t, temperature = 0.9., dim = -1):
+def gumbel_sample(t, temperature = 0.9, dim = -1):
     return ((t / max(temperature, 1e-10)) + gumbel_noise(t)).argmax(dim = dim)
 
 def top_p(logits, thres = 0.9):
@@ -273,7 +273,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             temperature=selection_temperatures.get(6, 1.0))
 
 	    
-        sample = gumbel_sample(top_p(proj_duration), temperature = temperature, dim = -1)
+        sample = gumbel_sample(top_p(proj_duration), temperature = 0.9, dim = -1)
         print(sample.item())
         # collect
         next_arr = np.array([
