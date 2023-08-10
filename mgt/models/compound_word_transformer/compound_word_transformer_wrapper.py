@@ -273,7 +273,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             temperature=selection_temperatures.get(6, 1.0))
 
 	    
-        sample = gumbel_sample(top_p(proj_duration), temperature = 0.9, dim = -1)
+        sample = gumbel_sample(top_k(proj_duration), temperature = 0.9, dim = -1)
         print(sample.item())
         # collect
         next_arr = np.array([
