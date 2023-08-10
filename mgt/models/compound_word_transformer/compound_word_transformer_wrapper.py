@@ -272,7 +272,8 @@ class CompoundWordTransformerWrapper(nn.Module):
             probability_treshold=selection_probability_tresholds.get(6, None),
             temperature=selection_temperatures.get(6, 1.0))
 
-        sample = gumbel_sample(proj_duration, temperature = 0.9, dim = -1)
+        logits = top_k(proj_duration, thres = 0.9)
+        sample = gumbel_sample(logits, temperature = 0.9, dim = -1)
         print(sample)
 
 	    # collect
