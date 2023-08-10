@@ -274,7 +274,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
 	    
         sample = gumbel_sample(top_k(proj_duration), temperature = 0.9, dim = -1)
-        print(sample.item())
+        print(sample)
         # collect
         next_arr = np.array([
             cur_word_type,
