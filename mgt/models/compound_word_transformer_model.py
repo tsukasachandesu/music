@@ -39,7 +39,7 @@ defaults = {
     'dropout': 0.1,
     'dim': 512,
     'depth': 32,
-    'heads': 12
+    'heads': 8
 }
 
 
