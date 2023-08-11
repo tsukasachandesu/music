@@ -329,7 +329,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_octave = self.word_emb_barbeat1(x[..., 5])
         emb_duration = self.word_emb_barbeat1(x[..., 6])
 
-        mas = (input_tensor == 17).int()
+        mas = (emb_type == 17).int()
         bar = mas.cumsum(dim=0)
         print(bar.shape)
 
