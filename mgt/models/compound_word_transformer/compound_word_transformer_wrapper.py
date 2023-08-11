@@ -331,6 +331,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         mas = (self.word_emb_type(x[..., 0]) == 17).int()
         bar = mas.cumsum(dim=0)
+        print(bar.shape)
 
         z = torch.cat(
             [
@@ -348,7 +349,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         mask2 = mask.reshape(-1,1).repeat((1,7))
         
         z = self.attn_layers3(z, mask = mask2)
-	    
+        print(z.shape)
+  
         z = z.reshape(x1,-1,self.dim*7)       
         z = self.in_linear(z) 
 	    
@@ -356,6 +358,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         z = self.emb_dropout(z)
         
         z = self.attn_layers2(z, mask = mask, self_attn_context_mask = mask1, bar = bar)
-	    
+        print(z.shape)
+  
         return z, self.proj_type(z)
 
