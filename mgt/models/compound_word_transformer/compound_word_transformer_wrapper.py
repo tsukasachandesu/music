@@ -330,8 +330,8 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_duration = self.word_emb_barbeat1(x[..., 6])
 
         mas = (input_tensor == 17).int()
-        output = mas.cumsum(dim=0)
-        print(output.shape)
+        bar = mas.cumsum(dim=0)
+        print(bar.shape)
 
         z = torch.cat(
             [
@@ -356,7 +356,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         z = z + self.pos_emb1(z) + emb_type 
         z = self.emb_dropout(z)
         
-        z = self.attn_layers2(z, mask = mask, self_attn_context_mask = mask1)
+        z = self.attn_layers2(z, mask = mask, self_attn_context_mask = mask1, bar = bar)
 	    
         return z, self.proj_type(z)
 
