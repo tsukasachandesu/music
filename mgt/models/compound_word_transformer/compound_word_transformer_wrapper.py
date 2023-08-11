@@ -331,7 +331,6 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         mas = (emb_type == 17).int()
         bar = mas.cumsum(dim=0)
-        print(bar.shape)
 
         z = torch.cat(
             [
