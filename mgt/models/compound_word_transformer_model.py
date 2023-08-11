@@ -151,6 +151,7 @@ class CompoundWordTransformerModel(object):
                 ff_no_bias = True,
                 attn_one_kv_head = True,
                 rotary_pos_emb = True,
+                rel_pos_bias = True
             ),
             attn_layers1=Encoder(
                 dim=self.dim,
@@ -164,6 +165,7 @@ class CompoundWordTransformerModel(object):
                 ff_dropout=self.dropout,  # feedforward dropout
                 ff_no_bias = True,
                 attn_one_kv_head = True,
+                rotary_pos_emb = True,
             )
         )).to(get_device())
 
