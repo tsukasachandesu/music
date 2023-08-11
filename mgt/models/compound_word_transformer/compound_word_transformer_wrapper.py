@@ -329,6 +329,10 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_octave = self.word_emb_barbeat1(x[..., 5])
         emb_duration = self.word_emb_barbeat1(x[..., 6])
 
+        mas = (input_tensor == 17).int()
+        output = mas.cumsum(dim=0)
+        print(output.shape)
+
         z = torch.cat(
             [
                 emb_type.reshape(-1,1,self.dim),
