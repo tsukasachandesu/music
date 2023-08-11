@@ -355,7 +355,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         z = z + self.pos_emb1(z) + emb_type 
         z = self.emb_dropout(z)
 
-        z = self.attn_layers2(z,z =bar1 ,mask = mask, self_attn_context_mask = mask1)
+        z = self.attn_layers2(z, mask = mask, self_attn_context_mask = mask1)
   
         return z, self.proj_type(z)
 
