@@ -149,8 +149,6 @@ model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
                 ff_dropout=0.1,  # feedforward dropout
                 ff_no_bias = True,
                 attn_one_kv_head = True,
-                alibi_pos_bias = True, # turns on ALiBi positional embedding
-                alibi_num_heads = 4 
             )
         )).cuda()
 
