@@ -85,7 +85,7 @@ EPOCHS = 1
 GRADIENT_ACCUMULATE_EVERY = 2
 GENERATE_EVERY = 1800
 GENERATE_LENGTH = 1024
-yes = "a"
+yes = None
 yes1 = "a"
 
 # instantiate GPT-like decoder model
@@ -118,19 +118,19 @@ defaults = {
 }
 
 model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
-            num_tokens=self.num_tokens,
-            emb_sizes=self.emb_sizes,
-            max_seq_len=self.max_sequence_length,
+            num_tokens=defaults['num_tokens'],
+            emb_sizes=defaults['emb_sizes'],
+            max_seq_len=defaults['max_sequence_length'],
             attn_layers=Decoder(
-                dim=self.dim,
+                dim=512,
                 depth=32,
-                heads=self.heads,
+                heads=8,
                 ff_glu = True,
                 ff_swish = True,
                 use_rmsnorm = True,
-                layer_dropout = self.dropout,
-                attn_dropout=self.dropout,  # dropout post-attention
-                ff_dropout=self.dropout,  # feedforward dropout
+                layer_dropout = 0.1,
+                attn_dropout=0.1,  # dropout post-attention
+                ff_dropout=0.1,  # feedforward dropout
                 ff_no_bias = True,
                 attn_one_kv_head = True,
                 rel_pos_bias = True, 
@@ -138,15 +138,15 @@ model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
                 alibi_num_heads = 4 
             ),
             attn_layers1=Encoder(
-                dim=self.dim,
+                dim=512,
                 depth=1,
-                heads=self.heads,
+                heads=8,
                 ff_glu = True,
                 ff_swish = True,
                 use_rmsnorm = True,
-                layer_dropout = self.dropout,
-                attn_dropout=self.dropout,  # dropout post-attention
-                ff_dropout=self.dropout,  # feedforward dropout
+                layer_dropout = 0.1,
+                attn_dropout=0.1,  # dropout post-attention
+                ff_dropout=0.1,  # feedforward dropout
                 ff_no_bias = True,
                 attn_one_kv_head = True,
                 alibi_pos_bias = True, # turns on ALiBi positional embedding
@@ -184,3 +184,4 @@ sample = model.generate(output_length=256, prompt=prompt)
 datamanager = CompoundWordDataManager()
 midi = datamanager.to_midi(sample)
 midi.save("1.midi")
+
