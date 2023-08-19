@@ -48,7 +48,7 @@ class Dataset(Dataset):
         self.max_length = max_length
         
     def __len__(self):
-        return 2000
+        return 500
 
     def __getitem__(self, idx):
         song_index = random.randint(0, len(self.data) - 1)
@@ -68,7 +68,7 @@ def add_argument():
                         help='use CPU in case there\'s no GPU support')
     parser.add_argument('--use_ema', default=False, action='store_true',
                         help='whether use exponential moving average')
-    parser.add_argument('-b', '--batch_size', default=20, type=int,
+    parser.add_argument('-b', '--batch_size', default=6, type=int,
                         help='mini-batch size (default: 32)')
     parser.add_argument('-e', '--epochs', default=1, type=int,
                         help='number of total epochs (default: 30)')
@@ -82,7 +82,7 @@ def add_argument():
 # constant
 
 EPOCHS = 1
-GRADIENT_ACCUMULATE_EVERY = 4
+GRADIENT_ACCUMULATE_EVERY = 2
 GENERATE_EVERY = 1800
 GENERATE_LENGTH = 1024
 yes = "a"
@@ -118,29 +118,42 @@ defaults = {
 }
 
 model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
-    num_tokens=defaults['num_tokens'],
-    emb_sizes=defaults['emb_sizes'],
-    max_seq_len=defaults['max_sequence_length'],
-    attn_layers=Decoder(
-        dim=1024,
-        depth=38,
-        heads=8,
-        ff_glu = True,
-        ff_swish = True,
-        use_rmsnorm = True,
-        attn_dropout=0.1,
-        layer_dropout = 0.1,
-        ff_dropout=0.1,
-        ff_no_bias = True,
-        rotary_pos_emb = True,
-        pre_norm = True,
-        attn_one_kv_head = True,
-    )
-)).cuda()
+            num_tokens=self.num_tokens,
+            emb_sizes=self.emb_sizes,
+            max_seq_len=self.max_sequence_length,
+            attn_layers=Decoder(
+                dim=self.dim,
+                depth=32,
+                heads=self.heads,
+                ff_glu = True,
+                ff_swish = True,
+                use_rmsnorm = True,
+                layer_dropout = self.dropout,
+                attn_dropout=self.dropout,  # dropout post-attention
+                ff_dropout=self.dropout,  # feedforward dropout
+                ff_no_bias = True,
+                attn_one_kv_head = True,
+                rel_pos_bias = True, 
+            ),
+            attn_layers1=Encoder(
+                dim=self.dim,
+                depth=1,
+                heads=self.heads,
+                ff_glu = True,
+                ff_swish = True,
+                use_rmsnorm = True,
+                layer_dropout = self.dropout,
+                attn_dropout=self.dropout,  # dropout post-attention
+                ff_dropout=self.dropout,  # feedforward dropout
+                ff_no_bias = True,
+                attn_one_kv_head = True,
+            )
+        )).cuda()
 
-# setup deepspeed
-data_train = DataHelper.load('/content/drive/MyDrive/01d')
-train_dataset = Dataset(data_train.data)
+with open('/content/drive/MyDrive/data.pickle', mode='rb') as f:
+    data = pickle.load(f)
+
+train_dataset = Dataset(data)
 
 cmd_args = add_argument()
 model_engine, optimizer, trainloader, _ = deepspeed.initialize(args=cmd_args, model=model, model_parameters=model.parameters(), training_data=train_dataset)
@@ -161,7 +174,6 @@ for _ in range(EPOCHS):
 model.eval()    
 if yes1:
     model_engine.save_checkpoint("/content/drive/MyDrive/")
-
 
 prompt = [COMPOUND_WORD_BAR] 
 sample = model.generate(output_length=256, prompt=prompt)
