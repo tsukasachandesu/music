@@ -48,7 +48,7 @@ class Dataset(Dataset):
         self.max_length = max_length
         
     def __len__(self):
-        return 500
+        return 1000
 
     def __getitem__(self, idx):
         song_index = random.randint(0, len(self.data) - 1)
@@ -68,7 +68,7 @@ def add_argument():
                         help='use CPU in case there\'s no GPU support')
     parser.add_argument('--use_ema', default=False, action='store_true',
                         help='whether use exponential moving average')
-    parser.add_argument('-b', '--batch_size', default=6, type=int,
+    parser.add_argument('-b', '--batch_size', default=18, type=int,
                         help='mini-batch size (default: 32)')
     parser.add_argument('-e', '--epochs', default=1, type=int,
                         help='number of total epochs (default: 30)')
@@ -82,10 +82,10 @@ def add_argument():
 # constant
 
 EPOCHS = 1
-GRADIENT_ACCUMULATE_EVERY = 2
+GRADIENT_ACCUMULATE_EVERY = 3
 GENERATE_EVERY = 1800
 GENERATE_LENGTH = 1024
-yes = None
+yes = "a"
 yes1 = "a"
 
 # instantiate GPT-like decoder model
