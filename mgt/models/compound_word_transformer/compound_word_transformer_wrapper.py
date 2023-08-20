@@ -277,7 +277,6 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         return proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration
 
-
     def forward_hidden(
             self,
             x,m = 0,
@@ -286,14 +285,6 @@ class CompoundWordTransformerWrapper(nn.Module):
     ):
         x1, x2, x3 = x.shape
 
-        mask1 = None
-        if m == 0:  
-          rand = torch.randn(x[..., 0].shape, device = x[..., 0].device)
-          rand[:, 0] = -torch.finfo(rand.dtype).max 
-          num_mask = min(int(x[..., 0].shape[1] * 0.15), x[..., 0].shape[1] - 1)
-          indices = rand.topk(num_mask, dim = -1).indices
-          mask1 = ~torch.zeros_like(x[..., 0]).scatter(1, indices, 1.).bool()
-	    
         mask = x[..., 0].bool()
 
         emb_type = self.word_emb_type(x[..., 0])
@@ -303,9 +294,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_note_name =self.word_emb_barbeat1(x[..., 4])
         emb_octave = self.word_emb_barbeat1(x[..., 5])
         emb_duration = self.word_emb_barbeat1(x[..., 6])
-
-        mas = (x[..., 0] == 17).int()
-        bar1 = mas.cumsum(dim=0)
 
         z = torch.cat(
             [
@@ -324,10 +312,9 @@ class CompoundWordTransformerWrapper(nn.Module):
         z = z.reshape(x1,-1,self.dim*7)       
         z = self.in_linear(z) 
 	    
-        z = z + self.pos_emb1(z) + emb_type 
+        z = z + self.pos_emb1(z)
         z = self.emb_dropout(z)
-
-        z = self.attn_layers2(z,z = bar1, zz = x[..., 0], mask = mask, self_attn_context_mask = mask1)
+        z = self.attn_layers2(z, mask = mask)
   
         return z, self.proj_type(z)
 
