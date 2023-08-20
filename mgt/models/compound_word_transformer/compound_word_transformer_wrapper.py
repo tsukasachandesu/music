@@ -318,7 +318,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         mas = (x[..., 0] == 17).int()
         bar1 = mas.cumsum(dim=0)
 
-        z = self.attn_layers2(z, z = bar1, zz = x[..., 0], mask = mask)
+        z = self.attn_layers2(z, zz = bar1, zzz = x[..., 0], mask = mask)
 	    
         return z, self.proj_type(z)
 
