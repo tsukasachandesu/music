@@ -137,54 +137,35 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         self.word_emb_type = CompoundTransformerEmbeddings(self.num_tokens[0], self.dim)
         self.word_emb_barbeat1 = CompoundTransformerEmbeddings(self.num_tokens[1], self.dim)
-        self.word_emb_barbeat2 = CompoundTransformerEmbeddings(self.num_tokens[2], self.dim)
-        self.word_emb_barbeat3 = CompoundTransformerEmbeddings(self.num_tokens[2], self.dim)
-        self.word_emb_barbeat4 = CompoundTransformerEmbeddings(self.num_tokens[2], self.dim)
-        self.word_emb_barbeat5 = CompoundTransformerEmbeddings(self.num_tokens[2], self.dim)
-        self.word_emb_barbeat6 = CompoundTransformerEmbeddings(self.num_tokens[2], self.dim)
         
         # individual output
         
         self.proj_type = nn.Sequential(
-            nn.Linear(self.dim, self.dim*4),
-            nn.GELU(),
-            nn.Linear(self.dim*4, self.num_tokens[0])
+            nn.Linear(self.dim, self.num_tokens[0])
         )
         
         self.proj_barbeat = nn.Sequential(
-            nn.Linear(self.dim, self.dim*4),
-            nn.GELU(),
-            nn.Linear(self.dim*4, self.num_tokens[1])
+            nn.Linear(self.dim, self.num_tokens[1])
         )
         
         self.proj_tempo = nn.Sequential(
-            nn.Linear(self.dim, self.dim*4),
-            nn.GELU(),
-            nn.Linear(self.dim*4, self.num_tokens[1])
+            nn.Linear(self.dim, self.num_tokens[1])
         )
         
         self.proj_instrument = nn.Sequential(
-            nn.Linear(self.dim, self.dim*4),
-            nn.GELU(),
-            nn.Linear(self.dim*4, self.num_tokens[1])
+            nn.Linear(self.dim, self.num_tokens[1])
         )
         
         self.proj_note_name = nn.Sequential(
-            nn.Linear(self.dim, self.dim*4),
-            nn.GELU(),
-            nn.Linear(self.dim*4, self.num_tokens[1])
+            nn.Linear(self.dim, self.num_tokens[1])
         )
         
         self.proj_octave = nn.Sequential(
-            nn.Linear(self.dim, self.dim*4),
-            nn.GELU(),
-            nn.Linear(self.dim*4, self.num_tokens[1])
+            nn.Linear(self.dim, self.num_tokens[1])
         )
         
         self.proj_duration = nn.Sequential(
-            nn.Linear(self.dim, self.dim*4),
-            nn.GELU(),
-            nn.Linear(self.dim*4, self.num_tokens[1])
+            nn.Linear(self.dim, self.num_tokens[1])
         )
 
         # in_features is equal to dimension plus dimensions of the type embedding
@@ -207,11 +188,6 @@ class CompoundWordTransformerWrapper(nn.Module):
     def init_(self):
         nn.init.normal_(self.word_emb_type.weight(), std=0.02)
         nn.init.normal_(self.word_emb_barbeat1.weight(), std=0.02)
-        nn.init.normal_(self.word_emb_barbeat2.weight(), std=0.02)
-        nn.init.normal_(self.word_emb_barbeat3.weight(), std=0.02)
-        nn.init.normal_(self.word_emb_barbeat4.weight(), std=0.02)
-        nn.init.normal_(self.word_emb_barbeat5.weight(), std=0.02)
-        nn.init.normal_(self.word_emb_barbeat6.weight(), std=0.02)
 
     def forward_output_sampling(self, h, y_type):
  
@@ -322,11 +298,11 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         emb_type = self.word_emb_type(x[..., 0])
         emb_barbeat = self.word_emb_barbeat1(x[..., 1])
-        emb_tempo = self.word_emb_barbeat2(x[..., 2])
-        emb_instrument = self.word_emb_barbeat3(x[..., 3])
-        emb_note_name =self.word_emb_barbeat4(x[..., 4])
-        emb_octave = self.word_emb_barbeat5(x[..., 5])
-        emb_duration = self.word_emb_barbeat6(x[..., 6])
+        emb_tempo = self.word_emb_barbeat1(x[..., 2])
+        emb_instrument = self.word_emb_barbeat1(x[..., 3])
+        emb_note_name =self.word_emb_barbeat1(x[..., 4])
+        emb_octave = self.word_emb_barbeat1(x[..., 5])
+        emb_duration = self.word_emb_barbeat1(x[..., 6])
 
         mas = (x[..., 0] == 17).int()
         bar1 = mas.cumsum(dim=0)
