@@ -108,7 +108,7 @@ class CompoundWordTransformerWrapper(nn.Module):
             *,
             num_tokens,
             max_seq_len,
-            attn_layers, attn_layers1,
+            attn_layers,
             emb_dim=None,
             emb_dropout=0.,
             use_pos_emb=True,
@@ -197,7 +197,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.emb_dropout = nn.Dropout(emb_dropout)
         
         self.attn_layers2 = attn_layers
-        self.attn_layers3 = attn_layers1
 
         self.in_linear = nn.Linear(self.dim*7, self.dim)
 
@@ -323,11 +322,11 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         emb_type = self.word_emb_type(x[..., 0])
         emb_barbeat = self.word_emb_barbeat1(x[..., 1])
-        emb_tempo = self.word_emb_barbeat1(x[..., 2])
-        emb_instrument = self.word_emb_barbeat1(x[..., 3])
-        emb_note_name =self.word_emb_barbeat1(x[..., 4])
-        emb_octave = self.word_emb_barbeat1(x[..., 5])
-        emb_duration = self.word_emb_barbeat1(x[..., 6])
+        emb_tempo = self.word_emb_barbeat2(x[..., 2])
+        emb_instrument = self.word_emb_barbeat3(x[..., 3])
+        emb_note_name =self.word_emb_barbeat4(x[..., 4])
+        emb_octave = self.word_emb_barbeat5(x[..., 5])
+        emb_duration = self.word_emb_barbeat6(x[..., 6])
 
         mas = (x[..., 0] == 17).int()
         bar1 = mas.cumsum(dim=0)
@@ -345,10 +344,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 	    
         z = z + self.pos_emb2(z)
         z = self.emb_dropout(z)
-        mask2 = mask.reshape(-1,1).repeat((1,7))
-        
-        z = self.attn_layers3(z, mask = mask2)
-  
+          
         z = z.reshape(x1,-1,self.dim*7)       
         z = self.in_linear(z) 
 	    
