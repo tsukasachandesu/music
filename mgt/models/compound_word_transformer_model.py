@@ -150,7 +150,9 @@ class CompoundWordTransformerModel(object):
                 ff_dropout=self.dropout,  # feedforward dropout
                 ff_no_bias = True,
                 attn_one_kv_head = True,
-                rel_pos_bias = True, 
+                rotary_xpos = True, 
+                alibi_pos_bias = True,
+                alibi_num_heads = 4 
             )
         )).to(get_device())
 
