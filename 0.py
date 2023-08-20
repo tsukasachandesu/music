@@ -136,19 +136,6 @@ model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
                 rel_pos_bias = True, 
                 alibi_pos_bias = True, # turns on ALiBi positional embedding
                 alibi_num_heads = 4 
-            ),
-            attn_layers1=Encoder(
-                dim=512,
-                depth=1,
-                heads=8,
-                ff_glu = True,
-                ff_swish = True,
-                use_rmsnorm = True,
-                layer_dropout = 0.1,
-                attn_dropout=0.1,  # dropout post-attention
-                ff_dropout=0.1,  # feedforward dropout
-                ff_no_bias = True,
-                attn_one_kv_head = True,
             )
         )).cuda()
 
