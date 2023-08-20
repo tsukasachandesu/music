@@ -85,7 +85,7 @@ EPOCHS = 1
 GRADIENT_ACCUMULATE_EVERY = 3
 GENERATE_EVERY = 1800
 GENERATE_LENGTH = 1024
-yes = "a"
+yes = None
 yes1 = "a"
 
 # instantiate GPT-like decoder model
@@ -139,15 +139,15 @@ model = CompoundWordAutoregressiveWrapper(CompoundWordTransformerWrapper(
             )
         )).cuda()
 
-with open('/content/drive/MyDrive/data.pickle', mode='rb') as f:
-    data = pickle.load(f)
+dataset = DataHelper.load('/content/drive/MyDrive/test_dataset')
 
-train_dataset = Dataset(data)
+
+train_dataset = Dataset(dataset.data)
 
 cmd_args = add_argument()
 model_engine, optimizer, trainloader, _ = deepspeed.initialize(args=cmd_args, model=model, model_parameters=model.parameters(), training_data=train_dataset)
 if yes:
-    _, client_sd = model_engine.load_checkpoint("/content/drive/MyDrive/")
+    _, client_sd = model_engine.load_checkpoint("/content/drive/MyDrive/2")
 
 for _ in range(EPOCHS):
     for i, data in enumerate(trainloader):
@@ -162,7 +162,7 @@ for _ in range(EPOCHS):
 
 model.eval()    
 if yes1:
-    model_engine.save_checkpoint("/content/drive/MyDrive/")
+    model_engine.save_checkpoint("/content/drive/MyDrive/2")
 
 prompt = [COMPOUND_WORD_BAR] 
 sample = model.generate(output_length=256, prompt=prompt)
