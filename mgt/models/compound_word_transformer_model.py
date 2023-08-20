@@ -34,11 +34,11 @@ defaults = {
         512,
         512,# Duration
     ],
-    'max_sequence_length': 1024,
+    'max_sequence_length': 512,
     'learning_rate': 1e-4,
     'dropout': 0.1,
-    'dim': 512,
-    'depth': 32,
+    'dim': 756,
+    'depth': 24,
     'heads': 8
 }
 
@@ -140,7 +140,7 @@ class CompoundWordTransformerModel(object):
             max_seq_len=self.max_sequence_length,
             attn_layers=Decoder(
                 dim=self.dim,
-                depth=32,
+                depth=24,
                 heads=self.heads,
                 ff_glu = True,
                 ff_swish = True,
@@ -149,7 +149,6 @@ class CompoundWordTransformerModel(object):
                 attn_dropout=self.dropout,  # dropout post-attention
                 ff_dropout=self.dropout,  # feedforward dropout
                 ff_no_bias = True,
-                attn_one_kv_head = True,
                 rotary_xpos = True, 
                 alibi_pos_bias = True,
                 alibi_num_heads = 4 
