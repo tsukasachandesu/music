@@ -151,19 +151,6 @@ class CompoundWordTransformerModel(object):
                 ff_no_bias = True,
                 attn_one_kv_head = True,
                 rel_pos_bias = True, 
-            ),
-            attn_layers1=Encoder(
-                dim=self.dim,
-                depth=1,
-                heads=self.heads,
-                ff_glu = True,
-                ff_swish = True,
-                use_rmsnorm = True,
-                layer_dropout = self.dropout,
-                attn_dropout=self.dropout,  # dropout post-attention
-                ff_dropout=self.dropout,  # feedforward dropout
-                ff_no_bias = True,
-                attn_one_kv_head = True,
             )
         )).to(get_device())
 
