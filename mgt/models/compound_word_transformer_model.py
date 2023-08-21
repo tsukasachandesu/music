@@ -73,7 +73,7 @@ class CompoundWordTransformerModel(object):
     def train(self,
               x_train,
               epochs,
-              batch_size=6,
+              batch_size=12,
               stop_loss=None,
               batches_per_epoch=100,
               report_per_x_batches=20,
