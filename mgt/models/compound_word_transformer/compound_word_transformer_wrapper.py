@@ -173,7 +173,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.compound_word_embedding_size = np.sum(emb_sizes)
                 
         self.pos_emb1 = AbsolutePositionalEmbedding(self.dim, max_seq_len)
-        self.pos_emb2 = AbsolutePositionalEmbedding(self.dim, 7)
 
         self.emb_dropout = nn.Dropout(emb_dropout)
         
@@ -305,14 +304,10 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_octave.reshape(-1,1,self.dim),
                 emb_duration.reshape(-1,1,self.dim),
             ], dim = 1)
-	    
-        z = z + self.pos_emb2(z)
-        z = self.emb_dropout(z)
-          
+	              
         z = z.reshape(x1,-1,self.dim*7)       
         z = self.in_linear(z) 
-	    
-        z = z + self.pos_emb1(z)
+        z = z + self.pos_emb1(z) + emb_type
         z = self.emb_dropout(z)
 
         mas = (x[..., 0] == 17).int()
