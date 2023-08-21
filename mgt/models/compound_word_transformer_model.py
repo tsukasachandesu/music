@@ -39,7 +39,7 @@ defaults = {
     'dropout': 0.1,
     'dim': 1024,
     'depth': 24,
-    'heads': 8
+    'heads': 16
 }
 
 
@@ -152,7 +152,7 @@ class CompoundWordTransformerModel(object):
                 attn_one_kv_head = True,
                 rotary_xpos = True,
                 alibi_pos_bias = True,
-                alibi_num_heads = 4 
+                alibi_num_heads = 8 
             )
         )).to(get_device())
 
