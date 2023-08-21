@@ -179,8 +179,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         self.attn_layers2 = attn_layers
 
         self.in_linear = nn.Linear(self.dim*7, self.dim)
-
-        self.project_concat_type = nn.Linear(self.dim*2, self.dim)
         
         self.init_()
 
@@ -200,21 +198,13 @@ class CompoundWordTransformerWrapper(nn.Module):
             temperature=selection_temperatures.get(0, 1.0)
         )
 
-        type_word_t = torch.from_numpy(np.array([cur_word_type])).long().to(get_device()).unsqueeze(0)
-
-        tf_skip_type = self.word_emb_type(type_word_t)
-
-        # concat
-        y_concat_type = torch.cat([h, tf_skip_type], dim=-1)
-        y_ = self.project_concat_type(y_concat_type)
-
         # project other
-        proj_barbeat = self.proj_barbeat(y_)
-        proj_tempo = self.proj_tempo(y_)
-        proj_instrument = self.proj_instrument(y_)
-        proj_note_name = self.proj_note_name(y_)
-        proj_octave = self.proj_octave(y_)
-        proj_duration = self.proj_duration(y_)
+        proj_barbeat = self.proj_barbeat(h)
+        proj_tempo = self.proj_tempo(h)
+        proj_instrument = self.proj_instrument(h)
+        proj_note_name = self.proj_note_name(h)
+        proj_octave = self.proj_octave(h)
+        proj_duration = self.proj_duration(h)
 
         cur_word_barbeat = sampling(
             proj_barbeat,
@@ -262,17 +252,13 @@ class CompoundWordTransformerWrapper(nn.Module):
                        h,
                        target
                        ):
-        tf_skip_type = self.word_emb_type(target[..., 0])
 
-        y_concat_type = torch.cat([h, tf_skip_type], dim=-1)
-        y_ = self.project_concat_type(y_concat_type)
-			       
-        proj_barbeat = self.proj_barbeat(y_)
-        proj_tempo = self.proj_tempo(y_)
-        proj_instrument = self.proj_instrument(y_)
-        proj_note_name = self.proj_note_name(y_)
-        proj_octave = self.proj_octave(y_)
-        proj_duration = self.proj_duration(y_)
+        proj_barbeat = self.proj_barbeat(h)
+        proj_tempo = self.proj_tempo(h)
+        proj_instrument = self.proj_instrument(h)
+        proj_note_name = self.proj_note_name(h)
+        proj_octave = self.proj_octave(h)
+        proj_duration = self.proj_duration(h)
 
         return proj_barbeat, proj_tempo, proj_instrument, proj_note_name, proj_octave, proj_duration
 
