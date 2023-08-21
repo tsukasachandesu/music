@@ -149,6 +149,7 @@ class CompoundWordTransformerModel(object):
                 attn_dropout=self.dropout,  # dropout post-attention
                 ff_dropout=self.dropout,  # feedforward dropout
                 ff_no_bias = True,
+                rotary_xpos = True,
                 alibi_pos_bias = True,
                 alibi_num_heads = 4 
             )
