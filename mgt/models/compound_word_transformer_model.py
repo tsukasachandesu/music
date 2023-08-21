@@ -37,7 +37,7 @@ defaults = {
     'max_sequence_length': 512,
     'learning_rate': 1e-4,
     'dropout': 0.1,
-    'dim': 768,
+    'dim': 1024,
     'depth': 24,
     'heads': 8
 }
@@ -73,11 +73,11 @@ class CompoundWordTransformerModel(object):
     def train(self,
               x_train,
               epochs,
-              batch_size=4,
+              batch_size=6,
               stop_loss=None,
               batches_per_epoch=100,
               report_per_x_batches=20,
-              gradient_accumulation_steps=1):
+              gradient_accumulation_steps=2):
         self.model.train()
         start_time = time.time()
         for epoch in range(epochs):
@@ -149,6 +149,7 @@ class CompoundWordTransformerModel(object):
                 attn_dropout=self.dropout,  # dropout post-attention
                 ff_dropout=self.dropout,  # feedforward dropout
                 ff_no_bias = True,
+                attn_one_kv_head = True,
                 rotary_xpos = True,
                 alibi_pos_bias = True,
                 alibi_num_heads = 4 
