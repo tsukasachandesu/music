@@ -225,7 +225,7 @@ class CompoundWordDataManager(DataManager):
         return list(map(lambda x: self.dictionary.data_to_word(x), remi))
 
     def to_midi(self, data) -> MidiWrapper:
-   
+        print(data)
         remi = self.compound_word_mapper.map_to_remi(data)
         return MidiToolkitWrapper(self.to_midi_mapper.to_midi(remi))
         
