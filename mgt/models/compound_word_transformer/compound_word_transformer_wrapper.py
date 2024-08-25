@@ -106,7 +106,7 @@ class CompoundWordTransformerWrapper(nn.Module):
 
         self.compound_word_embedding_size = np.sum(emb_sizes)
 
-        self.pos_emb = AbsolutePositionalEmbedding(512, 128) 
+        self.pos_emb = AbsolutePositionalEmbedding(dim, self.max_seq_len) 
         self.emb_dropout = nn.Dropout(emb_dropout)
 
         self.project_emb = nn.Linear(emb_dim, dim) if emb_dim != dim else nn.Identity()
@@ -235,7 +235,6 @@ class CompoundWordTransformerWrapper(nn.Module):
             ], dim=-1)
 
         emb_linear = self.in_linear(embs)
-
         x = emb_linear + self.pos_emb(emb_linear)
         x = self.emb_dropout(x)
         x = self.project_emb(x)
