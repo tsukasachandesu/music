@@ -223,6 +223,7 @@ class CompoundWordTransformerWrapper(nn.Module):
         emb_instrument = self.word_emb_instrument(x[..., 3])
         emb_note_name = self.word_emb_note_name(x[..., 4])
         emb_octave = self.word_emb_octave(x[..., 5])
+    
 
         embs = torch.cat(
             [
@@ -234,7 +235,13 @@ class CompoundWordTransformerWrapper(nn.Module):
                 emb_octave,
             ], dim=-1)
 
+        print("Shape of embs:", embs.shape)
+
         emb_linear = self.in_linear(embs)
+
+        print("Shape of linear:", self.in_linear(embs).shape)
+
+        print("Shape of pos:", self.pos_emb(emb_linear).shape)
 
         x = emb_linear + self.pos_emb(emb_linear)
         x = self.emb_dropout(x)
