@@ -149,7 +149,6 @@ class CompoundWordTransformerWrapper(nn.Module):
         proj_tempo = self.proj_tempo(y_)
         proj_instrument = self.proj_instrument(y_)
         proj_note_name = self.proj_note_name(y_)
-        proj_octave = self.proj_octave(y_)
 
         # sampling gen_cond
         cur_word_barbeat = sampling(
