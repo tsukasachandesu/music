@@ -112,5 +112,33 @@ class CompoundWordDataManager(DataManager):
         return list(map(lambda x: self.dictionary.data_to_word(x), remi))
 
     def to_midi(self, data) -> MidiWrapper:
-        remi = self.compound_word_mapper.map_to_remi(data)
+
+
+      def process_dataset(dataset):
+        for i in range(len(dataset.data)):
+          new_data_i = []
+          for item in dataset.data[i]:
+            if item[0] != 17:
+              new_data_i.append([item[0], 0, 0, 0, 0, 0])
+            new_data_i.append(item)
+          dataset.data[i] = new_data_i
+        for i in range(len(dataset.data)):
+          dataset.data[i] = [
+            [2 if all(x == 0 for x in item[2:5]) else 3] + item
+            for item in dataset.data[i]
+          ]
+        for i in range(len(dataset.data)):
+          for item in dataset.data[i]:
+            if item[1] == 17:
+              item[1] = 0
+        for i in range(len(dataset.data)):
+          dataset.data[i] = [item[:-1] for item in dataset.data[i]]
+        for i in range(len(dataset.data)):
+          dataset.data[i] = [item[:2] + [67] + item[2:] for item in dataset.data[i]]
+        for i in range(len(dataset.data)):
+          dataset.data[i] = [item + [31] for item in dataset.data[i]]
+        return dataset
+        
+        
+        remi = self.compound_word_mapper.map_to_remi(process_dataset(data))
         return MidiToolkitWrapper(self.to_midi_mapper.to_midi(remi))
