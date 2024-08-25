@@ -59,8 +59,54 @@ class CompoundWordDataManager(DataManager):
                 except Exception as e:
                     print(f"Exception: {e}")
 
-        return DataSet(training_data, self.dictionary)
+def prepare_data(self, midi_paths) -> DataSet:
+        training_data = []
+        for path in midi_paths:
+            for transposition_step in self.transposition_steps:
+                try:
+                    data = self.data_extractor.extract_words(path, transposition_step)
 
+                    compound_words = self.compound_word_mapper.map_to_compound(data, self.dictionary)
+                    compound_data = self.compound_word_mapper.map_compound_words_to_data(compound_words)
+                    
+                    print(f'Extracted {len(compound_data)} compound words.')
+
+                    training_data.append(compound_data)
+                except Exception as e:
+                    print(f"Exception: {e}")
+        
+        dataset = DataSet(training_data, self.dictionary)
+
+        for i in range(len(dataset.data)):
+            for j in range(len(dataset.data[i])):
+                del dataset.data[i][j][2]
+                del dataset.data[i][j][-1]
+        for i in range(len(dataset.data)):
+            bar_offset = 0
+            for j in range(len(dataset.data[i])):
+                if dataset.data[i][j][0] == 2:
+                    bar_offset = dataset.data[i][j][1]
+                elif dataset.data[i][j][0] == 3:
+                    dataset.data[i][j][1] = bar_offset
+        for i in range(len(dataset.data)):
+            dataset.data[i] = [
+                item for item in dataset.data[i]
+                if item[0] != 2 or all(x == 0 for x in item[1:])
+            ]
+        for i in range(len(dataset.data)):
+            count_2 = -1
+            for j in range(len(dataset.data[i])):
+                if dataset.data[i][j][0] == 2:
+                    count_2 += 1
+                dataset.data[i][j].append(count_2)
+        for i in range(len(dataset.data)):
+            dataset.data[i] = [item[1:] for item in dataset.data[i]]
+        for i in range(len(dataset.data)):
+            for j in range(len(dataset.data[i])):
+                if dataset.data[i][j][0] == 0:
+                    dataset.data[i][j][0] = 17
+
+        return dataset
     def to_remi(self, data):
         remi = self.compound_word_mapper.map_to_remi(data)
         return list(map(lambda x: self.dictionary.data_to_word(x), remi))
