@@ -81,6 +81,7 @@ class CompoundWordDataManager(DataManager):
             for j in range(len(dataset.data[i])):
                 del dataset.data[i][j][2]
                 del dataset.data[i][j][-1]
+                
         for i in range(len(dataset.data)):
             bar_offset = 0
             for j in range(len(dataset.data[i])):
@@ -88,24 +89,21 @@ class CompoundWordDataManager(DataManager):
                     bar_offset = dataset.data[i][j][1]
                 elif dataset.data[i][j][0] == 3:
                     dataset.data[i][j][1] = bar_offset
+                    
         for i in range(len(dataset.data)):
             dataset.data[i] = [
                 item for item in dataset.data[i]
                 if item[0] != 2 or all(x == 0 for x in item[1:])
-            ]
+            ]  
+            
         for i in range(len(dataset.data)):
-            count_2 = -1
             for j in range(len(dataset.data[i])):
-                if dataset.data[i][j][0] == 2:
-                    count_2 += 1
-                dataset.data[i][j].append(count_2)
+                if dataset.data[i][j][0] == 2 and all(x == 0 for x in dataset.data[i][j][1:]):
+                    dataset.data[i][j][1] = 17
+                
         for i in range(len(dataset.data)):
             dataset.data[i] = [item[1:] for item in dataset.data[i]]
-        for i in range(len(dataset.data)):
-            for j in range(len(dataset.data[i])):
-                if dataset.data[i][j][0] == 0:
-                    dataset.data[i][j][0] = 17
-
+            
         return dataset
     def to_remi(self, data):
         remi = self.compound_word_mapper.map_to_remi(data)
@@ -116,19 +114,18 @@ class CompoundWordDataManager(DataManager):
         new_data_i = []
         for item in data:
             if item[0] != 17:
-                new_data_i.append([item[0], 0, 0, 0, 0, 0])
+                if item[0] != 0:
+                    new_data_i.append([item[0], 0, 0, 0, 0])
             new_data_i.append(item)
         data = new_data_i
         data = [
-            [2 if all(x == 0 for x in item[2:5]) else 3] + item
+            [2 if all(x == 0 for x in item[2:4]) else 3] + item
             for item in data
         ]
         for item in data:
             if item[1] == 17:
                 item[1] = 0
-        data = [item[:-1] for item in data]
-        data = [item[:2] + [67] + item[2:] for item in data]
-        data = [item + [31] for item in data]
+        data = [item[:2] + [67] + item[2:] + [31]  for item in data]
         
         remi = self.compound_word_mapper.map_to_remi(data)
         return MidiToolkitWrapper(self.to_midi_mapper.to_midi(remi))
