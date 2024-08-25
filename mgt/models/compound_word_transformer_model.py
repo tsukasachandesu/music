@@ -138,10 +138,8 @@ class CompoundWordTransformerModel(object):
                 depth=1,
                 heads=8,
                 long_gemini_depth=1,
-                ring_seq_size=512,
-                dim_head=128, 
-                qk_norm=True,
-                num_grouped_query_heads= 2
+                dim_head=128,
+                ring_seq_size=512
             )
         )).to(get_device())
 
