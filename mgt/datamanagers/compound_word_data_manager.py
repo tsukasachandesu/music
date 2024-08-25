@@ -225,7 +225,24 @@ class CompoundWordDataManager(DataManager):
         return list(map(lambda x: self.dictionary.data_to_word(x), remi))
 
     def to_midi(self, data) -> MidiWrapper:
-        print(data)
+        
+        new_data_i = []
+        for item in data:
+            if item[0] != 17:
+                new_data_i.append([item[0], 0, 0, 0, 0, 0])
+            new_data_i.append(item)
+        data = new_data_i
+        data = [
+            [2 if all(x == 0 for x in item[2:5]) else 3] + item
+            for item in data
+        ]
+        for item in data:
+            if item[1] == 17:
+                item[1] = 0
+        data = [item[:-1] for item in data]
+        data = [item[:2] + [67] + item[2:] for item in data]
+        data = [item + [31] for item in data]
+        
         remi = self.compound_word_mapper.map_to_remi(data)
         return MidiToolkitWrapper(self.to_midi_mapper.to_midi(remi))
         
