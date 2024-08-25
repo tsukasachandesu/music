@@ -59,7 +59,7 @@ class CompoundWordDataManager(DataManager):
                 except Exception as e:
                     print(f"Exception: {e}")
 
-def prepare_data(self, midi_paths) -> DataSet:
+    def prepare_data(self, midi_paths) -> DataSet:
         training_data = []
         for path in midi_paths:
             for transposition_step in self.transposition_steps:
