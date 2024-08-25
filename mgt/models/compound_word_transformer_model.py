@@ -12,6 +12,8 @@ from mgt.models.compound_word_transformer.compound_word_transformer_utils import
 from mgt.models.compound_word_transformer.compound_word_transformer_wrapper import CompoundWordTransformerWrapper
 from mgt.models.utils import get_device
 
+from ring_attention_pytorch.ring_attention import RingTransformer
+
 defaults = {
     'num_tokens': [
         18,   # Bar / Beat
@@ -131,10 +133,11 @@ class CompoundWordTransformerModel(object):
             num_tokens=self.num_tokens,
             emb_sizes=self.emb_sizes,
             max_seq_len=self.max_sequence_length,
-            attn_layers=Decoder(
+            attn_layers=RingTransformer(
                 dim=512,
                 depth=1,
-                heads=8
+                heads=8,
+                ring_attn = True
             )
         )).to(get_device())
 
