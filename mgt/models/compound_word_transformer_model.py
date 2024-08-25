@@ -12,6 +12,7 @@ from mgt.models.compound_word_transformer.compound_word_transformer_utils import
 from mgt.models.compound_word_transformer.compound_word_transformer_wrapper import CompoundWordTransformerWrapper
 from mgt.models.utils import get_device
 
+from gemini_torch import LongGemini
 
 defaults = {
     'num_tokens': [
@@ -132,13 +133,14 @@ class CompoundWordTransformerModel(object):
             num_tokens=self.num_tokens,
             emb_sizes=self.emb_sizes,
             max_seq_len=self.max_sequence_length,
-            attn_layers=Decoder(
-                dim=self.dim,
-                depth=self.depth,
-                heads=self.heads,
-                attn_dropout=self.dropout,  # dropout post-attention
-                ff_dropout=self.dropout,  # feedforward dropout
-                rotary_pos_emb=True
+            attn_layers=LongGemini(
+                dim=512,
+                depth=1,
+                heads=8,
+                long_gemini_depth=1,
+                ring_seq_size=512,
+                dim_head=128, 
+                qk_norm=True
             )
         )).to(get_device())
 
