@@ -76,6 +76,7 @@ class CompoundWordDataManager(DataManager):
                     print(f"Exception: {e}")
         
         dataset = DataSet(training_data, self.dictionary)
+        print(dataset.data)
 
         for i in range(len(dataset.data)):
             for j in range(len(dataset.data[i])):
