@@ -18,16 +18,15 @@ defaults = {
         129,  # Instrument
         12,   # Note name
         9,    # Octave
-        64,   # Duration
-        256
+        64   # Duration
     ],
     'emb_sizes': [
         96,   # Bar / Beat
         512,  # Instrument
         128,  # Note Name
         128,  # Octave
-        256,  # Duration
-        256
+        256  # Duration
+        
     ],
     'max_sequence_length': 512,
     'learning_rate': 1e-4,
