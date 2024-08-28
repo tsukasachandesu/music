@@ -118,7 +118,10 @@ class CompoundWordDataManager(DataManager):
         return list(map(lambda x: self.dictionary.data_to_word(x), remi))
 
     def to_midi(self, data) -> MidiWrapper:
-        
+
+        for item in data:
+            item.pop()
+            
         new_data_i = []
         for item in data:
             if item[0] != 17:
