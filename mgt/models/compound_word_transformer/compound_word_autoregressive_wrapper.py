@@ -74,6 +74,5 @@ class CompoundWordAutoregressiveWrapper(nn.Module):
         tempo_loss = calculate_loss(proj_tempo, target[..., 2], type_mask(target))
         instrument_loss = calculate_loss(proj_instrument, target[..., 3], type_mask(target))
         note_name_loss = calculate_loss(proj_note_name, target[..., 4], type_mask(target))
-        ren_loss = calculate_loss(ren, target[..., 5], type_mask(target))
         
-        return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss,ren_loss
+        return type_loss, barbeat_loss, tempo_loss, instrument_loss, note_name_loss
