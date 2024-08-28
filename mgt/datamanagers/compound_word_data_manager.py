@@ -104,6 +104,13 @@ class CompoundWordDataManager(DataManager):
                 
         for i in range(len(dataset.data)):
             dataset.data[i] = [item[1:] for item in dataset.data[i]]
+
+        for i in range(len(dataset.data)):
+            bar_offset = -1
+            for j in range(len(dataset.data[i])):
+                if dataset.data[i][j][0] == 17:
+                    bar_offset  += 1
+                dataset.data[i][j].append(bar_offset)
             
         return dataset
     def to_remi(self, data):
